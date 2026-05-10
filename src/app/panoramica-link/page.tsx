@@ -1,5 +1,7 @@
 import { readLinkOverviewRows } from "@/lib/sheets";
 
+export const dynamic = "force-dynamic";
+
 const columns = [
   { key: "coinbase", label: "COINBASE" },
   { key: "bbva", label: "BBVA" },

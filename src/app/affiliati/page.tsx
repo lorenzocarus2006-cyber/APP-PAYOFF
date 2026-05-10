@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES } from "@/config/dropdowns";
 import type { AffiliatePayment, AffiliateSummary } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 type AffiliatesResponse = {
   summaries: AffiliateSummary[];
   payments: AffiliatePayment[];
