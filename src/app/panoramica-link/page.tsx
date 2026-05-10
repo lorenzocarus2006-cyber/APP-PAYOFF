@@ -27,16 +27,16 @@ export default async function PanoramicaLinkPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-[#f5f7fa] px-4 py-5 text-slate-900 sm:px-6 sm:py-7 md:px-8 md:py-10">
-      <main className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6">
-        <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#EEF4FF] to-[#F8FAFF] px-5 py-5 text-[#1A1A2E]">
+      <main className="mx-auto w-full space-y-5">
+        <header className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Panoramica Link</h1>
           <p className="mt-2 text-base text-slate-600 sm:text-lg">
             Conteggio Link per Intestatario
           </p>
         </header>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className="rounded-2xl bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.08)] sm:p-6">
           <div className="overflow-x-auto">
             <table className="min-w-[860px] w-full border-collapse text-left">
               <thead>

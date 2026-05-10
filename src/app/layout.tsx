@@ -28,8 +28,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#f5f7fa] text-slate-900">
-        <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-0 pb-[76px]">
+      <body className="min-h-full bg-[#f5f7fa] text-[#1A1A2E]">
+        <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col px-0 pb-[84px]">
           {children}
         </div>
         <BottomNav />

@@ -31,6 +31,25 @@ function money(value: number) {
   return value.toFixed(2);
 }
 
+const AFFILIATE_HEADER_COLORS: Record<string, string> = {
+  AGATA: "#FF6B6B",
+  DAVIDE: "#4ECDC4",
+  SAMUEL: "#45B7D1",
+  LELE: "#96CEB4",
+  ZINNA: "#FFEAA7",
+  "LUCA LADRO": "#DDA0DD",
+  "DANIELE LO FARO": "#98D8C8",
+  PITTA: "#F7DC6F",
+  PEPI: "#BB8FCE",
+  TONY: "#85C1E9",
+  EXTRA6: "#F0B27A",
+  EXTRA7: "#82E0AA",
+};
+
+function affiliateHeaderTextColor(name: string) {
+  return name === "ZINNA" || name === "PITTA" ? "#1A1A2E" : "#ffffff";
+}
+
 export default function AffiliatiPage() {
   const [summaries, setSummaries] = useState<AffiliateSummary[]>([]);
   const [payments, setPayments] = useState<AffiliatePayment[]>([]);
@@ -104,11 +123,11 @@ export default function AffiliatiPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f7fa] px-4 py-5 text-slate-900 sm:px-6 sm:py-7 md:px-8 md:py-10">
-      <main className="mx-auto w-full max-w-5xl space-y-5 sm:space-y-6 md:space-y-7">
-        <header className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#EEF4FF] to-[#F8FAFF] px-5 py-5 text-[#1A1A2E]">
+      <main className="mx-auto w-full space-y-5">
+        <header className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
-          <p className="mt-2 text-base text-slate-600 sm:text-lg">Registro affiliati e pagamenti</p>
+          <p className="mt-2 text-base text-[#6B7280]">Registro affiliati e pagamenti</p>
         </header>
 
         {error ? (
@@ -123,35 +142,41 @@ export default function AffiliatiPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold sm:text-2xl">Card Affiliati</h2>
           {loading ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
+            <div className="rounded-2xl bg-white p-6 text-[#6B7280] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
               Caricamento dati affiliati...
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3">
               {visibleSummaries.map((summary) => (
                 <article
                   key={summary.nome}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
                 >
-                  <h3 className="mb-2 text-base font-bold text-[#0066ff] sm:text-lg">
-                    {summary.nome}
-                  </h3>
-                  <dl className="space-y-1 text-sm sm:text-base">
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500">Generato</dt>
-                      <dd className="font-semibold">{money(summary.generato)}</dd>
+                  <div
+                    className="px-4 py-3"
+                    style={{
+                      backgroundColor: AFFILIATE_HEADER_COLORS[summary.nome] ?? "#2D7DD2",
+                      color: affiliateHeaderTextColor(summary.nome),
+                    }}
+                  >
+                    <h3 className="text-sm font-extrabold leading-tight sm:text-base">{summary.nome}</h3>
+                  </div>
+                  <dl className="grid grid-cols-2 gap-2 p-3">
+                    <div className="rounded-xl bg-emerald-50 p-2">
+                      <dt className="text-xs text-[#16A34A]">💰 Generato</dt>
+                      <dd className="text-2xl font-extrabold text-[#16A34A]">{money(summary.generato)}</dd>
                     </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500">Pagato</dt>
-                      <dd className="font-semibold">{money(summary.pagato)}</dd>
+                    <div className="rounded-xl bg-blue-50 p-2">
+                      <dt className="text-xs text-[#2563EB]">✅ Pagato</dt>
+                      <dd className="text-2xl font-extrabold text-[#2563EB]">{money(summary.pagato)}</dd>
                     </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500">Da pagare</dt>
-                      <dd className="font-semibold">{money(summary.daPagare)}</dd>
+                    <div className="rounded-xl bg-orange-50 p-2">
+                      <dt className="text-xs text-[#EA580C]">⏳ Da pagare</dt>
+                      <dd className="text-2xl font-extrabold text-[#EA580C]">{money(summary.daPagare)}</dd>
                     </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-slate-500"># Pagamenti</dt>
-                      <dd className="font-semibold">{summary.pagamentiCount}</dd>
+                    <div className="rounded-xl bg-violet-50 p-2">
+                      <dt className="text-xs text-[#7C3AED]">🔢 Pagamenti</dt>
+                      <dd className="text-2xl font-extrabold text-[#7C3AED]">{summary.pagamentiCount}</dd>
                     </div>
                   </dl>
                 </article>
@@ -160,13 +185,13 @@ export default function AffiliatiPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-semibold sm:text-2xl">Registro Pagamenti</h2>
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="min-h-12 w-full rounded-xl bg-[#0066ff] px-5 py-3 text-lg font-bold text-white sm:w-auto"
+              className="min-h-12 w-full rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)] sm:w-auto"
             >
               ＋ Registra Nuovo Pagamento
             </button>
@@ -202,8 +227,8 @@ export default function AffiliatiPage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-50 bg-slate-900/30 p-0 sm:flex sm:items-center sm:justify-center sm:p-4">
-          <div className="h-screen w-full overflow-y-auto bg-white p-5 sm:h-auto sm:max-h-[95vh] sm:max-w-2xl sm:rounded-2xl sm:border sm:border-slate-200 sm:p-6">
+        <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm">
+          <div className="h-screen w-full overflow-y-auto bg-white p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.16)]">
             <h2 className="mb-4 text-2xl font-bold sm:text-3xl">Registra Nuovo Pagamento</h2>
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-1">
@@ -213,7 +238,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliato: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-lg"
+                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
                 >
                   {AFFILIATES.map((affiliate) => (
                     <option key={affiliate} value={affiliate}>
@@ -231,7 +256,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, importo: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-lg"
+                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
                 />
               </label>
 
@@ -241,7 +266,7 @@ export default function AffiliatiPage() {
                   type="date"
                   value={form.data}
                   onChange={(event) => setForm((prev) => ({ ...prev, data: event.target.value }))}
-                  className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-lg"
+                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
                 />
               </label>
 
@@ -252,7 +277,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, modalita: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-lg"
+                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
                 >
                   <option value="">-</option>
                 </select>
@@ -264,7 +289,7 @@ export default function AffiliatiPage() {
                   value={form.note}
                   onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
                   rows={3}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-base sm:text-lg"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
                 />
               </label>
             </div>
@@ -273,7 +298,7 @@ export default function AffiliatiPage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-xl border border-slate-300 px-5 py-3 text-lg font-semibold"
+                className="min-h-12 rounded-2xl border border-slate-300 px-5 py-3 text-lg font-semibold"
               >
                 Annulla
               </button>
@@ -281,7 +306,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSavePayment()}
-                className="min-h-12 rounded-xl bg-[#0066ff] px-5 py-3 text-lg font-bold text-white disabled:opacity-60"
+                className="min-h-12 rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)] disabled:opacity-60"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
