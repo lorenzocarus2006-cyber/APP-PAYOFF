@@ -12,14 +12,14 @@ const columns = [
   { key: "ing", label: "ING" },
 ] as const;
 
-const badgeColors: Record<(typeof columns)[number]["key"], string> = {
-  coinbase: "bg-[#0052FF] text-white",
-  bbva: "bg-[#004481] text-white",
-  binance: "bg-[#F0B90B] text-black",
-  buddybank: "bg-[#FF4B7B] text-white",
-  isybank: "bg-[#FF6B35] text-white",
-  revolut: "bg-[#1A1A2E] text-white",
-  ing: "bg-[#FF6200] text-white",
+const numberColors: Record<(typeof columns)[number]["key"], string> = {
+  coinbase: "#0052FF",
+  bbva: "#004481",
+  binance: "#D4A017",
+  buddybank: "#FF4B7B",
+  isybank: "#FF6B35",
+  revolut: "#374151",
+  ing: "#FF6200",
 };
 
 export default async function PanoramicaLinkPage() {
@@ -37,45 +37,56 @@ export default async function PanoramicaLinkPage() {
           <p className="mt-2 text-base text-white/80">Conteggio Link per Intestatario</p>
         </header>
 
-        {rows.map((row) => {
-          const activeBadges = columns.filter((column) => row[column.key] > 0);
-          return (
-            <article
-              key={row.intestatario}
-              className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
-            >
-              <h2 className="text-xl font-bold">{row.intestatario}</h2>
-              {activeBadges.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {activeBadges.map((column) => (
-                    <span
-                      key={column.key}
-                      className={`rounded-full px-3 py-1 text-sm font-bold ${badgeColors[column.key]}`}
-                    >
-                      {column.label}: {row[column.key]}
-                    </span>
+        <section className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[860px] w-full border-collapse text-left">
+              <thead>
+                <tr className="bg-[#2D7DD2] text-sm uppercase tracking-wide text-white">
+                  <th className="px-3 py-3 font-bold">Intestatario</th>
+                  {columns.map((column) => (
+                    <th key={column.key} className="px-3 py-3 text-center font-bold">
+                      {column.label}
+                    </th>
                   ))}
-                </div>
-              ) : (
-                <div className="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500">
-                  Nessun link
-                </div>
-              )}
-            </article>
-          );
-        })}
-
-        <section className="rounded-2xl bg-[#DCEBFF] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
-          <h2 className="text-xl font-extrabold text-[#2D7DD2]">TOTALE</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {columns.map((column) => (
-              <span
-                key={column.key}
-                className={`rounded-full px-3 py-1 text-sm font-bold ${badgeColors[column.key]}`}
-              >
-                {column.label}: {totals[column.key] ?? 0}
-              </span>
-            ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <tr
+                    key={row.intestatario}
+                    className={index % 2 === 0 ? "bg-white" : "bg-[#F8FAFF]"}
+                  >
+                    <td className="px-3 py-3 text-base font-semibold text-[#1A1A2E]">
+                      {row.intestatario}
+                    </td>
+                    {columns.map((column) => {
+                      const value = row[column.key];
+                      const hasValue = value > 0;
+                      return (
+                        <td key={column.key} className="px-3 py-3 text-center text-lg">
+                          <span
+                            className={hasValue ? "font-bold" : ""}
+                            style={{
+                              color: hasValue ? numberColors[column.key] : "#D1D5DB",
+                            }}
+                          >
+                            {value}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+                <tr className="bg-[#2D7DD2] text-white">
+                  <td className="px-3 py-3 text-base font-bold">TOTALE</td>
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-3 py-3 text-center text-lg font-bold">
+                      {totals[column.key] ?? 0}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
       </main>

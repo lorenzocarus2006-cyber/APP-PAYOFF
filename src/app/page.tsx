@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
@@ -37,26 +38,6 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 function platformColor(name: string) {
   return PLATFORM_COLORS[name] ?? "#2D7DD2";
-}
-
-function PayoffWordmark() {
-  return (
-    <div className="mx-auto flex w-[200px] items-center justify-center gap-2">
-      <svg viewBox="0 0 48 48" className="h-10 w-10" fill="none" aria-hidden>
-        <path
-          d="M24 3L40.5 12.5V31.5L24 41L7.5 31.5V12.5L24 3Z"
-          stroke="#ffffff"
-          strokeWidth="3"
-        />
-        <path
-          d="M24 12L31.5 16.3V24.9L24 29.2L16.5 24.9V16.3L24 12Z"
-          fill="#ffffff"
-          opacity="0.95"
-        />
-      </svg>
-      <span className="text-3xl font-extrabold tracking-wide text-white">PAYOFF</span>
-    </div>
-  );
 }
 
 export default function HomePage() {
@@ -211,12 +192,19 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#2D7DD2] px-5 py-5 text-[#1A1A2E]">
+    <div className="min-h-screen bg-[#F0F4FF] px-5 py-5 text-[#1A1A2E]">
       <main className="mx-auto w-full space-y-5">
-        <header className="space-y-3 pb-8 pt-10 text-center">
-          <PayoffWordmark />
+        <header className="-mx-5 -mt-5 bg-[#2D7DD2] px-5 pb-8 pt-10 text-center">
+          <Image
+            src="/logo.png"
+            alt="PayOff logo"
+            width={200}
+            height={80}
+            priority
+            className="mx-auto mb-4 w-[200px] mix-blend-screen brightness-[10]"
+          />
           <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao! 👋</h1>
-          <p className="text-base text-white/60">Gestisci i tuoi bonus</p>
+          <p className="text-base text-white/80">Gestisci i tuoi bonus</p>
         </header>
 
         <section className="rounded-2xl bg-white p-5 text-[#1A1A2E] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
