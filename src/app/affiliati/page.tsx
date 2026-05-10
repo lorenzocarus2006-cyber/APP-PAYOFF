@@ -123,11 +123,11 @@ export default function AffiliatiPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#EEF4FF] to-[#F8FAFF] px-5 py-5 text-[#1A1A2E]">
+    <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+        <header className="rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
-          <p className="mt-2 text-base text-[#6B7280]">Registro affiliati e pagamenti</p>
+          <p className="mt-2 text-base text-white/70">Registro affiliati e pagamenti</p>
         </header>
 
         {error ? (
@@ -142,7 +142,7 @@ export default function AffiliatiPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold sm:text-2xl">Card Affiliati</h2>
           {loading ? (
-            <div className="rounded-2xl bg-white p-6 text-[#6B7280] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+            <div className="rounded-2xl border border-white/25 bg-white/10 p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
               Caricamento dati affiliati...
             </div>
           ) : (
@@ -150,7 +150,7 @@ export default function AffiliatiPage() {
               {visibleSummaries.map((summary) => (
                 <article
                   key={summary.nome}
-                  className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
+                  className="overflow-hidden rounded-2xl border border-white/25 bg-white/12 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
                 >
                   <div
                     className="px-4 py-3"
@@ -162,21 +162,21 @@ export default function AffiliatiPage() {
                     <h3 className="text-sm font-extrabold leading-tight sm:text-base">{summary.nome}</h3>
                   </div>
                   <dl className="grid grid-cols-2 gap-2 p-3">
-                    <div className="rounded-xl bg-emerald-50 p-2">
-                      <dt className="text-xs text-[#16A34A]">💰 Generato</dt>
-                      <dd className="text-2xl font-extrabold text-[#16A34A]">{money(summary.generato)}</dd>
+                    <div className="rounded-xl bg-emerald-500/20 p-2">
+                      <dt className="text-xs text-white/70">💰 Generato</dt>
+                      <dd className="text-[26px] font-extrabold text-white">{money(summary.generato)}</dd>
                     </div>
-                    <div className="rounded-xl bg-blue-50 p-2">
-                      <dt className="text-xs text-[#2563EB]">✅ Pagato</dt>
-                      <dd className="text-2xl font-extrabold text-[#2563EB]">{money(summary.pagato)}</dd>
+                    <div className="rounded-xl bg-blue-500/20 p-2">
+                      <dt className="text-xs text-white/70">✅ Pagato</dt>
+                      <dd className="text-[26px] font-extrabold text-white">{money(summary.pagato)}</dd>
                     </div>
-                    <div className="rounded-xl bg-orange-50 p-2">
-                      <dt className="text-xs text-[#EA580C]">⏳ Da pagare</dt>
-                      <dd className="text-2xl font-extrabold text-[#EA580C]">{money(summary.daPagare)}</dd>
+                    <div className="rounded-xl bg-orange-500/20 p-2">
+                      <dt className="text-xs text-white/70">⏳ Da pagare</dt>
+                      <dd className="text-[26px] font-extrabold text-white">{money(summary.daPagare)}</dd>
                     </div>
-                    <div className="rounded-xl bg-violet-50 p-2">
-                      <dt className="text-xs text-[#7C3AED]">🔢 Pagamenti</dt>
-                      <dd className="text-2xl font-extrabold text-[#7C3AED]">{summary.pagamentiCount}</dd>
+                    <div className="rounded-xl bg-violet-500/20 p-2">
+                      <dt className="text-xs text-white/70">🔢 Pagamenti</dt>
+                      <dd className="text-[26px] font-extrabold text-white">{summary.pagamentiCount}</dd>
                     </div>
                   </dl>
                 </article>
@@ -185,13 +185,13 @@ export default function AffiliatiPage() {
           )}
         </section>
 
-        <section className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+        <section className="rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-semibold sm:text-2xl">Registro Pagamenti</h2>
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="min-h-12 w-full rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)] sm:w-auto"
+              className="min-h-12 w-full rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] sm:w-auto"
             >
               ＋ Registra Nuovo Pagamento
             </button>
@@ -200,7 +200,7 @@ export default function AffiliatiPage() {
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-[680px] w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-slate-200 text-sm uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-white/20 text-sm uppercase tracking-wide text-white/80">
                   <th className="px-3 py-3 font-semibold">Affiliato</th>
                   <th className="px-3 py-3 font-semibold">Importo</th>
                   <th className="px-3 py-3 font-semibold">Data</th>
@@ -210,9 +210,9 @@ export default function AffiliatiPage() {
               </thead>
               <tbody>
                 {payments.map((payment, index) => (
-                  <tr key={`${payment.affiliato}-${payment.data}-${index}`} className="border-b border-slate-100">
+                  <tr key={`${payment.affiliato}-${payment.data}-${index}`} className="border-b border-white/10">
                     <td className="px-3 py-3 font-semibold">{payment.affiliato}</td>
-                    <td className="px-3 py-3 font-semibold text-[#0066ff]">
+                    <td className="px-3 py-3 font-semibold text-white">
                       {money(payment.importo)}
                     </td>
                     <td className="px-3 py-3">{payment.data || "-"}</td>
@@ -227,18 +227,18 @@ export default function AffiliatiPage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm">
-          <div className="h-screen w-full overflow-y-auto bg-white p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.16)]">
-            <h2 className="mb-4 text-2xl font-bold sm:text-3xl">Registra Nuovo Pagamento</h2>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm">
+          <div className="h-screen w-full overflow-y-auto bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+            <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">Registra Nuovo Pagamento</h2>
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Affiliato</span>
+                <span className="text-base text-white/80 sm:text-lg">Affiliato</span>
                 <select
                   value={form.affiliato}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliato: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   {AFFILIATES.map((affiliate) => (
                     <option key={affiliate} value={affiliate}>
@@ -249,47 +249,47 @@ export default function AffiliatiPage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Importo</span>
+                <span className="text-base text-white/80 sm:text-lg">Importo</span>
                 <input
                   type="number"
                   value={form.importo}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, importo: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Data</span>
+                <span className="text-base text-white/80 sm:text-lg">Data</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) => setForm((prev) => ({ ...prev, data: event.target.value }))}
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Modalita</span>
+                <span className="text-base text-white/80 sm:text-lg">Modalita</span>
                 <select
                   value={form.modalita}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, modalita: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
                 </select>
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Note</span>
+                <span className="text-base text-white/80 sm:text-lg">Note</span>
                 <textarea
                   value={form.note}
                   onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
                   rows={3}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
             </div>
@@ -298,7 +298,7 @@ export default function AffiliatiPage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-2xl border border-slate-300 px-5 py-3 text-lg font-semibold"
+                className="min-h-12 rounded-2xl border border-white/70 bg-transparent px-5 py-3 text-lg font-semibold text-white"
               >
                 Annulla
               </button>
@@ -306,7 +306,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSavePayment()}
-                className="min-h-12 rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)] disabled:opacity-60"
+                className="min-h-12 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

@@ -192,34 +192,34 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F4FF] px-5 py-5 text-[#1A1A2E]">
+    <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="-mx-5 -mt-5 bg-[#2D7DD2] px-5 pb-8 pt-10 text-center">
+        <header className="-mx-5 -mt-5 bg-transparent px-5 pb-8 pt-10 text-center">
           <Image
             src="/logo.png"
             alt="PayOff logo"
             width={200}
             height={80}
             priority
-            className="mx-auto mb-4 w-[200px] mix-blend-screen brightness-[10]"
+            className="mx-auto mb-4 w-[200px] [filter:brightness(0)_invert(1)]"
           />
           <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao! 👋</h1>
-          <p className="text-base text-white/80">Gestisci i tuoi bonus</p>
+          <p className="text-base text-white/70">Gestisci i tuoi bonus</p>
         </header>
 
-        <section className="rounded-2xl bg-white p-5 text-[#1A1A2E] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+        <section className="rounded-[24px] border border-white/30 bg-white/15 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
           <h2 className="text-xl font-bold">Registra Nuovo Bonus</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">Aggiungi una nuova riga al foglio.</p>
+          <p className="mt-1 text-sm text-white/80">Aggiungi una nuova riga al foglio.</p>
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="mt-4 min-h-12 w-full rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-4 text-xl font-extrabold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)]"
+            className="mt-4 min-h-12 w-full rounded-2xl bg-white px-5 py-4 text-xl font-extrabold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.15)]"
           >
             ＋ Registra Nuovo Bonus
           </button>
         </section>
 
-        <section className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+        <section className="rounded-[24px] border border-white/30 bg-white/15 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
           <h2 className="mb-3 text-xl font-bold">Cerca persona</h2>
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
@@ -229,7 +229,7 @@ export default function HomePage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cerca persona..."
-              className="min-h-14 w-full rounded-xl border border-slate-200 bg-white py-4 pl-12 pr-4 text-lg font-medium outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+              className="min-h-14 w-full rounded-xl border border-white/30 bg-white/20 py-4 pl-12 pr-4 text-lg font-medium text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
             />
           </div>
         </section>
@@ -252,29 +252,29 @@ export default function HomePage() {
             </h2>
 
             {loadingRead ? (
-              <div className="rounded-2xl bg-white p-6 text-base text-[#6B7280] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
                 Caricamento righe in corso...
               </div>
             ) : filteredRows.length === 0 ? (
-              <div className="rounded-2xl bg-white p-6 text-base text-[#6B7280] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
+              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
                 Nessun risultato
               </div>
             ) : (
               filteredRows.map((row) => (
                 <article
                   key={row.rowNumber}
-                  className="rounded-2xl bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
+                  className="rounded-[20px] border border-white/25 bg-white/12 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
                   style={{ borderLeft: `4px solid ${platformColor(row.piattaforma)}` }}
                 >
                   <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <h3 className="text-xl font-bold">{row.personaInvitata || "(senza nome)"}</h3>
+                    <h3 className="text-xl font-bold text-white">{row.personaInvitata || "(senza nome)"}</h3>
                     <span
                       className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadge(row.stato)}`}
                     >
                       {row.stato || "N/D"}
                     </span>
                     <span
-                      className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                      className="ml-auto rounded-full px-3 py-1 text-xs font-bold text-white"
                       style={{ backgroundColor: platformColor(row.piattaforma) }}
                     >
                       {row.piattaforma || "PIATTAFORMA"}
@@ -283,12 +283,12 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-1 gap-4 text-base md:grid-cols-2">
                     <div>
-                      <p className="text-[#6B7280]">Data</p>
-                      <p className="font-semibold">{row.data || "-"}</p>
+                      <p className="text-white/70">Data</p>
+                      <p className="font-semibold text-white">{row.data || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-[#6B7280]">Netto $</p>
-                      <p className="text-xl font-extrabold text-[#2D7DD2]">
+                      <p className="text-white/70">Netto $</p>
+                      <p className="text-2xl font-extrabold text-emerald-300">
                         {row.netto.toFixed(2)}
                       </p>
                     </div>
@@ -296,14 +296,14 @@ export default function HomePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">STATO</span>
+                    <span className="text-white/80">STATO</span>
                     <select
                       value={row.stato}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "stato", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-stato`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     >
                       {STATUSES.map((option) => (
                         <option key={option} value={option}>
@@ -314,14 +314,14 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">Ricevente</span>
+                    <span className="text-white/80">Ricevente</span>
                     <select
                       value={row.ricevente}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "ricevente", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-ricevente`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     >
                       <option value="">-</option>
                       {RECEIVERS.map((option) => (
@@ -333,14 +333,14 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">AFFILIATI</span>
+                    <span className="text-white/80">AFFILIATI</span>
                     <select
                       value={row.affiliati}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "affiliati", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-affiliati`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     >
                       <option value="">-</option>
                       {AFFILIATES.map((option) => (
@@ -353,9 +353,9 @@ export default function HomePage() {
 
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[#6B7280]">INFO</span>
+                      <span className="text-white/80">INFO</span>
                       {infoSavedRow === row.rowNumber ? (
-                          <span className="text-sm font-semibold text-[#0066ff]">
+                          <span className="text-sm font-semibold text-emerald-300">
                           ✓ Salvato
                         </span>
                       ) : null}
@@ -379,12 +379,12 @@ export default function HomePage() {
                       }}
                       disabled={updatingKey === `${row.rowNumber}-info`}
                       rows={3}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">Bonus $</span>
+                    <span className="text-white/80">Bonus $</span>
                     <input
                       type="number"
                       value={row.bonus}
@@ -396,12 +396,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-bonus`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">Spese</span>
+                    <span className="text-white/80">Spese</span>
                     <input
                       type="number"
                       value={row.spese}
@@ -413,12 +413,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-spese`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[#6B7280]">Amazon</span>
+                    <span className="text-white/80">Amazon</span>
                     <input
                       type="number"
                       value={row.amazon}
@@ -430,7 +430,7 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-amazon`}
-                      className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                     />
                   </label>
                 </div>
@@ -442,19 +442,19 @@ export default function HomePage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-sm">
-          <div className="h-screen w-full overflow-y-auto bg-white p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.16)]">
-            <h2 className="mb-4 text-2xl font-bold sm:text-3xl">Registra nuovo bonus</h2>
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm">
+          <div className="h-screen w-full overflow-y-auto bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+            <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">Registra nuovo bonus</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Piattaforma *</span>
+                <span className="text-base text-white/80 sm:text-lg">Piattaforma *</span>
                 <select
                   value={form.piattaforma}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, piattaforma: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   {PLATFORMS.map((option) => (
                     <option key={option} value={option}>
@@ -465,24 +465,24 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Persona invitata</span>
+                <span className="text-base text-white/80 sm:text-lg">Persona invitata</span>
                 <input
                   value={form.personaInvitata}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, personaInvitata: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">STATO *</span>
+                <span className="text-base text-white/80 sm:text-lg">STATO *</span>
                 <select
                   value={form.stato}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, stato: event.target.value }))
                   }
-                  className={`min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20 ${statusBadge(form.stato)}`}
+                  className={`min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25 ${statusBadge(form.stato)}`}
                 >
                   {STATUSES.map((option) => (
                     <option key={option} value={option}>
@@ -493,13 +493,13 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Ricevente</span>
+                <span className="text-base text-white/80 sm:text-lg">Ricevente</span>
                 <select
                   value={form.ricevente}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, ricevente: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
                   {RECEIVERS.map((option) => (
@@ -511,25 +511,25 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Data</span>
+                <span className="text-base text-white/80 sm:text-lg">Data</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, data: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">AFFILIATI</span>
+                <span className="text-base text-white/80 sm:text-lg">AFFILIATI</span>
                 <select
                   value={form.affiliati}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliati: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
                   {AFFILIATES.map((option) => (
@@ -541,59 +541,59 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1 md:col-span-2">
-                <span className="text-base sm:text-lg">INFO</span>
+                <span className="text-base text-white/80 sm:text-lg">INFO</span>
                 <textarea
                   value={form.info}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, info: event.target.value }))
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                   rows={3}
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Bonus $</span>
+                <span className="text-base text-white/80 sm:text-lg">Bonus $</span>
                 <input
                   type="number"
                   value={form.bonus}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, bonus: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Spese</span>
+                <span className="text-base text-white/80 sm:text-lg">Spese</span>
                 <input
                   type="number"
                   value={form.spese}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, spese: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Amazon</span>
+                <span className="text-base text-white/80 sm:text-lg">Amazon</span>
                 <input
                   type="number"
                   value={form.amazon}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, amazon: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-base outline-none focus:border-[#2D7DD2] focus:ring-2 focus:ring-[#2D7DD2]/20"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base sm:text-lg">Netto $ (auto)</span>
+                <span className="text-base text-white/80 sm:text-lg">Netto $ (auto)</span>
                 <input
                   readOnly
                   value={nettoForm.toFixed(2)}
-                  className="min-h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-base font-bold text-[#2D7DD2]"
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/20 px-3 py-2 text-base font-bold text-emerald-200"
                 />
               </label>
             </div>
@@ -602,7 +602,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-2xl border border-slate-300 px-5 py-3 text-lg font-semibold"
+                className="min-h-12 rounded-2xl border border-white/70 bg-transparent px-5 py-3 text-lg font-semibold text-white"
               >
                 Annulla
               </button>
@@ -610,7 +610,7 @@ export default function HomePage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSaveBonus()}
-                className="min-h-12 rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)] disabled:opacity-60"
+                className="min-h-12 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
