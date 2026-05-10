@@ -5,7 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
 
-const defaultForm: NewBonusPayload = {
+type BonusFormState = Omit<NewBonusPayload, "bonus" | "spese" | "amazon"> & {
+  bonus: string;
+  spese: string;
+  amazon: string;
+};
+
+const defaultForm: BonusFormState = {
   piattaforma: PLATFORMS[0],
   personaInvitata: "",
   stato: STATUSES[0],
@@ -13,9 +19,9 @@ const defaultForm: NewBonusPayload = {
   data: "",
   info: "",
   affiliati: "",
-  bonus: 0,
-  spese: 0,
-  amazon: 0,
+  bonus: "",
+  spese: "",
+  amazon: "",
 };
 
 function statusBadge(status: string) {
@@ -44,7 +50,7 @@ export default function HomePage() {
   const [rows, setRows] = useState<BonusRecord[]>([]);
   const [query, setQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState<NewBonusPayload>(defaultForm);
+  const [form, setForm] = useState<BonusFormState>(defaultForm);
   const [loadingRead, setLoadingRead] = useState(true);
   const [saving, setSaving] = useState(false);
   const [updatingKey, setUpdatingKey] = useState<string | null>(null);
@@ -53,7 +59,10 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const nettoForm = form.bonus - form.spese - form.amazon;
+  const bonusValue = Number(form.bonus || 0);
+  const speseValue = Number(form.spese || 0);
+  const amazonValue = Number(form.amazon || 0);
+  const nettoForm = bonusValue - speseValue - amazonValue;
 
   async function fetchRows() {
     setLoadingRead(true);
@@ -99,7 +108,12 @@ export default function HomePage() {
       const res = await fetch("/api/sheets/write", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          bonus: Number(form.bonus || 0),
+          spese: Number(form.spese || 0),
+          amazon: Number(form.amazon || 0),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Impossibile salvare il bonus.");
@@ -557,8 +571,9 @@ export default function HomePage() {
                 <input
                   type="number"
                   value={form.bonus}
+                  placeholder="0"
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, bonus: Number(event.target.value || 0) }))
+                    setForm((prev) => ({ ...prev, bonus: event.target.value }))
                   }
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
@@ -569,8 +584,9 @@ export default function HomePage() {
                 <input
                   type="number"
                   value={form.spese}
+                  placeholder="0"
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, spese: Number(event.target.value || 0) }))
+                    setForm((prev) => ({ ...prev, spese: event.target.value }))
                   }
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
@@ -581,8 +597,9 @@ export default function HomePage() {
                 <input
                   type="number"
                   value={form.amazon}
+                  placeholder="0"
                   onChange={(event) =>
-                    setForm((prev) => ({ ...prev, amazon: Number(event.target.value || 0) }))
+                    setForm((prev) => ({ ...prev, amazon: event.target.value }))
                   }
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
@@ -598,7 +615,7 @@ export default function HomePage() {
               </label>
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <div className="sticky bottom-0 mt-6 flex flex-col gap-3 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] pb-6 pt-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
@@ -610,7 +627,7 @@ export default function HomePage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSaveBonus()}
-                className="min-h-12 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
+                className="min-h-14 w-full rounded-2xl bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

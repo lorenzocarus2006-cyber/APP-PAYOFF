@@ -52,6 +52,9 @@ export async function POST(request: Request) {
       spese: Number(body.spese ?? 0),
       amazon: Number(body.amazon ?? 0),
     };
+    const numericBonus = Number.isFinite(payload.bonus) ? payload.bonus : 0;
+    const numericSpese = Number.isFinite(payload.spese) ? payload.spese : 0;
+    const numericAmazon = Number.isFinite(payload.amazon) ? payload.amazon : 0;
 
     if (!payload.piattaforma || !payload.stato) {
       return NextResponse.json(
@@ -70,9 +73,9 @@ export async function POST(request: Request) {
       payload.data || "", // E
       payload.info || "", // F
       payload.affiliati || "", // G
-      payload.bonus || 0, // H
-      payload.spese || 0, // I
-      payload.amazon || 0, // J
+      numericBonus, // H
+      numericSpese, // I
+      numericAmazon, // J
     ];
 
     console.log("[POST /api/sheets/write] row A->J", row);

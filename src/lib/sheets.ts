@@ -63,7 +63,7 @@ function parseNumber(raw: string | undefined): number {
   const cleaned = raw
     .replace(/[$\s]/g, "")
     .replace(/\./g, "")
-    .replace(/,/g, ".")
+    .replace(",", ".")
     .trim();
   const parsed = parseFloat(cleaned);
   return Number.isFinite(parsed) ? parsed : 0;
