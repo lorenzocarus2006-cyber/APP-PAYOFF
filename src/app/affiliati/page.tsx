@@ -162,20 +162,20 @@ export default function AffiliatiPage() {
                     <h3 className="text-sm font-extrabold leading-tight sm:text-base">{summary.nome}</h3>
                   </div>
                   <dl className="grid grid-cols-2 gap-2 p-3">
-                    <div className="rounded-xl bg-emerald-500/20 p-2">
-                      <dt className="text-xs text-white/70">💰 Generato</dt>
+                    <div className="rounded-xl bg-emerald-500/20 px-2 py-1.5">
+                      <dt className="whitespace-nowrap text-[11px] text-white/70">💰 Generato</dt>
                       <dd className="text-[26px] font-extrabold text-white">{money(summary.generato)}</dd>
                     </div>
-                    <div className="rounded-xl bg-blue-500/20 p-2">
-                      <dt className="text-xs text-white/70">✅ Pagato</dt>
+                    <div className="rounded-xl bg-blue-500/20 px-2 py-1.5">
+                      <dt className="whitespace-nowrap text-[11px] text-white/70">✅ Pagato</dt>
                       <dd className="text-[26px] font-extrabold text-white">{money(summary.pagato)}</dd>
                     </div>
-                    <div className="rounded-xl bg-orange-500/20 p-2">
-                      <dt className="text-xs text-white/70">⏳ Da pagare</dt>
+                    <div className="rounded-xl bg-orange-500/20 px-2 py-1.5">
+                      <dt className="whitespace-nowrap text-[11px] text-white/70">⏳ Da pagare</dt>
                       <dd className="text-[26px] font-extrabold text-white">{money(summary.daPagare)}</dd>
                     </div>
-                    <div className="rounded-xl bg-violet-500/20 p-2">
-                      <dt className="text-xs text-white/70">🔢 Pagamenti</dt>
+                    <div className="rounded-xl bg-violet-500/20 px-2 py-1.5">
+                      <dt className="whitespace-nowrap text-[11px] text-white/70">🔢 Pagamenti</dt>
                       <dd className="text-[26px] font-extrabold text-white">{summary.pagamentiCount}</dd>
                     </div>
                   </dl>

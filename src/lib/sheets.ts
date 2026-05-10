@@ -61,10 +61,9 @@ async function getSheetsClient() {
 function parseNumber(raw: string | undefined): number {
   if (!raw) return 0;
   const cleaned = raw
-    .replace(/\$/g, "")
-    .replace(/\s/g, "")
+    .replace(/[$\s]/g, "")
     .replace(/\./g, "")
-    .replace(",", ".")
+    .replace(/,/g, ".")
     .trim();
   const parsed = parseFloat(cleaned);
   return Number.isFinite(parsed) ? parsed : 0;
