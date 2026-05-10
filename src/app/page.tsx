@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
@@ -38,6 +37,26 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 function platformColor(name: string) {
   return PLATFORM_COLORS[name] ?? "#2D7DD2";
+}
+
+function PayoffWordmark() {
+  return (
+    <div className="mx-auto flex w-[200px] items-center justify-center gap-2">
+      <svg viewBox="0 0 48 48" className="h-10 w-10" fill="none" aria-hidden>
+        <path
+          d="M24 3L40.5 12.5V31.5L24 41L7.5 31.5V12.5L24 3Z"
+          stroke="#ffffff"
+          strokeWidth="3"
+        />
+        <path
+          d="M24 12L31.5 16.3V24.9L24 29.2L16.5 24.9V16.3L24 12Z"
+          fill="#ffffff"
+          opacity="0.95"
+        />
+      </svg>
+      <span className="text-3xl font-extrabold tracking-wide text-white">PAYOFF</span>
+    </div>
+  );
 }
 
 export default function HomePage() {
@@ -192,28 +211,21 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#EEF4FF] to-[#F8FAFF] px-5 py-5 text-[#1A1A2E]">
+    <div className="min-h-screen bg-[#2D7DD2] px-5 py-5 text-[#1A1A2E]">
       <main className="mx-auto w-full space-y-5">
-        <header className="space-y-3 rounded-2xl bg-white p-5 text-center shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
-          <Image
-            src="/logo.png"
-            alt="PayOff logo"
-            width={160}
-            height={64}
-            className="mx-auto w-[160px]"
-            priority
-          />
-          <h1 className="text-[28px] font-extrabold leading-tight">Ciao! 👋</h1>
-          <p className="text-base text-[#6B7280]">Gestisci i tuoi bonus</p>
+        <header className="space-y-3 pb-8 pt-10 text-center">
+          <PayoffWordmark />
+          <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao! 👋</h1>
+          <p className="text-base text-white/60">Gestisci i tuoi bonus</p>
         </header>
 
-        <section className="rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] p-5 text-white shadow-[0_8px_22px_rgba(45,125,210,0.35)]">
+        <section className="rounded-2xl bg-white p-5 text-[#1A1A2E] shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
           <h2 className="text-xl font-bold">Registra Nuovo Bonus</h2>
-          <p className="mt-1 text-sm text-blue-50">Aggiungi una nuova riga al foglio.</p>
+          <p className="mt-1 text-sm text-[#6B7280]">Aggiungi una nuova riga al foglio.</p>
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="mt-4 min-h-12 w-full rounded-2xl bg-white px-5 py-4 text-xl font-extrabold text-[#2D7DD2] shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
+            className="mt-4 min-h-12 w-full rounded-2xl bg-gradient-to-r from-[#2D7DD2] to-[#5B9BD5] px-5 py-4 text-xl font-extrabold text-white shadow-[0_8px_20px_rgba(45,125,210,0.3)]"
           >
             ＋ Registra Nuovo Bonus
           </button>
