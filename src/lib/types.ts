@@ -52,3 +52,31 @@ export type AffiliatePayment = {
   modalita: string;
   note: string;
 };
+
+export type BilancioOverview = {
+  nettoTotale: number;
+  inArrivoTotale: number;
+  daCompletareTotale: number;
+  failCount: number;
+  totalePercentoAffiliati: number;
+  nettoMenoPercentoAffiliati: number;
+  speseTotali: number;
+  completatiCount: number;
+  inArrivoCount: number;
+  daCompletareCount: number;
+};
+
+export type BilancioReceiverPlatformStats = {
+  app: string;
+  arrivato: number;
+  arrivo: number;
+  daFare: number;
+  fail: number;
+  totale: number;
+};
+
+export type BilancioReceiverStats = {
+  ricevente: string;
+  total: BilancioReceiverPlatformStats;
+  platforms: BilancioReceiverPlatformStats[];
+};

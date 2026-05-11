@@ -2,6 +2,9 @@ import { google } from "googleapis";
 import type {
   AffiliatePayment,
   AffiliateSummary,
+  BilancioOverview,
+  BilancioReceiverPlatformStats,
+  BilancioReceiverStats,
   BonusRecord,
   LinkOverviewRow,
   NewBonusPayload,
@@ -299,4 +302,146 @@ export async function readAffiliatesData(): Promise<{
 
 export function getAffiliatesPaymentsRange() {
   return `${AFFILIATES_SHEET_NAME}!${AFFILIATES_PAYMENTS_RANGE}`;
+}
+
+export async function readBilancioStats(): Promise<{
+  overview: BilancioOverview;
+  riceventi: BilancioReceiverStats[];
+}> {
+  const sheets = await getSheetsClient();
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: env.spreadsheetId!,
+    range: `${SHEET_NAME}!${COLS_A_TO_K}`,
+    valueRenderOption: "FORMATTED_VALUE",
+    dateTimeRenderOption: "FORMATTED_STRING",
+  });
+
+  const rows = response.data.values ?? [];
+  if (rows.length <= 1) {
+    return {
+      overview: {
+        nettoTotale: 0,
+        inArrivoTotale: 0,
+        daCompletareTotale: 0,
+        failCount: 0,
+        totalePercentoAffiliati: 0,
+        nettoMenoPercentoAffiliati: 0,
+        speseTotali: 0,
+        completatiCount: 0,
+        inArrivoCount: 0,
+        daCompletareCount: 0,
+      },
+      riceventi: [],
+    };
+  }
+
+  const receiverList = [
+    "Lori",
+    "Diego",
+    "Cusi",
+    "Ludovica",
+    "Rubi",
+    "MATTIA RUSSO",
+    "Luca pietra",
+  ];
+  const platformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ISYBANK", "ING"];
+  const statusToKey: Record<string, keyof Omit<BilancioReceiverPlatformStats, "app" | "totale">> =
+    {
+      "Bonus arrivato": "arrivato",
+      "Bonus in arrivo": "arrivo",
+      "Registrato da completare": "daFare",
+      FAIL: "fail",
+    };
+
+  const receiverMap: Record<
+    string,
+    Record<string, Omit<BilancioReceiverPlatformStats, "app">>
+  > = {};
+  for (const receiver of receiverList) {
+    receiverMap[receiver] = {};
+    for (const app of platformList) {
+      receiverMap[receiver][app] = { arrivato: 0, arrivo: 0, daFare: 0, fail: 0, totale: 0 };
+    }
+  }
+
+  let nettoTotale = 0;
+  let inArrivoTotale = 0;
+  let daCompletareTotale = 0;
+  let failCount = 0;
+  let totalePercentoAffiliati = 0;
+  let speseTotali = 0;
+  let completatiCount = 0;
+  let inArrivoCount = 0;
+  let daCompletareCount = 0;
+
+  for (const row of rows.slice(1)) {
+    const piattaforma = getCell(row, 0).trim().toUpperCase();
+    const stato = getCell(row, 2).trim();
+    const ricevente = getCell(row, 3).trim();
+    const affiliato = getCell(row, 6).trim();
+    const spese = parseNumber(getCell(row, 8));
+    const netto = parseNumber(getCell(row, 10));
+
+    if (stato === "Bonus arrivato") {
+      nettoTotale += netto;
+      speseTotali += spese;
+      completatiCount += 1;
+    } else if (stato === "Bonus in arrivo") {
+      inArrivoTotale += netto;
+      inArrivoCount += 1;
+    } else if (stato === "Registrato da completare") {
+      daCompletareTotale += netto;
+      daCompletareCount += 1;
+    } else if (stato === "FAIL") {
+      failCount += 1;
+    }
+
+    if (affiliato) {
+      totalePercentoAffiliati += netto * 0.2;
+    }
+
+    if (
+      receiverMap[ricevente] &&
+      receiverMap[ricevente][piattaforma] &&
+      statusToKey[stato]
+    ) {
+      const statusKey = statusToKey[stato];
+      receiverMap[ricevente][piattaforma][statusKey] += 1;
+      receiverMap[ricevente][piattaforma].totale += 1;
+    }
+  }
+
+  const riceventi: BilancioReceiverStats[] = receiverList.map((ricevente) => {
+    const platformStats = platformList.map((app) => ({
+      app,
+      ...receiverMap[ricevente][app],
+    }));
+    const total = platformStats.reduce(
+      (acc, item) => ({
+        app: "TOTALE",
+        arrivato: acc.arrivato + item.arrivato,
+        arrivo: acc.arrivo + item.arrivo,
+        daFare: acc.daFare + item.daFare,
+        fail: acc.fail + item.fail,
+        totale: acc.totale + item.totale,
+      }),
+      { app: "TOTALE", arrivato: 0, arrivo: 0, daFare: 0, fail: 0, totale: 0 },
+    );
+    return { ricevente, total, platforms: platformStats };
+  });
+
+  const overview: BilancioOverview = {
+    nettoTotale,
+    inArrivoTotale,
+    daCompletareTotale,
+    failCount,
+    totalePercentoAffiliati,
+    nettoMenoPercentoAffiliati: nettoTotale - totalePercentoAffiliati,
+    speseTotali,
+    completatiCount,
+    inArrivoCount,
+    daCompletareCount,
+  };
+
+  return { overview, riceventi };
 }

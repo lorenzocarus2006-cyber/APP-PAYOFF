@@ -7,6 +7,7 @@ const tabs = [
   { href: "/", icon: "🏠", label: "Home" },
   { href: "/panoramica-link", icon: "🔗", label: "Panoramica Link" },
   { href: "/affiliati", icon: "👥", label: "Affiliati" },
+  { href: "/bilancio", icon: "🏦", label: "Bilancio" },
 ];
 
 export default function BottomNav() {
@@ -21,7 +22,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex min-h-12 min-w-[100px] flex-col items-center justify-center rounded-2xl px-2 ${
+              className={`flex min-h-12 min-w-[82px] flex-col items-center justify-center rounded-2xl px-2 ${
                 isActive ? "bg-white/20 text-white font-bold" : "text-white/90"
               }`}
             >
