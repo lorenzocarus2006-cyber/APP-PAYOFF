@@ -24,6 +24,14 @@ const defaultForm: BonusFormState = {
   amazon: "",
 };
 
+const defaultImporti: Record<string, { bonus: number; spese: number; amazon: number }> = {
+  ING: { bonus: 50, spese: 1, amazon: 0 },
+  BUDDYBANK: { bonus: 50, spese: 11, amazon: 0 },
+  BBVA: { bonus: 20, spese: 1, amazon: 0 },
+  COINBASE: { bonus: 20, spese: 3, amazon: 0 },
+  ISYBANK: { bonus: 30, spese: 0, amazon: 30 },
+};
+
 function statusSelectStyle(status: string) {
   if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
   if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
@@ -605,9 +613,27 @@ export default function HomePage() {
                 <span className="text-[13px] font-bold text-white">Piattaforma *</span>
                 <select
                   value={form.piattaforma}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, piattaforma: event.target.value }))
-                  }
+                  onChange={(event) => {
+                    const piattaforma = event.target.value;
+                    const importi = defaultImporti[piattaforma];
+                    setForm((prev) =>
+                      importi
+                        ? {
+                            ...prev,
+                            piattaforma,
+                            bonus: String(importi.bonus),
+                            spese: String(importi.spese),
+                            amazon: String(importi.amazon),
+                          }
+                        : {
+                            ...prev,
+                            piattaforma,
+                            bonus: "",
+                            spese: "",
+                            amazon: "",
+                          },
+                    );
+                  }}
                   className="min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                   style={{
                     background: platformSelectStyle(form.piattaforma).background,
