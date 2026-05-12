@@ -24,25 +24,11 @@ const defaultForm: BonusFormState = {
   amazon: "",
 };
 
-function statusBadge(status: string) {
-  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
-  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
-  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
-  return "bg-[#DC2626] text-white";
-}
-
 function statusSelectStyle(status: string) {
   if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
   if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
   if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
   return "bg-[#DC2626] text-white";
-}
-
-function statusColor(status: string) {
-  if (status === "Bonus arrivato") return "#16A34A";
-  if (status === "Bonus in arrivo") return "#D97706";
-  if (status === "Registrato da completare") return "#7C3AED";
-  return "#DC2626";
 }
 
 const PLATFORM_BADGE_COLORS: Record<string, string> = {
@@ -67,12 +53,27 @@ const PLATFORM_BORDER_COLORS: Record<string, string> = {
   KRAKEN: "#5741D9",
 };
 
+const PLATFORM_SELECT_STYLES: Record<string, { background: string; color: string }> = {
+  COINBASE: { background: "#0052FF", color: "#ffffff" },
+  BUDDYBANK: { background: "#FF4B7B", color: "#ffffff" },
+  BBVA: { background: "#004481", color: "#ffffff" },
+  REVOLUT: { background: "#374151", color: "#ffffff" },
+  ISYBANK: { background: "#FF6B35", color: "#ffffff" },
+  ING: { background: "#FF6200", color: "#ffffff" },
+  BINANCE: { background: "#D4A017", color: "#000000" },
+  KRAKEN: { background: "#5741D9", color: "#ffffff" },
+};
+
 function platformBadgeColor(name: string) {
   return PLATFORM_BADGE_COLORS[name] ?? "#2D7DD2";
 }
 
 function platformBorderColor(name: string) {
   return PLATFORM_BORDER_COLORS[name] ?? "#2D7DD2";
+}
+
+function platformSelectStyle(name: string) {
+  return PLATFORM_SELECT_STYLES[name] ?? { background: "rgba(255,255,255,0.15)", color: "#ffffff" };
 }
 
 export default function HomePage() {
@@ -530,20 +531,32 @@ export default function HomePage() {
       {showModal ? (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm">
           <div className="h-screen w-full overflow-y-auto bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
-            <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">Registra nuovo bonus</h2>
+            <h2 className="mb-4 text-[24px] font-bold text-white">Registra Nuovo Bonus</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Piattaforma *</span>
+                <span className="text-[13px] font-bold text-white">Piattaforma *</span>
                 <select
                   value={form.piattaforma}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, piattaforma: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  style={{
+                    background: platformSelectStyle(form.piattaforma).background,
+                    color: platformSelectStyle(form.piattaforma).color,
+                  }}
                 >
                   {PLATFORMS.map((option) => (
-                    <option key={option} value={option}>
+                    <option
+                      key={option}
+                      value={option}
+                      style={{
+                        backgroundColor: platformSelectStyle(option).background,
+                        color: platformSelectStyle(option).color,
+                        fontWeight: 700,
+                      }}
+                    >
                       {option}
                     </option>
                   ))}
@@ -551,24 +564,24 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Persona invitata</span>
+                <span className="text-[13px] font-bold text-white">Persona invitata</span>
                 <input
                   value={form.personaInvitata}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, personaInvitata: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">STATO *</span>
+                <span className="text-[13px] font-bold text-white">STATO *</span>
                 <select
                   value={form.stato}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, stato: event.target.value }))
                   }
-                  className={`min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25 ${statusBadge(form.stato)}`}
+                  className={`min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[10px] text-[15px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25 ${statusSelectStyle(form.stato)}`}
                 >
                   {STATUSES.map((option) => (
                     <option key={option} value={option}>
@@ -579,13 +592,13 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Ricevente</span>
+                <span className="text-[13px] font-bold text-white">Ricevente</span>
                 <select
                   value={form.ricevente}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, ricevente: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
                   {RECEIVERS.map((option) => (
@@ -597,25 +610,25 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Data</span>
+                <span className="text-[13px] font-bold text-white">Data</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, data: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">AFFILIATI</span>
+                <span className="text-[13px] font-bold text-white">AFFILIATI</span>
                 <select
                   value={form.affiliati}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliati: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
                   {AFFILIATES.map((option) => (
@@ -627,19 +640,19 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1 md:col-span-2">
-                <span className="text-base text-white/80 sm:text-lg">INFO</span>
+                <span className="text-[13px] font-bold text-white">INFO</span>
                 <textarea
                   value={form.info}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, info: event.target.value }))
                   }
-                  className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                   rows={3}
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Bonus $</span>
+                <span className="text-[13px] font-bold text-white">Bonus $</span>
                 <input
                   type="number"
                   value={form.bonus}
@@ -647,12 +660,12 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, bonus: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Spese</span>
+                <span className="text-[13px] font-bold text-white">Spese</span>
                 <input
                   type="number"
                   value={form.spese}
@@ -660,12 +673,12 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, spese: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Amazon</span>
+                <span className="text-[13px] font-bold text-white">Amazon</span>
                 <input
                   type="number"
                   value={form.amazon}
@@ -673,25 +686,22 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, amazon: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
 
-              <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Netto $ (auto)</span>
-                <input
-                  readOnly
-                  value={nettoForm.toFixed(2)}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/20 px-3 py-2 text-base font-bold text-emerald-200"
-                />
-              </label>
+              <div className="md:col-span-2">
+                <p className="text-2xl font-extrabold text-emerald-300">
+                  Netto: ${nettoForm.toFixed(2)}
+                </p>
+              </div>
             </div>
 
             <div className="sticky bottom-0 mt-6 flex flex-col gap-3 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] pb-6 pt-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-2xl border border-white/70 bg-transparent px-5 py-3 text-lg font-semibold text-white"
+                className="min-h-12 rounded-[14px] border border-white/30 bg-white/15 px-5 py-3 text-lg font-bold text-white"
               >
                 Annulla
               </button>
@@ -699,7 +709,7 @@ export default function HomePage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSaveBonus()}
-                className="min-h-14 w-full rounded-2xl bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
+                className="min-h-14 w-full rounded-[14px] bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
