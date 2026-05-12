@@ -31,6 +31,13 @@ function statusBadge(status: string) {
   return "bg-[#DC2626] text-white";
 }
 
+function statusSelectStyle(status: string) {
+  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
+  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
+  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
+  return "bg-[#DC2626] text-white";
+}
+
 function statusColor(status: string) {
   if (status === "Bonus arrivato") return "#16A34A";
   if (status === "Bonus in arrivo") return "#D97706";
@@ -298,11 +305,6 @@ export default function HomePage() {
 
                   <div className="mb-4 flex flex-wrap items-center gap-3">
                     <span
-                      className={`rounded-[20px] px-[14px] py-1 text-[13px] font-bold ${statusBadge(row.stato)}`}
-                    >
-                      {row.stato || "N/D"}
-                    </span>
-                    <span
                       className="ml-auto rounded-full px-3 py-1.5 text-[14px] font-bold text-white"
                       style={{ backgroundColor: platformBadgeColor(row.piattaforma) }}
                     >
@@ -332,7 +334,7 @@ export default function HomePage() {
                         void handleInlineUpdate(row, "stato", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-stato`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className={`min-h-12 w-full rounded-xl border border-black/20 px-4 py-2.5 text-[15px] font-bold outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20 ${statusSelectStyle(row.stato)}`}
                     >
                       <option
                         value="Bonus arrivato"
