@@ -25,25 +25,40 @@ const defaultForm: BonusFormState = {
 };
 
 function statusBadge(status: string) {
-  if (status === "Bonus arrivato") return "bg-emerald-100 text-emerald-700";
-  if (status === "Bonus in arrivo") return "bg-yellow-100 text-yellow-700";
-  if (status === "Registrato da completare") return "bg-violet-100 text-violet-700";
-  return "bg-red-100 text-red-700";
+  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
+  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
+  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
+  return "bg-[#DC2626] text-white";
 }
 
-const PLATFORM_COLORS: Record<string, string> = {
+const PLATFORM_BADGE_COLORS: Record<string, string> = {
   COINBASE: "#0052FF",
   REVOLUT: "#1A1A2E",
   ING: "#FF6200",
   ISYBANK: "#FF6B35",
   BBVA: "#004481",
   BUDDYBANK: "#FF4B7B",
-  BINANCE: "#F0B90B",
+  BINANCE: "#D4A017",
   KRAKEN: "#5741D9",
 };
 
-function platformColor(name: string) {
-  return PLATFORM_COLORS[name] ?? "#2D7DD2";
+const PLATFORM_CARD_BACKGROUNDS: Record<string, string> = {
+  COINBASE: "linear-gradient(135deg, #0052FF, #0041CC)",
+  BUDDYBANK: "linear-gradient(135deg, #FF4B7B, #CC3A62)",
+  BBVA: "linear-gradient(135deg, #004481, #002D5C)",
+  REVOLUT: "linear-gradient(135deg, #1A1A2E, #374151)",
+  ISYBANK: "linear-gradient(135deg, #FF6B35, #E55A26)",
+  ING: "linear-gradient(135deg, #FF6200, #CC4E00)",
+  BINANCE: "linear-gradient(135deg, #D4A017, #B8860B)",
+  KRAKEN: "linear-gradient(135deg, #5741D9, #4230B0)",
+};
+
+function platformCardBackground(name: string) {
+  return PLATFORM_CARD_BACKGROUNDS[name] ?? "linear-gradient(135deg, #2D7DD2, #1A5FA8)";
+}
+
+function platformBadgeColor(name: string) {
+  return PLATFORM_BADGE_COLORS[name] ?? "#2D7DD2";
 }
 
 export default function HomePage() {
@@ -277,19 +292,27 @@ export default function HomePage() {
               filteredRows.map((row) => (
                 <article
                   key={row.rowNumber}
-                  className="rounded-[20px] border border-white/25 bg-white/12 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
-                  style={{ borderLeft: `4px solid ${platformColor(row.piattaforma)}` }}
+                  className="rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.2)] text-black"
+                  style={{ background: platformCardBackground(row.piattaforma) }}
                 >
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <h3 className="text-[28px] leading-tight font-black text-black">
+                      {row.personaInvitata || "(senza nome)"}
+                    </h3>
+                    <p className="text-[36px] leading-none font-black text-black">
+                      {row.netto.toFixed(2)}
+                    </p>
+                  </div>
+
                   <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <h3 className="text-xl font-bold text-white">{row.personaInvitata || "(senza nome)"}</h3>
                     <span
                       className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadge(row.stato)}`}
                     >
                       {row.stato || "N/D"}
                     </span>
                     <span
-                      className="ml-auto rounded-full px-3 py-1 text-xs font-bold text-white"
-                      style={{ backgroundColor: platformColor(row.piattaforma) }}
+                      className="ml-auto rounded-full border border-black/20 bg-white/40 px-3 py-1 text-xs font-black text-black"
+                      style={{ boxShadow: `inset 0 0 0 2px ${platformBadgeColor(row.piattaforma)}` }}
                     >
                       {row.piattaforma || "PIATTAFORMA"}
                     </span>
@@ -297,12 +320,12 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-1 gap-4 text-base md:grid-cols-2">
                     <div>
-                      <p className="text-white/70">Data</p>
-                      <p className="font-semibold text-white">{row.data || "-"}</p>
+                      <p className="text-[13px] font-bold text-black/60">Data</p>
+                      <p className="text-[16px] font-black text-black">{row.data || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-white/70">Netto $</p>
-                      <p className="text-2xl font-extrabold text-emerald-300">
+                      <p className="text-[13px] font-bold text-black/60">Netto $</p>
+                      <p className="text-[16px] font-black text-black">
                         {row.netto.toFixed(2)}
                       </p>
                     </div>
@@ -310,14 +333,14 @@ export default function HomePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <label className="space-y-1">
-                    <span className="text-white/80">STATO</span>
+                    <span className="text-[13px] font-bold text-black/60">STATO</span>
                     <select
                       value={row.stato}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "stato", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-stato`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       {STATUSES.map((option) => (
                         <option key={option} value={option}>
@@ -328,14 +351,14 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-white/80">Ricevente</span>
+                    <span className="text-[13px] font-bold text-black/60">Ricevente</span>
                     <select
                       value={row.ricevente}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "ricevente", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-ricevente`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       <option value="">-</option>
                       {RECEIVERS.map((option) => (
@@ -347,14 +370,14 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-white/80">AFFILIATI</span>
+                    <span className="text-[13px] font-bold text-black/60">AFFILIATI</span>
                     <select
                       value={row.affiliati}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "affiliati", event.target.value)
                       }
                       disabled={updatingKey === `${row.rowNumber}-affiliati`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       <option value="">-</option>
                       {AFFILIATES.map((option) => (
@@ -367,7 +390,7 @@ export default function HomePage() {
 
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-white/80">INFO</span>
+                      <span className="text-[13px] font-bold text-black/60">INFO</span>
                       {infoSavedRow === row.rowNumber ? (
                           <span className="text-sm font-semibold text-emerald-300">
                           ✓ Salvato
@@ -393,12 +416,12 @@ export default function HomePage() {
                       }}
                       disabled={updatingKey === `${row.rowNumber}-info`}
                       rows={3}
-                      className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none placeholder:text-black/50 focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-white/80">Bonus $</span>
+                    <span className="text-[13px] font-bold text-black/60">Bonus $</span>
                     <input
                       type="number"
                       value={row.bonus}
@@ -410,12 +433,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-bonus`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-white/80">Spese</span>
+                    <span className="text-[13px] font-bold text-black/60">Spese</span>
                     <input
                       type="number"
                       value={row.spese}
@@ -427,12 +450,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-spese`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-white/80">Amazon</span>
+                    <span className="text-[13px] font-bold text-black/60">Amazon</span>
                     <input
                       type="number"
                       value={row.amazon}
@@ -444,7 +467,7 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.rowNumber}-amazon`}
-                      className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-lg font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
                 </div>
