@@ -19,6 +19,16 @@ const receiverColors: Record<string, string> = {
   "Luca pietra": "#F87171",
 };
 
+const receiverGradients: Record<string, string> = {
+  Lori: "linear-gradient(135deg, #667eea, #764ba2)",
+  Diego: "linear-gradient(135deg, #f093fb, #f5576c)",
+  Cusi: "linear-gradient(135deg, #4facfe, #00f2fe)",
+  Ludovica: "linear-gradient(135deg, #43e97b, #38f9d7)",
+  Rubi: "linear-gradient(135deg, #fa709a, #fee140)",
+  "MATTIA RUSSO": "linear-gradient(135deg, #a18cd1, #fbc2eb)",
+  "Luca pietra": "linear-gradient(135deg, #fda085, #f6d365)",
+};
+
 function money(value: number) {
   return `$${value.toFixed(2)}`;
 }
@@ -30,7 +40,7 @@ function AmountCell({
   value: number;
   className: string;
 }) {
-  if (value === 0) return <span className="text-[#D1D5DB]">{money(0)}</span>;
+  if (value === 0) return <span className="text-white/30">{money(0)}</span>;
   return <span className={`font-bold ${className}`}>{money(value)}</span>;
 }
 
@@ -119,81 +129,89 @@ export default function BilancioPage() {
           {riceventi.map((receiver) => (
             <article
               key={receiver.ricevente}
-              className="rounded-2xl border border-white/25 bg-white/12 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+              className="rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+              style={{
+                background:
+                  receiverGradients[receiver.ricevente] ??
+                  "linear-gradient(135deg, #667eea, #764ba2)",
+              }}
             >
               <h3
-                className="mb-3 text-lg font-extrabold"
-                style={{ color: receiverColors[receiver.ricevente] ?? "#ffffff" }}
+                className="mb-4 text-[28px] font-extrabold text-white"
+                style={{ color: receiverColors[receiver.ricevente] ? "#ffffff" : "#ffffff" }}
               >
                 {receiver.ricevente}
               </h3>
               <div className="overflow-x-auto">
                 <table className="min-w-[640px] w-full border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-white/20 text-xs uppercase tracking-wide text-white/80">
-                      <th className="px-2 py-2 font-semibold">App</th>
-                      <th className="px-2 py-2 text-center font-semibold">✅ Arrivato $</th>
-                      <th className="px-2 py-2 text-center font-semibold">⏳ Arrivo $</th>
-                      <th className="px-2 py-2 text-center font-semibold">📋 Da fare $</th>
-                      <th className="px-2 py-2 text-center font-semibold">❌ Fail $</th>
-                      <th className="px-2 py-2 text-center font-semibold">🎁 Amzn $</th>
+                    <tr className="border-b border-white/20 text-[13px] uppercase tracking-wide text-white/80">
+                      <th className="px-3 pb-2 pt-3 font-bold">App</th>
+                      <th className="px-3 pb-2 pt-3 text-center font-bold">✅ Arrivato $</th>
+                      <th className="px-3 pb-2 pt-3 text-center font-bold">⏳ Arrivo $</th>
+                      <th className="px-3 pb-2 pt-3 text-center font-bold">📋 Da fare $</th>
+                      <th className="px-3 pb-2 pt-3 text-center font-bold">❌ Fail $</th>
+                      <th className="px-3 pb-2 pt-3 text-center font-bold">🎁 Amzn $</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-white/10 bg-white/10">
-                      <td className="px-2 py-2 font-bold">TOTALE</td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.total.arrivato} className="text-[#16A34A]" />
+                    <tr className="border-b border-white/10 bg-black/20">
+                      <td className="px-3 py-3 text-[16px] font-extrabold text-white">TOTALE</td>
+                      <td className="px-3 py-3 text-center text-[15px]">
+                        <AmountCell value={receiver.total.arrivato} className="text-[#86efac]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.total.arrivo} className="text-[#D97706]" />
+                      <td className="px-3 py-3 text-center text-[15px]">
+                        <AmountCell value={receiver.total.arrivo} className="text-[#fde68a]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.total.daFare} className="text-[#7C3AED]" />
+                      <td className="px-3 py-3 text-center text-[15px]">
+                        <AmountCell value={receiver.total.daFare} className="text-[#c4b5fd]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.total.fail} className="text-[#DC2626]" />
+                      <td className="px-3 py-3 text-center text-[15px]">
+                        <AmountCell value={receiver.total.fail} className="text-[#fca5a5]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.total.amazon} className="text-[#EA580C]" />
+                      <td className="px-3 py-3 text-center text-[15px]">
+                        <AmountCell value={receiver.total.amazon} className="text-[#fed7aa]" />
                       </td>
                     </tr>
-                    {receiver.platforms.map((platform) => (
-                      <tr key={platform.app} className="border-b border-white/10">
-                        <td className="px-2 py-2 font-semibold">{platform.app}</td>
-                        <td className="px-2 py-2 text-center">
-                          <AmountCell value={platform.arrivato} className="text-[#16A34A]" />
+                    {receiver.platforms.map((platform, index) => (
+                      <tr
+                        key={platform.app}
+                        className={`border-b border-white/10 ${index % 2 === 0 ? "bg-white/5" : "bg-transparent"}`}
+                      >
+                        <td className="px-3 py-3 text-[14px] font-bold text-white">{platform.app}</td>
+                        <td className="px-3 py-3 text-center text-[15px] font-bold">
+                          <AmountCell value={platform.arrivato} className="text-[#86efac]" />
                         </td>
-                        <td className="px-2 py-2 text-center">
-                          <AmountCell value={platform.arrivo} className="text-[#D97706]" />
+                        <td className="px-3 py-3 text-center text-[15px] font-bold">
+                          <AmountCell value={platform.arrivo} className="text-[#fde68a]" />
                         </td>
-                        <td className="px-2 py-2 text-center">
-                          <AmountCell value={platform.daFare} className="text-[#7C3AED]" />
+                        <td className="px-3 py-3 text-center text-[15px] font-bold">
+                          <AmountCell value={platform.daFare} className="text-[#c4b5fd]" />
                         </td>
-                        <td className="px-2 py-2 text-center">
-                          <AmountCell value={platform.fail} className="text-[#DC2626]" />
+                        <td className="px-3 py-3 text-center text-[15px] font-bold">
+                          <AmountCell value={platform.fail} className="text-[#fca5a5]" />
                         </td>
-                        <td className="px-2 py-2 text-center">
-                          <AmountCell value={platform.amazon} className="text-[#EA580C]" />
+                        <td className="px-3 py-3 text-center text-[15px] font-bold">
+                          <AmountCell value={platform.amazon} className="text-[#fed7aa]" />
                         </td>
                       </tr>
                     ))}
-                    <tr className="bg-white/15">
-                      <td className="px-2 py-2 font-bold">{receiver.amazonRow.app}</td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.amazonRow.arrivato} className="text-[#16A34A]" />
+                    <tr className="bg-black/15">
+                      <td className="px-3 py-3 text-[14px] font-bold text-white">{receiver.amazonRow.app}</td>
+                      <td className="px-3 py-3 text-center text-[15px] font-bold">
+                        <AmountCell value={receiver.amazonRow.arrivato} className="text-[#86efac]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.amazonRow.arrivo} className="text-[#D97706]" />
+                      <td className="px-3 py-3 text-center text-[15px] font-bold">
+                        <AmountCell value={receiver.amazonRow.arrivo} className="text-[#fde68a]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.amazonRow.daFare} className="text-[#7C3AED]" />
+                      <td className="px-3 py-3 text-center text-[15px] font-bold">
+                        <AmountCell value={receiver.amazonRow.daFare} className="text-[#c4b5fd]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.amazonRow.fail} className="text-[#DC2626]" />
+                      <td className="px-3 py-3 text-center text-[15px] font-bold">
+                        <AmountCell value={receiver.amazonRow.fail} className="text-[#fca5a5]" />
                       </td>
-                      <td className="px-2 py-2 text-center">
-                        <AmountCell value={receiver.amazonRow.amazon} className="text-[#EA580C]" />
+                      <td className="px-3 py-3 text-center text-[15px] font-bold">
+                        <AmountCell value={receiver.amazonRow.amazon} className="text-[#fed7aa]" />
                       </td>
                     </tr>
                   </tbody>
