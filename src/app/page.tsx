@@ -298,7 +298,7 @@ export default function HomePage() {
 
                   <div className="mb-4 flex flex-wrap items-center gap-3">
                     <span
-                      className={`rounded-[20px] px-3 py-1 text-[13px] font-bold ${statusBadge(row.stato)}`}
+                      className={`rounded-[20px] px-[14px] py-1 text-[13px] font-bold ${statusBadge(row.stato)}`}
                     >
                       {row.stato || "N/D"}
                     </span>
