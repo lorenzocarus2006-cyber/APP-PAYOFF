@@ -345,7 +345,7 @@ export async function readBilancioStats(): Promise<{
     "Luca pietra",
   ];
   const platformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ISYBANK", "ING"];
-  const statusToKey: Record<string, keyof Omit<BilancioReceiverPlatformStats, "app" | "totale">> =
+  const statusToKey: Record<string, keyof Omit<BilancioReceiverPlatformStats, "app" | "amazon">> =
     {
       "Bonus arrivato": "arrivato",
       "Bonus in arrivo": "arrivo",
@@ -360,7 +360,7 @@ export async function readBilancioStats(): Promise<{
   for (const receiver of receiverList) {
     receiverMap[receiver] = {};
     for (const app of platformList) {
-      receiverMap[receiver][app] = { arrivato: 0, arrivo: 0, daFare: 0, fail: 0, totale: 0 };
+      receiverMap[receiver][app] = { arrivato: 0, arrivo: 0, daFare: 0, fail: 0, amazon: 0 };
     }
   }
 
@@ -380,6 +380,7 @@ export async function readBilancioStats(): Promise<{
     const ricevente = getCell(row, 3).trim();
     const affiliato = getCell(row, 6).trim();
     const spese = parseNumber(getCell(row, 8));
+    const amazon = parseNumber(getCell(row, 9));
     const netto = parseNumber(getCell(row, 10));
 
     if (stato === "Bonus arrivato") {
@@ -406,8 +407,8 @@ export async function readBilancioStats(): Promise<{
       statusToKey[stato]
     ) {
       const statusKey = statusToKey[stato];
-      receiverMap[ricevente][piattaforma][statusKey] += 1;
-      receiverMap[ricevente][piattaforma].totale += 1;
+      receiverMap[ricevente][piattaforma][statusKey] += netto;
+      receiverMap[ricevente][piattaforma].amazon += amazon;
     }
   }
 
@@ -423,9 +424,9 @@ export async function readBilancioStats(): Promise<{
         arrivo: acc.arrivo + item.arrivo,
         daFare: acc.daFare + item.daFare,
         fail: acc.fail + item.fail,
-        totale: acc.totale + item.totale,
+        amazon: acc.amazon + item.amazon,
       }),
-      { app: "TOTALE", arrivato: 0, arrivo: 0, daFare: 0, fail: 0, totale: 0 },
+      { app: "TOTALE", arrivato: 0, arrivo: 0, daFare: 0, fail: 0, amazon: 0 },
     );
     return { ricevente, total, platforms: platformStats };
   });

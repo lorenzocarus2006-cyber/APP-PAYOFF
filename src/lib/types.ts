@@ -72,7 +72,7 @@ export type BilancioReceiverPlatformStats = {
   arrivo: number;
   daFare: number;
   fail: number;
-  totale: number;
+  amazon: number;
 };
 
 export type BilancioReceiverStats = {

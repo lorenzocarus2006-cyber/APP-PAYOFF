@@ -20,7 +20,18 @@ const receiverColors: Record<string, string> = {
 };
 
 function money(value: number) {
-  return value.toFixed(2);
+  return `$${value.toFixed(2)}`;
+}
+
+function AmountCell({
+  value,
+  className,
+}: {
+  value: number;
+  className: string;
+}) {
+  if (value === 0) return <span className="text-[#D1D5DB]">{money(0)}</span>;
+  return <span className={`font-bold ${className}`}>{money(value)}</span>;
 }
 
 export const dynamic = "force-dynamic";
@@ -118,47 +129,49 @@ export default function BilancioPage() {
                   <thead>
                     <tr className="border-b border-white/20 text-xs uppercase tracking-wide text-white/80">
                       <th className="px-2 py-2 font-semibold">App</th>
-                      <th className="px-2 py-2 text-center font-semibold">✅ Arrivato</th>
-                      <th className="px-2 py-2 text-center font-semibold">⏳ Arrivo</th>
-                      <th className="px-2 py-2 text-center font-semibold">📋 Da fare</th>
-                      <th className="px-2 py-2 text-center font-semibold">❌ Fail</th>
-                      <th className="px-2 py-2 text-center font-semibold">#</th>
+                      <th className="px-2 py-2 text-center font-semibold">✅ Arrivato $</th>
+                      <th className="px-2 py-2 text-center font-semibold">⏳ Arrivo $</th>
+                      <th className="px-2 py-2 text-center font-semibold">📋 Da fare $</th>
+                      <th className="px-2 py-2 text-center font-semibold">❌ Fail $</th>
+                      <th className="px-2 py-2 text-center font-semibold">🎁 Amzn $</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-white/10 bg-white/10">
                       <td className="px-2 py-2 font-bold">TOTALE</td>
-                      <td className="px-2 py-2 text-center font-bold text-emerald-300">
-                        {receiver.total.arrivato || <span className="text-white/30">0</span>}
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.total.arrivato} className="text-[#16A34A]" />
                       </td>
-                      <td className="px-2 py-2 text-center font-bold text-yellow-300">
-                        {receiver.total.arrivo || <span className="text-white/30">0</span>}
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.total.arrivo} className="text-[#D97706]" />
                       </td>
-                      <td className="px-2 py-2 text-center font-bold text-violet-300">
-                        {receiver.total.daFare || <span className="text-white/30">0</span>}
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.total.daFare} className="text-[#7C3AED]" />
                       </td>
-                      <td className="px-2 py-2 text-center font-bold text-rose-300">
-                        {receiver.total.fail || <span className="text-white/30">0</span>}
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.total.fail} className="text-[#DC2626]" />
                       </td>
-                      <td className="px-2 py-2 text-center font-bold">{receiver.total.totale}</td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.total.amazon} className="text-[#EA580C]" />
+                      </td>
                     </tr>
                     {receiver.platforms.map((platform) => (
                       <tr key={platform.app} className="border-b border-white/10">
                         <td className="px-2 py-2 font-semibold">{platform.app}</td>
-                        <td className="px-2 py-2 text-center text-emerald-300">
-                          {platform.arrivato || <span className="text-white/30">0</span>}
-                        </td>
-                        <td className="px-2 py-2 text-center text-yellow-300">
-                          {platform.arrivo || <span className="text-white/30">0</span>}
-                        </td>
-                        <td className="px-2 py-2 text-center text-violet-300">
-                          {platform.daFare || <span className="text-white/30">0</span>}
-                        </td>
-                        <td className="px-2 py-2 text-center text-rose-300">
-                          {platform.fail || <span className="text-white/30">0</span>}
+                        <td className="px-2 py-2 text-center">
+                          <AmountCell value={platform.arrivato} className="text-[#16A34A]" />
                         </td>
                         <td className="px-2 py-2 text-center">
-                          {platform.totale || <span className="text-white/30">0</span>}
+                          <AmountCell value={platform.arrivo} className="text-[#D97706]" />
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <AmountCell value={platform.daFare} className="text-[#7C3AED]" />
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <AmountCell value={platform.fail} className="text-[#DC2626]" />
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <AmountCell value={platform.amazon} className="text-[#EA580C]" />
                         </td>
                       </tr>
                     ))}
