@@ -31,6 +31,13 @@ function statusBadge(status: string) {
   return "bg-[#DC2626] text-white";
 }
 
+function statusColor(status: string) {
+  if (status === "Bonus arrivato") return "#16A34A";
+  if (status === "Bonus in arrivo") return "#D97706";
+  if (status === "Registrato da completare") return "#7C3AED";
+  return "#DC2626";
+}
+
 const PLATFORM_BADGE_COLORS: Record<string, string> = {
   COINBASE: "#0052FF",
   REVOLUT: "#1A1A2E",
@@ -278,7 +285,7 @@ export default function HomePage() {
                 <article
                   key={row.rowNumber}
                   className="rounded-[20px] border border-white/20 bg-white/12 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
-                  style={{ borderLeft: `5px solid ${platformBadgeColor(row.piattaforma)}` }}
+                  style={{ borderLeft: `5px solid ${statusColor(row.stato)}` }}
                 >
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <h3 className="text-[24px] leading-tight font-bold text-white">
@@ -291,7 +298,7 @@ export default function HomePage() {
 
                   <div className="mb-4 flex flex-wrap items-center gap-3">
                     <span
-                      className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadge(row.stato)}`}
+                      className={`rounded-[20px] px-3 py-1 text-[13px] font-bold ${statusBadge(row.stato)}`}
                     >
                       {row.stato || "N/D"}
                     </span>
@@ -327,11 +334,46 @@ export default function HomePage() {
                       disabled={updatingKey === `${row.rowNumber}-stato`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
-                      {STATUSES.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
+                      <option
+                        value="Bonus arrivato"
+                        style={{
+                          backgroundColor: "#dcfce7",
+                          color: "#16A34A",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Bonus arrivato
+                      </option>
+                      <option
+                        value="Bonus in arrivo"
+                        style={{
+                          backgroundColor: "#fef9c3",
+                          color: "#D97706",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Bonus in arrivo
+                      </option>
+                      <option
+                        value="Registrato da completare"
+                        style={{
+                          backgroundColor: "#ede9fe",
+                          color: "#7C3AED",
+                          fontWeight: 700,
+                        }}
+                      >
+                        Registrato da completare
+                      </option>
+                      <option
+                        value="FAIL"
+                        style={{
+                          backgroundColor: "#fee2e2",
+                          color: "#DC2626",
+                          fontWeight: 700,
+                        }}
+                      >
+                        FAIL
+                      </option>
                     </select>
                   </label>
 

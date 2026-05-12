@@ -61,14 +61,13 @@ async function getSheetsClient() {
   return google.sheets({ version: "v4", auth });
 }
 
-function parseNumber(raw: string | undefined): number {
-  if (!raw || raw === "") return 0;
-  const cleaned = String(raw)
-    .replace(/[$\s]/g, "")
-    .replace(/\./g, "")
-    .replace(",", ".");
-  const parsed = parseFloat(cleaned);
-  return Number.isNaN(parsed) ? 0 : parsed;
+function parseNum(val: unknown): number {
+  if (!val || val === "") return 0;
+  const s = String(val).replace(/[$\s]/g, "").trim();
+  if (s.includes(",")) {
+    return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
+  }
+  return parseFloat(s) || 0;
 }
 
 function getCell(row: string[], idx: number): string {
@@ -88,10 +87,10 @@ export async function readBonusRows(): Promise<BonusRecord[]> {
   if (rows.length <= 1) return [];
 
   return rows.slice(1).map((row, index) => {
-    const bonus = parseNumber(getCell(row, 7));
-    const spese = parseNumber(getCell(row, 8));
-    const amazon = parseNumber(getCell(row, 9));
-    const nettoSheet = parseNumber(getCell(row, 10));
+    const bonus = parseNum(getCell(row, 7));
+    const spese = parseNum(getCell(row, 8));
+    const amazon = parseNum(getCell(row, 9));
+    const nettoSheet = parseNum(getCell(row, 10));
 
     return {
       rowNumber: index + 2,
@@ -215,13 +214,13 @@ export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
     .slice(1)
     .map((row) => ({
       intestatario: getCell(row, 0),
-      coinbase: parseNumber(getCell(row, 1)),
-      bbva: parseNumber(getCell(row, 2)),
-      binance: parseNumber(getCell(row, 3)),
-      buddybank: parseNumber(getCell(row, 4)),
-      isybank: parseNumber(getCell(row, 5)),
-      revolut: parseNumber(getCell(row, 6)),
-      ing: parseNumber(getCell(row, 7)),
+      coinbase: parseNum(getCell(row, 1)),
+      bbva: parseNum(getCell(row, 2)),
+      binance: parseNum(getCell(row, 3)),
+      buddybank: parseNum(getCell(row, 4)),
+      isybank: parseNum(getCell(row, 5)),
+      revolut: parseNum(getCell(row, 6)),
+      ing: parseNum(getCell(row, 7)),
     }))
     .filter(
       (row) =>
@@ -253,7 +252,7 @@ export async function readAffiliatesData(): Promise<{
   const paymentRows = (paymentsResponse.data.values ?? [])
     .map((row) => ({
       affiliato: getCell(row, 0).trim(),
-      importo: parseNumber(getCell(row, 1)),
+      importo: parseNum(getCell(row, 1)),
       data: getCell(row, 2).trim(),
       modalita: getCell(row, 3).trim(),
       note: getCell(row, 4).trim(),
@@ -273,7 +272,7 @@ export async function readAffiliatesData(): Promise<{
     (acc, row) => {
       const affiliateName = getCell(row, 0).trim().toUpperCase();
       if (!affiliateName) return acc;
-      const netto = parseNumber(getCell(row, 4));
+      const netto = parseNum(getCell(row, 4));
       const rate = affiliateName === "PEPI" ? 0.25 : 0.2;
       acc[affiliateName] = (acc[affiliateName] ?? 0) + netto * rate;
       return acc;
@@ -397,10 +396,10 @@ export async function readBilancioStats(): Promise<{
     const stato = getCell(row, 2).trim();
     const ricevente = getCell(row, 3).trim();
     const affiliato = getCell(row, 6).trim();
-    const bonus = parseNumber(getCell(row, 7));
-    const spese = parseNumber(getCell(row, 8));
-    const amazon = parseNumber(getCell(row, 9));
-    const netto = parseNumber(getCell(row, 10));
+    const bonus = parseNum(getCell(row, 7));
+    const spese = parseNum(getCell(row, 8));
+    const amazon = parseNum(getCell(row, 9));
+    const netto = parseNum(getCell(row, 10));
     amazonTotale += amazon;
 
     if (stato === "Bonus arrivato") {
