@@ -323,6 +323,10 @@ export async function readBilancioStats(): Promise<{
         nettoTotale: 0,
         inArrivoTotale: 0,
         daCompletareTotale: 0,
+        amazonTotale: 0,
+        amazonArrivato: 0,
+        amazonInArrivo: 0,
+        amazonDaCompletare: 0,
         failCount: 0,
         totalePercentoAffiliati: 0,
         nettoMenoPercentoAffiliati: 0,
@@ -344,7 +348,7 @@ export async function readBilancioStats(): Promise<{
     "MATTIA RUSSO",
     "Luca pietra",
   ];
-  const platformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ISYBANK", "ING"];
+  const platformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ING"];
   const statusToKey: Record<string, keyof Omit<BilancioReceiverPlatformStats, "app" | "amazon">> =
     {
       "Bonus arrivato": "arrivato",
@@ -357,8 +361,19 @@ export async function readBilancioStats(): Promise<{
     string,
     Record<string, Omit<BilancioReceiverPlatformStats, "app">>
   > = {};
+  const receiverAmazonByStatus: Record<
+    string,
+    { arrivato: number; arrivo: number; daFare: number; fail: number; amazon: number }
+  > = {};
   for (const receiver of receiverList) {
     receiverMap[receiver] = {};
+    receiverAmazonByStatus[receiver] = {
+      arrivato: 0,
+      arrivo: 0,
+      daFare: 0,
+      fail: 0,
+      amazon: 0,
+    };
     for (const app of platformList) {
       receiverMap[receiver][app] = { arrivato: 0, arrivo: 0, daFare: 0, fail: 0, amazon: 0 };
     }
@@ -367,6 +382,10 @@ export async function readBilancioStats(): Promise<{
   let nettoTotale = 0;
   let inArrivoTotale = 0;
   let daCompletareTotale = 0;
+  let amazonTotale = 0;
+  let amazonArrivato = 0;
+  let amazonInArrivo = 0;
+  let amazonDaCompletare = 0;
   let failCount = 0;
   let totalePercentoAffiliati = 0;
   let speseTotali = 0;
@@ -382,17 +401,21 @@ export async function readBilancioStats(): Promise<{
     const spese = parseNumber(getCell(row, 8));
     const amazon = parseNumber(getCell(row, 9));
     const netto = parseNumber(getCell(row, 10));
+    amazonTotale += amazon;
 
     if (stato === "Bonus arrivato") {
       nettoTotale += netto;
       speseTotali += spese;
       completatiCount += 1;
+      amazonArrivato += amazon;
     } else if (stato === "Bonus in arrivo") {
       inArrivoTotale += netto;
       inArrivoCount += 1;
+      amazonInArrivo += amazon;
     } else if (stato === "Registrato da completare") {
       daCompletareTotale += netto;
       daCompletareCount += 1;
+      amazonDaCompletare += amazon;
     } else if (stato === "FAIL") {
       failCount += 1;
     }
@@ -409,6 +432,8 @@ export async function readBilancioStats(): Promise<{
       const statusKey = statusToKey[stato];
       receiverMap[ricevente][piattaforma][statusKey] += netto;
       receiverMap[ricevente][piattaforma].amazon += amazon;
+      receiverAmazonByStatus[ricevente][statusKey] += amazon;
+      receiverAmazonByStatus[ricevente].amazon += amazon;
     }
   }
 
@@ -428,13 +453,22 @@ export async function readBilancioStats(): Promise<{
       }),
       { app: "TOTALE", arrivato: 0, arrivo: 0, daFare: 0, fail: 0, amazon: 0 },
     );
-    return { ricevente, total, platforms: platformStats };
+    const amazonRow = {
+      app: "🎁 Amazon",
+      ...receiverAmazonByStatus[ricevente],
+    };
+
+    return { ricevente, total, amazonRow, platforms: platformStats };
   });
 
   const overview: BilancioOverview = {
     nettoTotale,
     inArrivoTotale,
     daCompletareTotale,
+    amazonTotale,
+    amazonArrivato,
+    amazonInArrivo,
+    amazonDaCompletare,
     failCount,
     totalePercentoAffiliati,
     nettoMenoPercentoAffiliati: nettoTotale - totalePercentoAffiliati,

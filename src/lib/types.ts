@@ -57,6 +57,10 @@ export type BilancioOverview = {
   nettoTotale: number;
   inArrivoTotale: number;
   daCompletareTotale: number;
+  amazonTotale: number;
+  amazonArrivato: number;
+  amazonInArrivo: number;
+  amazonDaCompletare: number;
   failCount: number;
   totalePercentoAffiliati: number;
   nettoMenoPercentoAffiliati: number;
@@ -78,5 +82,6 @@ export type BilancioReceiverPlatformStats = {
 export type BilancioReceiverStats = {
   ricevente: string;
   total: BilancioReceiverPlatformStats;
+  amazonRow: BilancioReceiverPlatformStats;
   platforms: BilancioReceiverPlatformStats[];
 };

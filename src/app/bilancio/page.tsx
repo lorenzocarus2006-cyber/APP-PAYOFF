@@ -68,6 +68,10 @@ export default function BilancioPage() {
         { label: "💰 Netto Totale", value: money(overview.nettoTotale) },
         { label: "⏳ In Arrivo", value: money(overview.inArrivoTotale) },
         { label: "📋 Da Completare", value: money(overview.daCompletareTotale) },
+        { label: "🎁 Totale Amazon", value: money(overview.amazonTotale) },
+        { label: "🎁 Amazon Arrivato", value: money(overview.amazonArrivato) },
+        { label: "🎁 Amazon in Arrivo", value: money(overview.amazonInArrivo) },
+        { label: "🎁 Amazon da Completare", value: money(overview.amazonDaCompletare) },
         { label: "❌ FAIL", value: String(overview.failCount) },
         { label: "🤝 Totale % Affiliati", value: money(overview.totalePercentoAffiliati) },
         { label: "💎 Netto - % Affiliati", value: money(overview.nettoMenoPercentoAffiliati) },
@@ -175,6 +179,24 @@ export default function BilancioPage() {
                         </td>
                       </tr>
                     ))}
+                    <tr className="bg-white/15">
+                      <td className="px-2 py-2 font-bold">{receiver.amazonRow.app}</td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.amazonRow.arrivato} className="text-[#16A34A]" />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.amazonRow.arrivo} className="text-[#D97706]" />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.amazonRow.daFare} className="text-[#7C3AED]" />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.amazonRow.fail} className="text-[#DC2626]" />
+                      </td>
+                      <td className="px-2 py-2 text-center">
+                        <AmountCell value={receiver.amazonRow.amazon} className="text-[#EA580C]" />
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
