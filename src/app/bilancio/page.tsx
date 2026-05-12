@@ -74,7 +74,6 @@ export default function BilancioPage() {
         { label: "🎁 Amazon da Completare", value: money(overview.amazonDaCompletare) },
         { label: "❌ FAIL", value: String(overview.failCount) },
         { label: "🤝 Totale % Affiliati", value: money(overview.totalePercentoAffiliati) },
-        { label: "💎 Netto - % Affiliati", value: money(overview.nettoMenoPercentoAffiliati) },
         { label: "🧾 Spese", value: money(overview.speseTotali) },
         { label: "✅ Completati", value: String(overview.completatiCount) },
         { label: "⏳ In Arrivo count", value: String(overview.inArrivoCount) },

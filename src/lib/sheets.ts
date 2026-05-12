@@ -62,14 +62,13 @@ async function getSheetsClient() {
 }
 
 function parseNumber(raw: string | undefined): number {
-  if (!raw) return 0;
-  const cleaned = raw
+  if (!raw || raw === "") return 0;
+  const cleaned = String(raw)
     .replace(/[$\s]/g, "")
     .replace(/\./g, "")
-    .replace(",", ".")
-    .trim();
+    .replace(",", ".");
   const parsed = parseFloat(cleaned);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function getCell(row: string[], idx: number): string {
@@ -398,6 +397,7 @@ export async function readBilancioStats(): Promise<{
     const stato = getCell(row, 2).trim();
     const ricevente = getCell(row, 3).trim();
     const affiliato = getCell(row, 6).trim();
+    const bonus = parseNumber(getCell(row, 7));
     const spese = parseNumber(getCell(row, 8));
     const amazon = parseNumber(getCell(row, 9));
     const netto = parseNumber(getCell(row, 10));
@@ -435,6 +435,8 @@ export async function readBilancioStats(): Promise<{
       receiverAmazonByStatus[ricevente][statusKey] += amazon;
       receiverAmazonByStatus[ricevente].amazon += amazon;
     }
+
+    void bonus;
   }
 
   const riceventi: BilancioReceiverStats[] = receiverList.map((ricevente) => {
