@@ -42,21 +42,6 @@ const PLATFORM_BADGE_COLORS: Record<string, string> = {
   KRAKEN: "#5741D9",
 };
 
-const PLATFORM_CARD_BACKGROUNDS: Record<string, string> = {
-  COINBASE: "linear-gradient(135deg, #0052FF, #0041CC)",
-  BUDDYBANK: "linear-gradient(135deg, #FF4B7B, #CC3A62)",
-  BBVA: "linear-gradient(135deg, #004481, #002D5C)",
-  REVOLUT: "linear-gradient(135deg, #1A1A2E, #374151)",
-  ISYBANK: "linear-gradient(135deg, #FF6B35, #E55A26)",
-  ING: "linear-gradient(135deg, #FF6200, #CC4E00)",
-  BINANCE: "linear-gradient(135deg, #D4A017, #B8860B)",
-  KRAKEN: "linear-gradient(135deg, #5741D9, #4230B0)",
-};
-
-function platformCardBackground(name: string) {
-  return PLATFORM_CARD_BACKGROUNDS[name] ?? "linear-gradient(135deg, #2D7DD2, #1A5FA8)";
-}
-
 function platformBadgeColor(name: string) {
   return PLATFORM_BADGE_COLORS[name] ?? "#2D7DD2";
 }
@@ -292,14 +277,14 @@ export default function HomePage() {
               filteredRows.map((row) => (
                 <article
                   key={row.rowNumber}
-                  className="rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.2)] text-black"
-                  style={{ background: platformCardBackground(row.piattaforma) }}
+                  className="rounded-[20px] border border-white/20 bg-white/12 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  style={{ borderLeft: `5px solid ${platformBadgeColor(row.piattaforma)}` }}
                 >
                   <div className="mb-5 flex items-start justify-between gap-3">
-                    <h3 className="text-[28px] leading-tight font-black text-black">
+                    <h3 className="text-[24px] leading-tight font-bold text-white">
                       {row.personaInvitata || "(senza nome)"}
                     </h3>
-                    <p className="text-[36px] leading-none font-black text-black">
+                    <p className="text-[32px] leading-none font-bold text-white">
                       {row.netto.toFixed(2)}
                     </p>
                   </div>
@@ -311,8 +296,8 @@ export default function HomePage() {
                       {row.stato || "N/D"}
                     </span>
                     <span
-                      className="ml-auto rounded-full border border-black/20 bg-white/40 px-3 py-1 text-xs font-black text-black"
-                      style={{ boxShadow: `inset 0 0 0 2px ${platformBadgeColor(row.piattaforma)}` }}
+                      className="ml-auto rounded-full px-3 py-1.5 text-[14px] font-bold text-white"
+                      style={{ backgroundColor: platformBadgeColor(row.piattaforma) }}
                     >
                       {row.piattaforma || "PIATTAFORMA"}
                     </span>
@@ -320,12 +305,12 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-1 gap-4 text-base md:grid-cols-2">
                     <div>
-                      <p className="text-[13px] font-bold text-black/60">Data</p>
-                      <p className="text-[16px] font-black text-black">{row.data || "-"}</p>
+                      <p className="text-[12px] font-bold text-white/70">Data</p>
+                      <p className="text-[16px] font-black text-white">{row.data || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-[13px] font-bold text-black/60">Netto $</p>
-                      <p className="text-[16px] font-black text-black">
+                      <p className="text-[12px] font-bold text-white/70">Netto $</p>
+                      <p className="text-[16px] font-black text-white">
                         {row.netto.toFixed(2)}
                       </p>
                     </div>
@@ -333,7 +318,7 @@ export default function HomePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">STATO</span>
+                    <span className="text-[12px] font-bold text-white/70">STATO</span>
                     <select
                       value={row.stato}
                       onChange={(event) =>
@@ -351,7 +336,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">Ricevente</span>
+                    <span className="text-[12px] font-bold text-white/70">Ricevente</span>
                     <select
                       value={row.ricevente}
                       onChange={(event) =>
@@ -370,7 +355,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">AFFILIATI</span>
+                    <span className="text-[12px] font-bold text-white/70">AFFILIATI</span>
                     <select
                       value={row.affiliati}
                       onChange={(event) =>
@@ -390,7 +375,7 @@ export default function HomePage() {
 
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-bold text-black/60">INFO</span>
+                      <span className="text-[12px] font-bold text-white/70">INFO</span>
                       {infoSavedRow === row.rowNumber ? (
                           <span className="text-sm font-semibold text-emerald-300">
                           ✓ Salvato
@@ -421,7 +406,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">Bonus $</span>
+                    <span className="text-[12px] font-bold text-white/70">Bonus $</span>
                     <input
                       type="number"
                       value={row.bonus}
@@ -438,7 +423,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">Spese</span>
+                    <span className="text-[12px] font-bold text-white/70">Spese</span>
                     <input
                       type="number"
                       value={row.spese}
@@ -455,7 +440,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[13px] font-bold text-black/60">Amazon</span>
+                    <span className="text-[12px] font-bold text-white/70">Amazon</span>
                     <input
                       type="number"
                       value={row.amazon}
