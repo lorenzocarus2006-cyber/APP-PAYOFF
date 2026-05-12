@@ -56,8 +56,23 @@ const PLATFORM_BADGE_COLORS: Record<string, string> = {
   KRAKEN: "#5741D9",
 };
 
+const PLATFORM_BORDER_COLORS: Record<string, string> = {
+  COINBASE: "#0052FF",
+  BUDDYBANK: "#FF4B7B",
+  BBVA: "#004481",
+  REVOLUT: "#374151",
+  ISYBANK: "#FF6B35",
+  ING: "#FF6200",
+  BINANCE: "#D4A017",
+  KRAKEN: "#5741D9",
+};
+
 function platformBadgeColor(name: string) {
   return PLATFORM_BADGE_COLORS[name] ?? "#2D7DD2";
+}
+
+function platformBorderColor(name: string) {
+  return PLATFORM_BORDER_COLORS[name] ?? "#2D7DD2";
 }
 
 export default function HomePage() {
@@ -291,8 +306,13 @@ export default function HomePage() {
               filteredRows.map((row) => (
                 <article
                   key={row.rowNumber}
-                  className="rounded-[20px] border border-white/20 bg-white/12 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
-                  style={{ borderLeft: `5px solid ${statusColor(row.stato)}` }}
+                  className="rounded-[20px] bg-white/12 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  style={{
+                    borderLeft: `6px solid ${platformBorderColor(row.piattaforma)}`,
+                    borderTop: `2px solid ${platformBorderColor(row.piattaforma)}`,
+                    borderRight: `2px solid ${platformBorderColor(row.piattaforma)}`,
+                    borderBottom: `2px solid ${platformBorderColor(row.piattaforma)}`,
+                  }}
                 >
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <h3 className="text-[24px] leading-tight font-bold text-white">
