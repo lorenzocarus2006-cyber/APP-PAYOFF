@@ -86,6 +86,9 @@ export default function HomePage() {
   const [updatingKey, setUpdatingKey] = useState<string | null>(null);
   const [infoDrafts, setInfoDrafts] = useState<Record<number, string>>({});
   const [infoSavedRow, setInfoSavedRow] = useState<number | null>(null);
+  const [deleteConfirmRow, setDeleteConfirmRow] = useState<BonusRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteToast, setDeleteToast] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -123,6 +126,12 @@ export default function HomePage() {
     }, 0);
     return () => clearTimeout(timeoutId);
   }, []);
+
+  useEffect(() => {
+    if (!deleteToast) return;
+    const id = window.setTimeout(() => setDeleteToast(false), 2000);
+    return () => window.clearTimeout(id);
+  }, [deleteToast]);
 
   const filteredRows = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -235,6 +244,51 @@ export default function HomePage() {
     }, 1500);
   }
 
+  async function handleConfirmDelete() {
+    if (!deleteConfirmRow) return;
+    const deletedRn = deleteConfirmRow.rowNumber;
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/sheets/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rowNumber: deletedRn }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Eliminazione non riuscita.");
+
+      setDeleteConfirmRow(null);
+      setRows((prev) =>
+        prev
+          .filter((r) => r.rowNumber !== deletedRn)
+          .map((r) =>
+            r.rowNumber > deletedRn ? { ...r, rowNumber: r.rowNumber - 1 } : r,
+          ),
+      );
+      setInfoDrafts((prev) => {
+        const next: Record<number, string> = {};
+        for (const [keyStr, val] of Object.entries(prev)) {
+          const k = Number(keyStr);
+          if (k === deletedRn) continue;
+          next[k > deletedRn ? k - 1 : k] = val;
+        }
+        return next;
+      });
+      setInfoSavedRow((current) => {
+        if (current === deletedRn) return null;
+        if (current != null && current > deletedRn) return current - 1;
+        return current;
+      });
+      setDeleteToast(true);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
@@ -307,7 +361,7 @@ export default function HomePage() {
               filteredRows.map((row) => (
                 <article
                   key={row.rowNumber}
-                  className="rounded-[20px] bg-white/12 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  className="relative rounded-[20px] bg-white/12 p-5 pt-12 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
                   style={{
                     borderLeft: `6px solid ${platformBorderColor(row.piattaforma)}`,
                     borderTop: `2px solid ${platformBorderColor(row.piattaforma)}`,
@@ -315,6 +369,19 @@ export default function HomePage() {
                     borderBottom: `2px solid ${platformBorderColor(row.piattaforma)}`,
                   }}
                 >
+                  <button
+                    type="button"
+                    aria-label="Elimina bonus"
+                    className="absolute left-4 top-4 text-lg opacity-70 transition-opacity hover:opacity-100"
+                    style={{ color: "#DC2626" }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirmRow(row);
+                    }}
+                  >
+                    🗑️
+                  </button>
+
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <h3 className="text-[24px] leading-tight font-bold text-white">
                       {row.personaInvitata || "(senza nome)"}
@@ -715,6 +782,64 @@ export default function HomePage() {
               </button>
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {deleteConfirmRow ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={() => !deleting && setDeleteConfirmRow(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-bonus-title"
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="delete-bonus-title"
+              className="text-[20px] font-bold text-neutral-900"
+            >
+              Elimina bonus?
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+              Sei sicuro di voler eliminare il bonus di{" "}
+              <span className="font-semibold">
+                {deleteConfirmRow.personaInvitata || "(senza nome)"}
+              </span>{" "}
+              su{" "}
+              <span className="font-semibold">
+                {deleteConfirmRow.piattaforma || "—"}
+              </span>
+              ? Questa azione non può essere annullata.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:justify-end">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => void handleConfirmDelete()}
+                className="min-h-12 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
+              >
+                {deleting ? "Eliminazione..." : "Elimina"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setDeleteConfirmRow(null)}
+                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteToast ? (
+        <div className="pointer-events-none fixed bottom-24 left-1/2 z-[70] -translate-x-1/2 rounded-xl bg-emerald-600 px-5 py-3 text-base font-bold text-white shadow-lg">
+          Bonus eliminato ✓
         </div>
       ) : null}
     </div>

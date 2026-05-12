@@ -185,6 +185,48 @@ export async function updateCellValue(
   });
 }
 
+async function getSheetIdByTitle(title: string): Promise<number> {
+  const sheets = await getSheetsClient();
+  const meta = await sheets.spreadsheets.get({
+    spreadsheetId: env.spreadsheetId!,
+    fields: "sheets.properties",
+  });
+  const sheet = meta.data.sheets?.find((s) => s.properties?.title === title);
+  const id = sheet?.properties?.sheetId;
+  if (id == null) {
+    throw new Error(`Foglio "${title}" non trovato nello spreadsheet.`);
+  }
+  return id;
+}
+
+/** Elimina la riga 1-based `rowNumber` dal foglio bonus (tab aprile). */
+export async function deleteBonusRow(rowNumber: number) {
+  if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+    throw new Error("Il numero riga deve essere un intero >= 2.");
+  }
+
+  const sheets = await getSheetsClient();
+  const sheetId = await getSheetIdByTitle(SHEET_NAME);
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: env.spreadsheetId!,
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: "ROWS",
+              startIndex: rowNumber - 1,
+              endIndex: rowNumber,
+            },
+          },
+        },
+      ],
+    },
+  });
+}
+
 export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
   const sheets = await getSheetsClient();
   const response = await sheets.spreadsheets.values.get({
