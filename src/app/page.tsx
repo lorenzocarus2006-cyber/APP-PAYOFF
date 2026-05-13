@@ -824,7 +824,7 @@ export default function HomePage() {
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
           role="presentation"
-          onMouseDown={(e) => {
+          onClick={(e) => {
             if (e.target === e.currentTarget && !deleting) setDeleteConfirm(null);
           }}
         >
@@ -855,7 +855,10 @@ export default function HomePage() {
               <button
                 type="button"
                 disabled={deleting}
-                onClick={handleDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void handleDelete();
+                }}
                 className="min-h-12 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
               >
                 {deleting ? "Eliminazione..." : "Elimina"}
@@ -863,7 +866,10 @@ export default function HomePage() {
               <button
                 type="button"
                 disabled={deleting}
-                onClick={() => setDeleteConfirm(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteConfirm(null);
+                }}
                 className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
               >
                 Annulla
