@@ -2,6 +2,27 @@ import { readLinkOverviewRows } from "@/lib/sheets";
 
 export const dynamic = "force-dynamic";
 
+/** Ordine righe tabella (dopo "Luca pietra" → "Alessia longo", poi Extra). */
+const PANORAMICA_ROW_ORDER = [
+  "Lori",
+  "Diego",
+  "poma",
+  "Cusi",
+  "Ludovica",
+  "Rubi",
+  "MATTIA RUSSO",
+  "Luca pietra",
+  "Alessia longo",
+  "Extra3",
+  "Extra4",
+  "Extra5",
+] as const;
+
+function panoramicaRowOrder(name: string) {
+  const idx = (PANORAMICA_ROW_ORDER as readonly string[]).indexOf(name);
+  return idx === -1 ? 999 : idx;
+}
+
 const columns = [
   { key: "coinbase", label: "COINBASE" },
   { key: "bbva", label: "BBVA" },
@@ -23,7 +44,10 @@ const numberColors: Record<(typeof columns)[number]["key"], string> = {
 };
 
 export default async function PanoramicaLinkPage() {
-  const rows = await readLinkOverviewRows();
+  const rawRows = await readLinkOverviewRows();
+  const rows = [...rawRows].sort(
+    (a, b) => panoramicaRowOrder(a.intestatario) - panoramicaRowOrder(b.intestatario),
+  );
   const totals = columns.reduce<Record<string, number>>((acc, column) => {
     acc[column.key] = rows.reduce((sum, row) => sum + row[column.key], 0);
     return acc;

@@ -25,6 +25,7 @@ export const RECEIVERS = [
   "Rubi",
   "MATTIA RUSSO",
   "Luca pietra",
+  "Alessia longo",
   "Extra3",
   "Extra4",
   "Extra5",

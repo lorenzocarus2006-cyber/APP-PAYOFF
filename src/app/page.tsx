@@ -5,6 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
 
+type DeleteConfirm = {
+  rowNumber: number;
+  nome: string;
+  piattaforma: string;
+};
+
 type BonusFormState = Omit<NewBonusPayload, "bonus" | "spese" | "amazon"> & {
   bonus: string;
   spese: string;
@@ -94,7 +100,7 @@ export default function HomePage() {
   const [updatingKey, setUpdatingKey] = useState<string | null>(null);
   const [infoDrafts, setInfoDrafts] = useState<Record<number, string>>({});
   const [infoSavedRow, setInfoSavedRow] = useState<number | null>(null);
-  const [deleteConfirmRow, setDeleteConfirmRow] = useState<BonusRecord | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirm | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteToast, setDeleteToast] = useState(false);
   const [error, setError] = useState("");
@@ -252,21 +258,21 @@ export default function HomePage() {
     }, 1500);
   }
 
-  async function handleConfirmDelete() {
-    if (!deleteConfirmRow) return;
-    const deletedRn = deleteConfirmRow.rowNumber;
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    const deletedRn = deleteConfirm.rowNumber;
     setDeleting(true);
     setError("");
     try {
       const res = await fetch("/api/sheets/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rowNumber: deletedRn }),
+        body: JSON.stringify({ rowNumber: deleteConfirm.rowNumber }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Eliminazione non riuscita.");
 
-      setDeleteConfirmRow(null);
+      setDeleteConfirm(null);
       setRows((prev) =>
         prev
           .filter((r) => r.rowNumber !== deletedRn)
@@ -295,7 +301,7 @@ export default function HomePage() {
     } finally {
       setDeleting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
@@ -382,10 +388,13 @@ export default function HomePage() {
                     aria-label="Elimina bonus"
                     className="absolute left-4 top-4 text-lg opacity-70 transition-opacity hover:opacity-100"
                     style={{ color: "#DC2626" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteConfirmRow(row);
-                    }}
+                    onClick={() =>
+                      setDeleteConfirm({
+                        rowNumber: row.rowNumber,
+                        nome: row.personaInvitata || "",
+                        piattaforma: row.piattaforma || "",
+                      })
+                    }
                   >
                     🗑️
                   </button>
@@ -811,18 +820,19 @@ export default function HomePage() {
         </div>
       ) : null}
 
-      {deleteConfirmRow ? (
+      {deleteConfirm ? (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
           role="presentation"
-          onClick={() => !deleting && setDeleteConfirmRow(null)}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !deleting) setDeleteConfirm(null);
+          }}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-bonus-title"
             className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
           >
             <h2
               id="delete-bonus-title"
@@ -833,11 +843,11 @@ export default function HomePage() {
             <p className="mt-3 text-base leading-relaxed text-neutral-700">
               Sei sicuro di voler eliminare il bonus di{" "}
               <span className="font-semibold">
-                {deleteConfirmRow.personaInvitata || "(senza nome)"}
+                {deleteConfirm.nome.trim() || "(senza nome)"}
               </span>{" "}
               su{" "}
               <span className="font-semibold">
-                {deleteConfirmRow.piattaforma || "—"}
+                {deleteConfirm.piattaforma.trim() || "—"}
               </span>
               ? Questa azione non può essere annullata.
             </p>
@@ -845,7 +855,7 @@ export default function HomePage() {
               <button
                 type="button"
                 disabled={deleting}
-                onClick={() => void handleConfirmDelete()}
+                onClick={handleDelete}
                 className="min-h-12 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
               >
                 {deleting ? "Eliminazione..." : "Elimina"}
@@ -853,7 +863,7 @@ export default function HomePage() {
               <button
                 type="button"
                 disabled={deleting}
-                onClick={() => setDeleteConfirmRow(null)}
+                onClick={() => setDeleteConfirm(null)}
                 className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
               >
                 Annulla
