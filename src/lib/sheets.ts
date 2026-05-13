@@ -127,11 +127,28 @@ export async function appendBonusRow(payload: NewBonusPayload) {
 
 export async function appendBonusValues(row: Array<string | number>) {
   const sheets = await getSheetsClient();
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.SPREADSHEET_ID!,
-    range: "aprile!A:J",
+  const spreadsheetId = process.env.SPREADSHEET_ID!;
+
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: "aprile!A2:A600",
+    valueRenderOption: "UNFORMATTED_VALUE",
+  });
+
+  const values = response.data.values ?? [];
+  let firstEmptyRow = values.length + 2;
+  for (let i = 0; i < values.length; i++) {
+    const cell = values[i]?.[0];
+    if (cell === undefined || cell === null || String(cell).trim() === "") {
+      firstEmptyRow = i + 2;
+      break;
+    }
+  }
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `aprile!A${firstEmptyRow}:J${firstEmptyRow}`,
     valueInputOption: "USER_ENTERED",
-    insertDataOption: "OVERWRITE",
     requestBody: { values: [row] },
   });
 }
