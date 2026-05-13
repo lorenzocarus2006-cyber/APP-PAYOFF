@@ -128,8 +128,8 @@ export async function appendBonusRow(payload: NewBonusPayload) {
 export async function appendBonusValues(row: Array<string | number>) {
   const sheets = await getSheetsClient();
   await sheets.spreadsheets.values.append({
-    spreadsheetId: env.spreadsheetId!,
-    range: `${SHEET_NAME}!${COLS_A_TO_J}`,
+    spreadsheetId: process.env.SPREADSHEET_ID!,
+    range: "aprile!A:J",
     valueInputOption: "USER_ENTERED",
     insertDataOption: "OVERWRITE",
     requestBody: { values: [row] },
