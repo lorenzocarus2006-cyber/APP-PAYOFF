@@ -3,6 +3,13 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+  "Bonus arrivato": "#16A34A",
+  "Bonus in arrivo": "#D97706",
+  "Registrato da completare": "#7C3AED",
+  FAIL: "#DC2626",
+};
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
 
 type DeleteConfirm = {
@@ -16,6 +23,8 @@ type BonusFormState = Omit<NewBonusPayload, "bonus" | "spese" | "amazon"> & {
   spese: string;
   amazon: string;
 };
+
+type SortMode = "alpha-asc" | "alpha-desc" | "date-asc" | "date-desc" | null;
 
 const defaultForm: BonusFormState = {
   piattaforma: PLATFORMS[0],
@@ -105,6 +114,11 @@ export default function HomePage() {
   const [deleteToast, setDeleteToast] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [platformFilter, setPlatformFilter] = useState<string | null>(null);
+  const [showPlatformMenu, setShowPlatformMenu] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>(null);
 
   const bonusValue = Number(form.bonus || 0);
   const speseValue = Number(form.spese || 0);
@@ -147,11 +161,44 @@ export default function HomePage() {
     return () => window.clearTimeout(id);
   }, [deleteToast]);
 
+  const filtersActive =
+    platformFilter !== null || statusFilter !== null || sortMode !== null;
+
   const filteredRows = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return [];
-    return rows.filter((row) => row.personaInvitata.toLowerCase().includes(term));
-  }, [rows, query]);
+    if (!term && !filtersActive) return [];
+
+    let result = rows;
+    if (term) {
+      result = result.filter((row) =>
+        row.personaInvitata.toLowerCase().includes(term),
+      );
+    }
+    if (platformFilter) {
+      result = result.filter((row) => row.piattaforma === platformFilter);
+    }
+    if (statusFilter) {
+      result = result.filter((row) => row.stato === statusFilter);
+    }
+
+    if (sortMode) {
+      result = [...result];
+      if (sortMode === "alpha-asc" || sortMode === "alpha-desc") {
+        result.sort((a, b) =>
+          a.personaInvitata.localeCompare(b.personaInvitata, "it", {
+            sensitivity: "base",
+          }),
+        );
+        if (sortMode === "alpha-desc") result.reverse();
+      } else {
+        // rowNumber crescente = ordine di inserimento nell'app
+        result.sort((a, b) => a.rowNumber - b.rowNumber);
+        if (sortMode === "date-desc") result.reverse();
+      }
+    }
+
+    return result;
+  }, [rows, query, filtersActive, platformFilter, statusFilter, sortMode]);
 
   async function handleSaveBonus() {
     setSaving(true);
@@ -344,6 +391,176 @@ export default function HomePage() {
               className="min-h-14 w-full rounded-xl border border-white/30 bg-white/20 py-4 pl-12 pr-4 text-lg font-medium text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
             />
           </div>
+
+          <div className="mt-4 flex flex-wrap items-start gap-3">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowStatusMenu(false);
+                  setShowPlatformMenu((prev) => !prev);
+                }}
+                className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                  platformFilter
+                    ? "border-white bg-white text-[#2D5BE3]"
+                    : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+                }`}
+              >
+                🎁 {platformFilter ?? "Bonus"} ▾
+              </button>
+              {showPlatformMenu ? (
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-52 overflow-y-auto rounded-xl border border-white/30 bg-[#1a3a8f] py-1 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlatformFilter(null);
+                      setShowPlatformMenu(false);
+                    }}
+                    className={`block w-full px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                      platformFilter === null ? "bg-white/10" : ""
+                    }`}
+                  >
+                    Tutti i bonus
+                  </button>
+                  {PLATFORMS.map((platform) => (
+                    <button
+                      key={platform}
+                      type="button"
+                      onClick={() => {
+                        setPlatformFilter(platform);
+                        setShowPlatformMenu(false);
+                      }}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                        platformFilter === platform ? "bg-white/10" : ""
+                      }`}
+                    >
+                      <span
+                        className="inline-block h-3 w-3 rounded-full"
+                        style={{ backgroundColor: platformBadgeColor(platform) }}
+                      />
+                      {platform}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPlatformMenu(false);
+                  setShowStatusMenu((prev) => !prev);
+                }}
+                className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                  statusFilter
+                    ? "border-white bg-white text-[#2D5BE3]"
+                    : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+                }`}
+              >
+                📌 {statusFilter ?? "Stato"} ▾
+              </button>
+              {showStatusMenu ? (
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-white/30 bg-[#1a3a8f] py-1 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(null);
+                      setShowStatusMenu(false);
+                    }}
+                    className={`block w-full px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                      statusFilter === null ? "bg-white/10" : ""
+                    }`}
+                  >
+                    Tutti gli stati
+                  </button>
+                  {STATUSES.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter(status);
+                        setShowStatusMenu(false);
+                      }}
+                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                        statusFilter === status ? "bg-white/10" : ""
+                      }`}
+                    >
+                      <span
+                        className="inline-block h-3 w-3 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor: STATUS_DOT_COLORS[status] ?? "#ffffff",
+                        }}
+                      />
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowPlatformMenu(false);
+                setShowStatusMenu(false);
+                setSortMode((prev) =>
+                  prev === "alpha-asc"
+                    ? "alpha-desc"
+                    : prev === "alpha-desc"
+                      ? null
+                      : "alpha-asc",
+                );
+              }}
+              className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                sortMode === "alpha-asc" || sortMode === "alpha-desc"
+                  ? "border-white bg-white text-[#2D5BE3]"
+                  : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+              }`}
+            >
+              {sortMode === "alpha-desc" ? "🔤 Z → A" : "🔤 A → Z"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowPlatformMenu(false);
+                setShowStatusMenu(false);
+                setSortMode((prev) =>
+                  prev === "date-asc"
+                    ? "date-desc"
+                    : prev === "date-desc"
+                      ? null
+                      : "date-asc",
+                );
+              }}
+              className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                sortMode === "date-asc" || sortMode === "date-desc"
+                  ? "border-white bg-white text-[#2D5BE3]"
+                  : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+              }`}
+            >
+              {sortMode === "date-desc"
+                ? "📅 Più recenti prima"
+                : "📅 Meno recenti prima"}
+            </button>
+
+            {filtersActive ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setPlatformFilter(null);
+                  setStatusFilter(null);
+                  setSortMode(null);
+                  setShowPlatformMenu(false);
+                  setShowStatusMenu(false);
+                }}
+                className="min-h-12 rounded-xl border border-white/30 bg-transparent px-4 py-2.5 text-[15px] font-bold text-white/80 hover:bg-white/10"
+              >
+                ✕ Azzera filtri
+              </button>
+            ) : null}
+          </div>
         </section>
 
         {error ? (
@@ -357,7 +574,7 @@ export default function HomePage() {
           </div>
         ) : null}
 
-        {query.trim().length > 0 ? (
+        {query.trim().length > 0 || filtersActive ? (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold sm:text-2xl">
               Risultati ({filteredRows.length})
