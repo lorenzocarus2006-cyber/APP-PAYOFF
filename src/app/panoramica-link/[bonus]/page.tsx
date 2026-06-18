@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { readLinkOverviewRows } from "@/lib/db";
-import { BONUSES, getBonus, panoramicaRowOrder } from "../bonus-config";
+import { getReceiverLinks } from "@/lib/db";
+import { BONUSES, getBonus } from "../bonus-config";
+import BonusReceivers from "./BonusReceivers";
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +19,12 @@ export default async function BonusDetailPage({
   const bonus = getBonus(bonusKey);
   if (!bonus) notFound();
 
-  const rawRows = await readLinkOverviewRows();
-  const rows = [...rawRows]
-    .map((row) => ({ intestatario: row.intestatario, count: row[bonus.key] }))
-    .sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      return panoramicaRowOrder(a.intestatario) - panoramicaRowOrder(b.intestatario);
-    });
+  const piattaforma = bonus.key.toUpperCase();
+  const receivers = await getReceiverLinks(piattaforma);
 
-  const totale = rows.reduce((sum, row) => sum + row.count, 0);
-  const max = rows.reduce((m, row) => Math.max(m, row.count), 0);
-  const attivi = rows.filter((row) => row.count > 0).length;
+  const totale = receivers.reduce((sum, r) => sum + r.count, 0);
+  const attivi = receivers.filter((r) => r.count > 0).length;
+  const daRitirare = receivers.filter((r) => r.count > 0 && !r.ritirato).length;
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
@@ -84,52 +80,25 @@ export default async function BonusDetailPage({
               <p className="text-3xl font-bold tabular-nums leading-none">{attivi}</p>
               <p className="mt-1 text-xs text-white/60">riceventi attivi</p>
             </div>
+            <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
+              <p className="text-3xl font-bold tabular-nums leading-none text-red-300">
+                {daRitirare}
+              </p>
+              <p className="mt-1 text-xs text-white/60">da ritirare</p>
+            </div>
           </div>
+
+          <p className="mt-4 flex items-center gap-4 text-xs text-white/55">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400" /> da ritirare
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> ritirati
+            </span>
+          </p>
         </header>
 
-        <ul className="space-y-2.5">
-          {rows.map((row, index) => {
-            const active = row.count > 0;
-            const pct = max > 0 ? (row.count / max) * 100 : 0;
-            return (
-              <li
-                key={row.intestatario}
-                className="animate-[fadeSlide_0.4s_ease_both]"
-                style={{ animationDelay: `${index * 40}ms` }}
-              >
-                <div
-                  className={`relative flex items-center gap-3 overflow-hidden rounded-2xl border p-4 backdrop-blur-[20px] ${
-                    active ? "border-white/20 bg-white/10" : "border-white/10 bg-white/[0.04]"
-                  }`}
-                >
-                  {active && (
-                    <span
-                      className="absolute inset-y-0 left-0 -z-0 rounded-2xl opacity-25"
-                      style={{ width: `${pct}%`, backgroundColor: bonus.color }}
-                    />
-                  )}
-
-                  <span className="relative z-10 w-6 text-sm font-bold tabular-nums text-white/40">
-                    {index + 1}
-                  </span>
-                  <span
-                    className={`relative z-10 min-w-0 flex-1 truncate text-base font-semibold ${
-                      active ? "text-white" : "text-white/45"
-                    }`}
-                  >
-                    {row.intestatario}
-                  </span>
-                  <span
-                    className="relative z-10 grid min-w-9 place-items-center rounded-full px-3 py-1 text-base font-bold tabular-nums text-white"
-                    style={{ backgroundColor: active ? bonus.color : "rgba(255,255,255,0.12)" }}
-                  >
-                    {row.count}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <BonusReceivers piattaforma={piattaforma} color={bonus.color} initial={receivers} />
       </main>
     </div>
   );

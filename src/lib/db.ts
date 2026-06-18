@@ -264,6 +264,52 @@ export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
   return LINK_INTESTATARI.map((name) => byReceiver.get(name.toLowerCase())!);
 }
 
+export type ReceiverLink = {
+  ricevente: string;
+  count: number;
+  ritirato: boolean;
+};
+
+/** Per un bonus (piattaforma), elenco riceventi con n. link e stato "soldi ritirati".
+ *  ritirato = il ricevente ha almeno un link e TUTTI i suoi link di quel bonus sono ritirati. */
+export async function getReceiverLinks(piattaformaUpper: string): Promise<ReceiverLink[]> {
+  const bonuses = await readBonusRows();
+  const acc = new Map<string, { count: number; allRitirato: boolean }>();
+  for (const name of LINK_INTESTATARI) {
+    acc.set(name.toLowerCase(), { count: 0, allRitirato: true });
+  }
+  for (const row of bonuses) {
+    if (row.piattaforma.trim().toUpperCase() !== piattaformaUpper) continue;
+    const entry = acc.get(row.ricevente.trim().toLowerCase());
+    if (!entry) continue;
+    entry.count += 1;
+    if (!row.ritirato) entry.allRitirato = false;
+  }
+  return LINK_INTESTATARI.map((name) => {
+    const entry = acc.get(name.toLowerCase())!;
+    return {
+      ricevente: name,
+      count: entry.count,
+      ritirato: entry.count > 0 && entry.allRitirato,
+    };
+  });
+}
+
+/** Segna ritirato/non ritirato tutti i link di un ricevente per un dato bonus. */
+export async function setReceiverWithdrawn(
+  ricevente: string,
+  piattaformaUpper: string,
+  value: boolean,
+): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("bonuses")
+    .update({ ritirato: value })
+    .ilike("ricevente", ricevente)
+    .ilike("piattaforma", piattaformaUpper);
+  if (error) throw new Error(error.message);
+}
+
 export async function readBilancioStats(): Promise<{
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
