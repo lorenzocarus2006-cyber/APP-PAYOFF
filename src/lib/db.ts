@@ -10,7 +10,8 @@ import type {
   NewBonusPayload,
 } from "./types";
 
-const AFFILIATE_NAMES = [
+/** Roster di fallback se la tabella affiliates è vuota/non raggiungibile. */
+const AFFILIATE_FALLBACK = [
   "AGATA",
   "DAVIDE",
   "SAMUEL",
@@ -21,9 +22,29 @@ const AFFILIATE_NAMES = [
   "PITTA",
   "PEPI",
   "TONY",
-  "EXTRA6",
-  "EXTRA7",
-] as const;
+];
+
+export async function readAffiliateRoster(): Promise<string[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("affiliates")
+    .select("nome")
+    .order("id", { ascending: true });
+  if (error) throw new Error(error.message);
+  const names = (data as Array<{ nome: string }> | null)?.map((r) => r.nome.trim()) ?? [];
+  return names.length ? names : AFFILIATE_FALLBACK;
+}
+
+export async function insertAffiliate(nome: string): Promise<void> {
+  const clean = nome.trim();
+  if (!clean) throw new Error("Nome affiliato obbligatorio.");
+  const supabase = getSupabase();
+  const { error } = await supabase.from("affiliates").insert({ nome: clean });
+  if (error) {
+    if (error.code === "23505") throw new Error("Affiliato già esistente.");
+    throw new Error(error.message);
+  }
+}
 
 type BonusRow = {
   id: number;
@@ -178,8 +199,13 @@ export async function insertAffiliatePayment(payload: {
 export async function readAffiliatesData(): Promise<{
   summaries: AffiliateSummary[];
   payments: AffiliatePayment[];
+  roster: string[];
 }> {
-  const [bonuses, payments] = await Promise.all([readBonusRows(), readAffiliatePayments()]);
+  const [bonuses, payments, roster] = await Promise.all([
+    readBonusRows(),
+    readAffiliatePayments(),
+    readAffiliateRoster(),
+  ]);
 
   const generatedByAffiliate = bonuses.reduce<Record<string, number>>((acc, row) => {
     const name = row.affiliati.trim().toUpperCase();
@@ -195,7 +221,7 @@ export async function readAffiliatesData(): Promise<{
     return acc;
   }, {});
 
-  const summaries = AFFILIATE_NAMES.map((nome) => {
+  const summaries = roster.map((nome) => {
     const key = nome.toUpperCase();
     const affiliatePayments = paymentByAffiliate[key] ?? [];
     const pagato = affiliatePayments.reduce((sum, p) => sum + p.importo, 0);
@@ -209,7 +235,7 @@ export async function readAffiliatesData(): Promise<{
     };
   });
 
-  return { summaries, payments };
+  return { summaries, payments, roster };
 }
 
 const LINK_INTESTATARI = [

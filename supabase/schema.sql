@@ -28,6 +28,12 @@ create table if not exists public.affiliate_payments (
   created_at  timestamptz not null default now()
 );
 
+create table if not exists public.affiliates (
+  id          bigint generated always as identity primary key,
+  nome        text    not null unique,
+  created_at  timestamptz not null default now()
+);
+
 create index if not exists bonuses_ricevente_idx   on public.bonuses (ricevente);
 create index if not exists bonuses_piattaforma_idx on public.bonuses (piattaforma);
 create index if not exists bonuses_persona_idx     on public.bonuses (persona_invitata);

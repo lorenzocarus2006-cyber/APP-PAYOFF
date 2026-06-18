@@ -44,8 +44,6 @@ export const AFFILIATES = [
   "PITTA",
   "PEPI",
   "TONY",
-  "EXTRA6",
-  "EXTRA7",
 ] as const;
 
 export type Platform = (typeof PLATFORMS)[number];

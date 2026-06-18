@@ -120,6 +120,7 @@ export default function HomePage() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>(null);
+  const [affiliatiRoster, setAffiliatiRoster] = useState<string[]>([...AFFILIATES]);
 
   const bonusValue = Number(form.bonus || 0);
   const speseValue = Number(form.spese || 0);
@@ -154,6 +155,18 @@ export default function HomePage() {
       void fetchRows();
     }, 0);
     return () => clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/affiliati/read", { cache: "no-store" });
+        const data = (await res.json()) as { roster?: string[] };
+        if (res.ok && data.roster?.length) setAffiliatiRoster(data.roster);
+      } catch {
+        // mantiene il fallback AFFILIATES
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -793,7 +806,7 @@ export default function HomePage() {
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       <option value="">-</option>
-                      {AFFILIATES.map((option) => (
+                      {affiliatiRoster.map((option) => (
                         <option key={option} value={option}>
                           {option}
                         </option>
@@ -1012,7 +1025,7 @@ export default function HomePage() {
                   className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
                   <option value="">-</option>
-                  {AFFILIATES.map((option) => (
+                  {affiliatiRoster.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>

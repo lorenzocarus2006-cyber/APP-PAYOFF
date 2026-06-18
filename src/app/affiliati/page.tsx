@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 type AffiliatesResponse = {
   summaries: AffiliateSummary[];
   payments: AffiliatePayment[];
+  roster: string[];
 };
 
 type PaymentForm = {
@@ -61,6 +62,10 @@ export default function AffiliatiPage() {
   const [form, setForm] = useState<PaymentForm>(defaultForm);
   const [showRegistro, setShowRegistro] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [roster, setRoster] = useState<string[]>([...AFFILIATES]);
+  const [showAddAffiliate, setShowAddAffiliate] = useState(false);
+  const [newAffiliateName, setNewAffiliateName] = useState("");
+  const [savingAffiliate, setSavingAffiliate] = useState(false);
 
   async function fetchAffiliates() {
     setLoading(true);
@@ -73,6 +78,7 @@ export default function AffiliatiPage() {
       if (!res.ok) throw new Error(data.error ?? "Errore caricamento affiliati.");
       setSummaries(data.summaries ?? []);
       setPayments(data.payments ?? []);
+      if (data.roster?.length) setRoster(data.roster);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Errore sconosciuto.";
       setError(message);
@@ -116,6 +122,33 @@ export default function AffiliatiPage() {
       setError(message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAddAffiliate() {
+    const nome = newAffiliateName.trim();
+    if (!nome) return;
+    setSavingAffiliate(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/affiliati/affiliate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Errore creazione affiliato.");
+
+      setSuccess(`Affiliato "${nome}" aggiunto.`);
+      setShowAddAffiliate(false);
+      setNewAffiliateName("");
+      await fetchAffiliates();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setSavingAffiliate(false);
     }
   }
 
@@ -212,6 +245,17 @@ export default function AffiliatiPage() {
             </div>
           ) : null}
         </section>
+
+        <button
+          type="button"
+          onClick={() => {
+            setNewAffiliateName("");
+            setShowAddAffiliate(true);
+          }}
+          className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/40 bg-white/5 px-5 py-3 text-base font-semibold text-white transition-colors hover:border-white/60 hover:bg-white/10"
+        >
+          ＋ Registra Nuovo Affiliato
+        </button>
 
         <section className="space-y-3">
           <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">
@@ -326,7 +370,7 @@ export default function AffiliatiPage() {
                   }
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 >
-                  {AFFILIATES.map((affiliate) => (
+                  {roster.map((affiliate) => (
                     <option key={affiliate} value={affiliate}>
                       {affiliate}
                     </option>
@@ -395,6 +439,62 @@ export default function AffiliatiPage() {
                 className="min-h-12 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
               >
                 {saving ? "Salvataggio..." : "Salva"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showAddAffiliate ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !savingAffiliate) setShowAddAffiliate(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+          >
+            <h2 className="text-xl font-bold text-white">Nuovo Affiliato</h2>
+            <p className="mt-1 text-sm text-white/70">
+              Aggiungi un affiliato al registro. Apparirà subito nelle liste.
+            </p>
+            <label className="mt-5 block space-y-1">
+              <span className="text-sm text-white/80">Nome</span>
+              <input
+                value={newAffiliateName}
+                onChange={(event) => setNewAffiliateName(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && newAffiliateName.trim() && !savingAffiliate) {
+                    event.preventDefault();
+                    void handleAddAffiliate();
+                  }
+                }}
+                autoFocus
+                placeholder="Es. MARCO"
+                className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+              />
+            </label>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                disabled={savingAffiliate}
+                onClick={() => setShowAddAffiliate(false)}
+                className="min-h-12 flex-1 rounded-2xl border border-white/40 bg-transparent px-5 py-3 text-base font-semibold text-white disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                disabled={savingAffiliate || !newAffiliateName.trim()}
+                onClick={() => void handleAddAffiliate()}
+                className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+              >
+                {savingAffiliate ? "Salvataggio..." : "Aggiungi"}
               </button>
             </div>
           </div>
