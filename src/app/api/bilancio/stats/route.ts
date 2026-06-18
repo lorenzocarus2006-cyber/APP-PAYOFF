@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readBilancioStats } from "@/lib/sheets";
+import { readBilancioStats } from "@/lib/db";
 
 export async function GET() {
   try {

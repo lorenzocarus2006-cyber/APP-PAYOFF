@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { readLinkOverviewRows } from "@/lib/sheets";
+import { readLinkOverviewRows } from "@/lib/db";
 import { BONUSES } from "./bonus-config";
 
 export const dynamic = "force-dynamic";

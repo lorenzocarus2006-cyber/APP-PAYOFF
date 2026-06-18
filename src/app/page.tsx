@@ -14,7 +14,7 @@ const STATUS_DOT_COLORS: Record<string, string> = {
 import type { BonusRecord, NewBonusPayload } from "@/lib/types";
 
 type DeleteConfirm = {
-  rowNumber: number;
+  id: number;
   nome: string;
   piattaforma: string;
 };
@@ -137,7 +137,7 @@ export default function HomePage() {
       setRows(nextRows);
       setInfoDrafts(
         nextRows.reduce<Record<number, string>>((acc, row) => {
-          acc[row.rowNumber] = row.info ?? "";
+          acc[row.id] = row.info ?? "";
           return acc;
         }, {}),
       );
@@ -192,8 +192,8 @@ export default function HomePage() {
         );
         if (sortMode === "alpha-desc") result.reverse();
       } else {
-        // rowNumber crescente = ordine di inserimento nell'app
-        result.sort((a, b) => a.rowNumber - b.rowNumber);
+        // id crescente = ordine di inserimento nell'app
+        result.sort((a, b) => a.id - b.id);
         if (sortMode === "date-desc") result.reverse();
       }
     }
@@ -267,16 +267,7 @@ export default function HomePage() {
       | "info",
     value: string | number,
   ): Promise<boolean> {
-    const colByField: Record<typeof field, string> = {
-      stato: "C",
-      ricevente: "D",
-      affiliati: "G",
-      bonus: "H",
-      spese: "I",
-      amazon: "J",
-      info: "F",
-    };
-    const key = `${row.rowNumber}-${field}`;
+    const key = `${row.id}-${field}`;
     setUpdatingKey(key);
     setError("");
     setSuccess("");
@@ -286,9 +277,12 @@ export default function HomePage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          row: row.rowNumber,
-          col: colByField[field],
-          value: String(value),
+          id: row.id,
+          field,
+          value:
+            field === "bonus" || field === "spese" || field === "amazon"
+              ? Number(value) || 0
+              : String(value),
         }),
       });
       const data = await res.json();
@@ -296,7 +290,7 @@ export default function HomePage() {
 
       setRows((prev) =>
         prev.map((item) =>
-          item.rowNumber === row.rowNumber
+          item.id === row.id
             ? {
                 ...item,
                 [field]:
@@ -318,54 +312,44 @@ export default function HomePage() {
   }
 
   async function handleInfoSave(row: BonusRecord) {
-    const nextInfo = (infoDrafts[row.rowNumber] ?? "").trim();
+    const nextInfo = (infoDrafts[row.id] ?? "").trim();
     if (nextInfo === row.info.trim()) return;
 
     const ok = await handleInlineUpdate(row, "info", nextInfo);
     if (!ok) return;
 
-    setInfoSavedRow(row.rowNumber);
+    setInfoSavedRow(row.id);
     setTimeout(() => {
-      setInfoSavedRow((current) => (current === row.rowNumber ? null : current));
+      setInfoSavedRow((current) => (current === row.id ? null : current));
     }, 1500);
   }
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
-    const deletedRn = deleteConfirm.rowNumber;
+    const deletedRn = deleteConfirm.id;
     setDeleting(true);
     setError("");
     try {
       const res = await fetch("/api/sheets/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rowNumber: deleteConfirm.rowNumber }),
+        body: JSON.stringify({ id: deleteConfirm.id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Eliminazione non riuscita.");
 
       setDeleteConfirm(null);
-      setRows((prev) =>
-        prev
-          .filter((r) => r.rowNumber !== deletedRn)
-          .map((r) =>
-            r.rowNumber > deletedRn ? { ...r, rowNumber: r.rowNumber - 1 } : r,
-          ),
-      );
+      setRows((prev) => prev.filter((r) => r.id !== deletedRn));
       setInfoDrafts((prev) => {
         const next: Record<number, string> = {};
         for (const [keyStr, val] of Object.entries(prev)) {
           const k = Number(keyStr);
           if (k === deletedRn) continue;
-          next[k > deletedRn ? k - 1 : k] = val;
+          next[k] = val;
         }
         return next;
       });
-      setInfoSavedRow((current) => {
-        if (current === deletedRn) return null;
-        if (current != null && current > deletedRn) return current - 1;
-        return current;
-      });
+      setInfoSavedRow((current) => (current === deletedRn ? null : current));
       setDeleteToast(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Errore sconosciuto.";
@@ -669,7 +653,7 @@ export default function HomePage() {
             ) : (
               filteredRows.map((row) => (
                 <article
-                  key={row.rowNumber}
+                  key={row.id}
                   className="relative rounded-[20px] bg-white/12 p-5 pt-12 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
                   style={{
                     borderLeft: `6px solid ${platformBorderColor(row.piattaforma)}`,
@@ -685,7 +669,7 @@ export default function HomePage() {
                     style={{ color: "#DC2626" }}
                     onClick={() =>
                       setDeleteConfirm({
-                        rowNumber: row.rowNumber,
+                        id: row.id,
                         nome: row.personaInvitata || "",
                         piattaforma: row.piattaforma || "",
                       })
@@ -733,7 +717,7 @@ export default function HomePage() {
                       onChange={(event) =>
                         void handleInlineUpdate(row, "stato", event.target.value)
                       }
-                      disabled={updatingKey === `${row.rowNumber}-stato`}
+                      disabled={updatingKey === `${row.id}-stato`}
                       className={`min-h-12 w-full rounded-xl border border-black/20 px-4 py-2.5 text-[15px] font-bold outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20 ${statusSelectStyle(row.stato)}`}
                     >
                       <option
@@ -786,7 +770,7 @@ export default function HomePage() {
                       onChange={(event) =>
                         void handleInlineUpdate(row, "ricevente", event.target.value)
                       }
-                      disabled={updatingKey === `${row.rowNumber}-ricevente`}
+                      disabled={updatingKey === `${row.id}-ricevente`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       <option value="">-</option>
@@ -805,7 +789,7 @@ export default function HomePage() {
                       onChange={(event) =>
                         void handleInlineUpdate(row, "affiliati", event.target.value)
                       }
-                      disabled={updatingKey === `${row.rowNumber}-affiliati`}
+                      disabled={updatingKey === `${row.id}-affiliati`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     >
                       <option value="">-</option>
@@ -820,18 +804,18 @@ export default function HomePage() {
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[12px] font-bold text-white/70">INFO</span>
-                      {infoSavedRow === row.rowNumber ? (
+                      {infoSavedRow === row.id ? (
                           <span className="text-sm font-semibold text-emerald-300">
                           ✓ Salvato
                         </span>
                       ) : null}
                     </div>
                     <textarea
-                      value={infoDrafts[row.rowNumber] ?? row.info}
+                      value={infoDrafts[row.id] ?? row.info}
                       onChange={(event) =>
                         setInfoDrafts((prev) => ({
                           ...prev,
-                          [row.rowNumber]: event.target.value,
+                          [row.id]: event.target.value,
                         }))
                       }
                       onBlur={() => {
@@ -843,7 +827,7 @@ export default function HomePage() {
                           event.currentTarget.blur();
                         }
                       }}
-                      disabled={updatingKey === `${row.rowNumber}-info`}
+                      disabled={updatingKey === `${row.id}-info`}
                       rows={3}
                       className="w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none placeholder:text-black/50 focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
@@ -861,7 +845,7 @@ export default function HomePage() {
                           Number(event.target.value || 0),
                         )
                       }
-                      disabled={updatingKey === `${row.rowNumber}-bonus`}
+                      disabled={updatingKey === `${row.id}-bonus`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
@@ -878,7 +862,7 @@ export default function HomePage() {
                           Number(event.target.value || 0),
                         )
                       }
-                      disabled={updatingKey === `${row.rowNumber}-spese`}
+                      disabled={updatingKey === `${row.id}-spese`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>
@@ -895,7 +879,7 @@ export default function HomePage() {
                           Number(event.target.value || 0),
                         )
                       }
-                      disabled={updatingKey === `${row.rowNumber}-amazon`}
+                      disabled={updatingKey === `${row.id}-amazon`}
                       className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
                     />
                   </label>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { readBonusRows } from "@/lib/sheets";
+import { readBonusRows } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -120,7 +120,7 @@ export default async function PersonaPage({
         <ul className="space-y-3">
           {rows.map((row, index) => (
             <li
-              key={row.rowNumber}
+              key={row.id}
               className="animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
               style={{
                 animationDelay: `${index * 50}ms`,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readAffiliatesData, readBonusRows } from "@/lib/sheets";
+import { readAffiliatesData, readBonusRows } from "@/lib/db";
 
 export async function GET(request: Request) {
   try {

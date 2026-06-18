@@ -1,5 +1,5 @@
 export type BonusRecord = {
-  rowNumber: number;
+  id: number;
   piattaforma: string;
   personaInvitata: string;
   stato: string;
@@ -11,6 +11,7 @@ export type BonusRecord = {
   spese: number;
   amazon: number;
   netto: number;
+  ritirato: boolean;
 };
 
 export type NewBonusPayload = {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { readLinkOverviewRows } from "@/lib/sheets";
+import { readLinkOverviewRows } from "@/lib/db";
 import { BONUSES, getBonus, panoramicaRowOrder } from "../bonus-config";
 
 export const dynamic = "force-dynamic";

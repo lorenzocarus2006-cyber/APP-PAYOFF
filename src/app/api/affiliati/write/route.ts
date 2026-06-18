@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appendValues, getAffiliatesPaymentsRange } from "@/lib/sheets";
+import { insertAffiliatePayment } from "@/lib/db";
 
 type Body = {
   affiliato?: string;
@@ -20,26 +20,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const row = [
+    await insertAffiliatePayment({
       affiliato,
-      Number(body.importo ?? 0),
-      body.data?.trim() ?? "",
-      body.modalita?.trim() ?? "",
-      body.note?.trim() ?? "",
-    ];
-
-    console.log("[POST /api/affiliati/write] row A->E", row);
-    await appendValues(row, {
-      range: getAffiliatesPaymentsRange(),
-      insertDataOption: "INSERT_ROWS",
+      importo: Number(body.importo ?? 0),
+      data: body.data?.trim() ?? "",
+      modalita: body.modalita?.trim() ?? "",
+      note: body.note?.trim() ?? "",
     });
 
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : "Errore durante il salvataggio pagamento affiliato.";
+      error instanceof Error ? error.message : "Errore durante il salvataggio pagamento.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

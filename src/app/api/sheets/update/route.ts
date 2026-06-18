@@ -1,29 +1,27 @@
 import { NextResponse } from "next/server";
-import { updateCellValue } from "@/lib/sheets";
+import { updateBonusField } from "@/lib/db";
 
 type UpdateBody = {
-  row?: number;
-  col?: number | string;
-  value?: string;
+  id?: number;
+  field?: string;
+  value?: string | number | boolean;
 };
 
 export async function PUT(request: Request) {
   try {
     const body = (await request.json()) as UpdateBody;
-    if (!body.row || !body.col || typeof body.value !== "string") {
+    if (!body.id || !body.field || body.value === undefined) {
       return NextResponse.json(
-        { error: "Parametri non validi. Usa: row, col, value." },
+        { error: "Parametri non validi. Usa: id, field, value." },
         { status: 400 },
       );
     }
 
-    await updateCellValue(body.row, body.col, body.value);
+    await updateBonusField(body.id, body.field, body.value);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : "Errore durante l'aggiornamento della cella.";
+      error instanceof Error ? error.message : "Errore durante l'aggiornamento.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
