@@ -1,129 +1,87 @@
+import Link from "next/link";
 import { readLinkOverviewRows } from "@/lib/sheets";
+import { BONUSES } from "./bonus-config";
 
 export const dynamic = "force-dynamic";
 
-/** Ordine righe tabella (dopo "Luca pietra" → "Alessia longo", poi Extra). */
-const PANORAMICA_ROW_ORDER = [
-  "Lori",
-  "Diego",
-  "poma",
-  "Cusi",
-  "Ludovica",
-  "Rubi",
-  "MATTIA RUSSO",
-  "Luca pietra",
-  "Alessia longo",
-  "Extra3",
-  "Extra4",
-  "Extra5",
-] as const;
-
-function panoramicaRowOrder(name: string) {
-  const idx = (PANORAMICA_ROW_ORDER as readonly string[]).indexOf(name);
-  return idx === -1 ? 999 : idx;
-}
-
-const columns = [
-  { key: "coinbase", label: "COINBASE" },
-  { key: "bbva", label: "BBVA" },
-  { key: "binance", label: "BINANCE" },
-  { key: "buddybank", label: "BUDDYBANK" },
-  { key: "isybank", label: "ISYBANK" },
-  { key: "revolut", label: "REVOLUT" },
-  { key: "ing", label: "ING" },
-] as const;
-
-const numberColors: Record<(typeof columns)[number]["key"], string> = {
-  coinbase: "#0052FF",
-  bbva: "#004481",
-  binance: "#D4A017",
-  buddybank: "#FF4B7B",
-  isybank: "#FF6B35",
-  revolut: "#374151",
-  ing: "#FF6200",
-};
-
 export default async function PanoramicaLinkPage() {
-  const rawRows = await readLinkOverviewRows();
-  const rows = [...rawRows].sort(
-    (a, b) => panoramicaRowOrder(a.intestatario) - panoramicaRowOrder(b.intestatario),
-  );
-  const totals = columns.reduce<Record<string, number>>((acc, column) => {
-    acc[column.key] = rows.reduce((sum, row) => sum + row[column.key], 0);
-    return acc;
-  }, {});
+  const rows = await readLinkOverviewRows();
+
+  const stats = BONUSES.map((bonus) => {
+    const total = rows.reduce((sum, row) => sum + row[bonus.key], 0);
+    const attivi = rows.filter((row) => row[bonus.key] > 0).length;
+    return { ...bonus, total, attivi };
+  });
+
+  const totaleLink = stats.reduce((sum, bonus) => sum + bonus.total, 0);
 
   return (
-    <div className="min-h-screen bg-transparent px-5 py-5 text-white">
-      <main className="mx-auto w-full space-y-5">
-        <header className="rounded-2xl border border-white/25 bg-white/10 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
-          <h1 className="text-3xl font-bold tracking-tight">Panoramica Link</h1>
-          <p className="mt-2 text-base text-white/80">Conteggio Link per Intestatario</p>
+    <div className="min-h-screen bg-transparent px-5 py-6 text-white">
+      <main className="mx-auto w-full space-y-6">
+        <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+            Panoramica
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight">Link per Bonus</h1>
+          <p className="mt-2 text-sm text-white/70">
+            Scegli un bonus per vedere il conteggio di tutti i riceventi.
+          </p>
+          <div className="mt-5 flex items-end gap-2">
+            <span className="text-4xl font-bold tabular-nums leading-none">{totaleLink}</span>
+            <span className="pb-1 text-sm text-white/60">link totali</span>
+          </div>
         </header>
 
-        <section className="overflow-hidden rounded-2xl border border-white/25 bg-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
-          <div className="overflow-x-auto">
-            <table className="min-w-[860px] w-full border-collapse text-left">
-              <thead>
-                <tr className="bg-white/20 text-sm uppercase tracking-wide text-white">
-                  <th className="px-3 py-3 font-bold">Intestatario</th>
-                  {columns.map((column) => (
-                    <th key={column.key} className="px-3 py-3 text-center font-bold">
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr
-                    key={row.intestatario}
-                    className={index % 2 === 0 ? "bg-white/5" : "bg-white/10"}
-                  >
-                    <td className="px-3 py-3 text-base font-semibold text-white">
-                      {row.intestatario}
-                    </td>
-                    {columns.map((column) => {
-                      const value = row[column.key];
-                      const hasValue = value > 0;
-                      return (
-                        <td key={column.key} className="px-3 py-3 text-center text-lg">
-                          {hasValue ? (
-                            <span
-                              className="inline-block rounded-full px-2 py-0.5 font-bold text-white"
-                              style={{ backgroundColor: numberColors[column.key] }}
-                            >
-                              {value}
-                            </span>
-                          ) : (
-                            <span className="text-white/30">0</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-                <tr className="bg-white/20 text-white">
-                  <td className="px-3 py-3 text-base font-bold">TOTALE</td>
-                  {columns.map((column) => (
-                    <td key={column.key} className="px-3 py-3 text-center text-lg font-bold">
-                      {(totals[column.key] ?? 0) > 0 ? (
-                        <span
-                          className="inline-block rounded-full px-2 py-0.5 font-bold text-white"
-                          style={{ backgroundColor: numberColors[column.key] }}
-                        >
-                          {totals[column.key] ?? 0}
-                        </span>
-                      ) : (
-                        <span className="text-white/30">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ul className="space-y-3">
+          {stats.map((bonus, index) => (
+            <li
+              key={bonus.key}
+              className="animate-[fadeSlide_0.4s_ease_both]"
+              style={{ animationDelay: `${index * 55}ms` }}
+            >
+              <Link
+                href={`/panoramica-link/${bonus.key}`}
+                className="group flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+              >
+                <span
+                  className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-sm font-bold text-white shadow-inner"
+                  style={{
+                    backgroundColor: bonus.color,
+                    boxShadow: `0 6px 18px -6px ${bonus.color}`,
+                  }}
+                >
+                  {bonus.short}
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-lg font-semibold leading-tight">{bonus.label}</p>
+                  <p className="mt-0.5 text-xs text-white/55">
+                    {bonus.attivi} {bonus.attivi === 1 ? "ricevente" : "riceventi"} attivi
+                  </p>
+                </div>
+
+                <span
+                  className="grid min-w-10 place-items-center rounded-full px-3 py-1 text-base font-bold tabular-nums text-white"
+                  style={{ backgroundColor: bonus.color }}
+                >
+                  {bonus.total}
+                </span>
+
+                <svg
+                  className="h-5 w-5 shrink-0 text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/70"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </main>
     </div>
   );

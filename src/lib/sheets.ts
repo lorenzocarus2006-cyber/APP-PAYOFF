@@ -14,7 +14,7 @@ const SHEET_NAME = "aprile";
 const COLS_A_TO_K = "A:K";
 const COLS_A_TO_J = "A:J";
 const LINK_OVERVIEW_SHEET_NAME = "PANORAMICA LINK";
-const LINK_OVERVIEW_RANGE = "A:I";
+const LINK_OVERVIEW_RANGE = "A:Z";
 const AFFILIATES_SHEET_NAME = "REGISTRO AFFILIATI";
 const AFFILIATES_PAYMENTS_RANGE = "A5:E";
 const APRILE_AFFILIATES_RANGE = "G:K";
@@ -228,18 +228,53 @@ export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
     "Extra5",
   ]);
 
+  // Il foglio ha righe di titolo prima dell'intestazione: trova la riga header
+  // (quella che contiene "INTESTATARIO") e mappa le colonne per nome, così
+  // l'ordine reale (incl. colonna KRAKEN) non sfasa i campi (es. ING).
+  // La riga header ha una cella esattamente "INTESTATARIO" (la riga titolo contiene
+  // la parola in una frase più lunga, quindi serve match esatto, non includes).
+  const headerRowIdx = rows.findIndex((row) =>
+    row.some((cell) => String(cell ?? "").trim().toUpperCase() === "INTESTATARIO"),
+  );
+  if (headerRowIdx === -1) return [];
+  const header = rows[headerRowIdx].map((h) => String(h ?? "").trim().toUpperCase());
+  const headerIndex = (name: string) => header.indexOf(name);
+  const intestatarioIdx = (() => {
+    const byName = header.indexOf("INTESTATARIO");
+    return byName === -1 ? 0 : byName;
+  })();
+  const colIdx: Record<keyof Omit<LinkOverviewRow, "intestatario">, number> = {
+    coinbase: headerIndex("COINBASE"),
+    bbva: headerIndex("BBVA"),
+    binance: headerIndex("BINANCE"),
+    buddybank: headerIndex("BUDDYBANK"),
+    isybank: headerIndex("ISYBANK"),
+    revolut: headerIndex("REVOLUT"),
+    ing: headerIndex("ING"),
+  };
+  const readCol = (row: string[], idx: number) =>
+    idx === -1 ? 0 : parseNum(getCell(row, idx));
+
+  // Il foglio non conteggia tutti gli ING. Ricalcoliamo ING dal foglio "aprile"
+  // (piattaforma=ING, per ricevente) contando TUTTI gli stati, FAIL inclusi.
+  const ingByReceiver = await countIngLinks();
+
   return rows
-    .slice(1)
-    .map((row) => ({
-      intestatario: getCell(row, 0),
-      coinbase: parseNum(getCell(row, 1)),
-      bbva: parseNum(getCell(row, 2)),
-      binance: parseNum(getCell(row, 3)),
-      buddybank: parseNum(getCell(row, 4)),
-      isybank: parseNum(getCell(row, 5)),
-      revolut: parseNum(getCell(row, 6)),
-      ing: parseNum(getCell(row, 7)),
-    }))
+    .slice(headerRowIdx + 1)
+    .map((row) => {
+      const intestatario = getCell(row, intestatarioIdx);
+      const ingOverride = ingByReceiver.get(intestatario.trim().toUpperCase());
+      return {
+        intestatario,
+        coinbase: readCol(row, colIdx.coinbase),
+        bbva: readCol(row, colIdx.bbva),
+        binance: readCol(row, colIdx.binance),
+        buddybank: readCol(row, colIdx.buddybank),
+        isybank: readCol(row, colIdx.isybank),
+        revolut: readCol(row, colIdx.revolut),
+        ing: ingOverride ?? readCol(row, colIdx.ing),
+      };
+    })
     .filter(
       (row) =>
         row.intestatario &&
@@ -247,6 +282,26 @@ export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
         !row.intestatario.toUpperCase().startsWith("EXTRA") &&
         allowedIntestatari.has(row.intestatario),
     );
+}
+
+/** Conta i link ING per ricevente dal foglio "aprile", in TUTTI gli stati (FAIL incluso). */
+async function countIngLinks(): Promise<Map<string, number>> {
+  const sheets = await getSheetsClient();
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId: env.spreadsheetId!,
+    range: `${SHEET_NAME}!A:D`,
+    valueRenderOption: "FORMATTED_VALUE",
+  });
+  const rows = response.data.values ?? [];
+  const counts = new Map<string, number>();
+  for (const row of rows.slice(1)) {
+    const piattaforma = getCell(row, 0).trim().toUpperCase();
+    const ricevente = getCell(row, 3).trim();
+    if (piattaforma !== "ING" || !ricevente) continue;
+    const key = ricevente.toUpperCase();
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
 }
 
 export async function readAffiliatesData(): Promise<{

@@ -59,6 +59,8 @@ export default function AffiliatiPage() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<PaymentForm>(defaultForm);
+  const [showRegistro, setShowRegistro] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   async function fetchAffiliates() {
     setLoading(true);
@@ -139,90 +141,174 @@ export default function AffiliatiPage() {
           </div>
         ) : null}
 
-        <section className="space-y-4">
-          <h2 className="text-xl font-semibold sm:text-2xl">Card Affiliati</h2>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+        >
+          ＋ Registra Nuovo Pagamento
+        </button>
+
+        <section className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setShowRegistro((prev) => !prev)}
+            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-base font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-colors hover:bg-white/15"
+          >
+            <span className="flex items-center gap-2">
+              📋 Registro Pagamenti
+              <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold tabular-nums text-white/80">
+                {payments.length}
+              </span>
+            </span>
+            <svg
+              className={`h-5 w-5 text-white/50 transition-transform duration-300 ${showRegistro ? "rotate-180" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
+
+          {showRegistro ? (
+            <div className="animate-[fadeSlide_0.3s_ease_both] overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              {payments.length === 0 ? (
+                <p className="p-5 text-sm text-white/60">Nessun pagamento registrato.</p>
+              ) : (
+                <ul className="divide-y divide-white/10">
+                  {payments.map((payment, index) => (
+                    <li
+                      key={`${payment.affiliato}-${payment.data}-${index}`}
+                      className="flex items-center gap-3 px-4 py-3"
+                    >
+                      <span
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold"
+                        style={{
+                          backgroundColor: AFFILIATE_HEADER_COLORS[payment.affiliato] ?? "#2D7DD2",
+                          color: affiliateHeaderTextColor(payment.affiliato),
+                        }}
+                      >
+                        {payment.affiliato.slice(0, 2).toUpperCase()}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">{payment.affiliato}</p>
+                        <p className="truncate text-xs text-white/55">
+                          {payment.data || "—"}
+                          {payment.modalita ? ` · ${payment.modalita}` : ""}
+                          {payment.note ? ` · ${payment.note}` : ""}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-base font-bold tabular-nums text-white">
+                        {money(payment.importo)} €
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">
+            Affiliati
+          </h2>
           {loading ? (
             <div className="rounded-2xl border border-white/25 bg-white/10 p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
               Caricamento dati affiliati...
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {visibleSummaries.map((summary) => (
-                <article
-                  key={summary.nome}
-                  className="overflow-hidden rounded-2xl border border-white/25 bg-white/12 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
-                >
-                  <div
-                    className="px-4 py-3"
-                    style={{
-                      backgroundColor: AFFILIATE_HEADER_COLORS[summary.nome] ?? "#2D7DD2",
-                      color: affiliateHeaderTextColor(summary.nome),
-                    }}
+            <ul className="space-y-3">
+              {visibleSummaries.map((summary, index) => {
+                const hasDebt = summary.daPagare > 0.009;
+                const isOpen = expanded === summary.nome;
+                const color = AFFILIATE_HEADER_COLORS[summary.nome] ?? "#2D7DD2";
+                return (
+                  <li
+                    key={summary.nome}
+                    className="animate-[fadeSlide_0.4s_ease_both]"
+                    style={{ animationDelay: `${index * 45}ms` }}
                   >
-                    <h3 className="text-sm font-extrabold leading-tight sm:text-base">{summary.nome}</h3>
-                  </div>
-                  <dl className="p-3">
-                    <div className="flex min-h-10 items-center justify-between border-b border-white/15 py-1.5">
-                      <dt className="whitespace-nowrap text-[12px] text-white/80">💰 Generato</dt>
-                      <dd className="text-[20px] font-extrabold text-white">{money(summary.generato)}</dd>
-                    </div>
-                    <div className="flex min-h-10 items-center justify-between border-b border-white/15 py-1.5">
-                      <dt className="whitespace-nowrap text-[12px] text-white/80">✅ Pagato</dt>
-                      <dd className="text-[20px] font-extrabold text-white">{money(summary.pagato)}</dd>
-                    </div>
-                    <div className="flex min-h-10 items-center justify-between border-b border-white/15 py-1.5">
-                      <dt className="whitespace-nowrap text-[12px] text-white/80">⏳ Da pagare</dt>
-                      <dd className="text-[20px] font-extrabold text-white">{money(summary.daPagare)}</dd>
-                    </div>
-                    <div className="flex min-h-10 items-center justify-between py-1.5">
-                      <dt className="whitespace-nowrap text-[12px] text-white/80">🔢 Pagamenti</dt>
-                      <dd className="text-[20px] font-extrabold text-white">{summary.pagamentiCount}</dd>
-                    </div>
-                  </dl>
-                </article>
-              ))}
-            </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(isOpen ? null : summary.nome)}
+                      className="flex w-full items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform active:scale-[0.99] hover:bg-white/15"
+                    >
+                      <span
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"
+                        style={{
+                          backgroundColor: color,
+                          color: affiliateHeaderTextColor(summary.nome),
+                        }}
+                      >
+                        {summary.nome.slice(0, 2).toUpperCase()}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-lg font-semibold leading-tight">
+                          {summary.nome}
+                        </p>
+                        <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium">
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${hasDebt ? "bg-red-400" : "bg-emerald-400"}`}
+                            style={{
+                              boxShadow: hasDebt
+                                ? "0 0 8px 1px rgba(248,113,113,0.8)"
+                                : "0 0 8px 1px rgba(52,211,153,0.7)",
+                            }}
+                          />
+                          <span className={hasDebt ? "text-red-200" : "text-emerald-200"}>
+                            {hasDebt ? `Debito ${money(summary.daPagare)} €` : "Nessun debito"}
+                          </span>
+                        </span>
+                      </div>
+
+                      <svg
+                        className={`h-5 w-5 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+
+                    {isOpen ? (
+                      <dl className="animate-[fadeSlide_0.25s_ease_both] mt-2 grid grid-cols-2 gap-2">
+                        <div className="rounded-xl border border-white/15 bg-white/8 p-3">
+                          <dt className="text-[11px] text-white/60">💰 Generato</dt>
+                          <dd className="mt-0.5 text-lg font-bold tabular-nums">{money(summary.generato)}</dd>
+                        </div>
+                        <div className="rounded-xl border border-white/15 bg-white/8 p-3">
+                          <dt className="text-[11px] text-white/60">✅ Pagato</dt>
+                          <dd className="mt-0.5 text-lg font-bold tabular-nums">{money(summary.pagato)}</dd>
+                        </div>
+                        <div className="rounded-xl border border-white/15 bg-white/8 p-3">
+                          <dt className="text-[11px] text-white/60">⏳ Da pagare</dt>
+                          <dd
+                            className={`mt-0.5 text-lg font-bold tabular-nums ${hasDebt ? "text-red-300" : "text-emerald-300"}`}
+                          >
+                            {money(summary.daPagare)}
+                          </dd>
+                        </div>
+                        <div className="rounded-xl border border-white/15 bg-white/8 p-3">
+                          <dt className="text-[11px] text-white/60">🔢 Pagamenti</dt>
+                          <dd className="mt-0.5 text-lg font-bold tabular-nums">{summary.pagamentiCount}</dd>
+                        </div>
+                      </dl>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </section>
-
-        <section className="rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-semibold sm:text-2xl">Registro Pagamenti</h2>
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="min-h-12 w-full rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] sm:w-auto"
-            >
-              ＋ Registra Nuovo Pagamento
-            </button>
-          </div>
-
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-[680px] w-full border-collapse text-left">
-              <thead>
-                <tr className="border-b border-white/20 text-sm uppercase tracking-wide text-white/80">
-                  <th className="px-3 py-3 font-semibold">Affiliato</th>
-                  <th className="px-3 py-3 font-semibold">Importo</th>
-                  <th className="px-3 py-3 font-semibold">Data</th>
-                  <th className="px-3 py-3 font-semibold">Modalita</th>
-                  <th className="px-3 py-3 font-semibold">Note</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment, index) => (
-                  <tr key={`${payment.affiliato}-${payment.data}-${index}`} className="border-b border-white/10">
-                    <td className="px-3 py-3 font-semibold">{payment.affiliato}</td>
-                    <td className="px-3 py-3 font-semibold text-white">
-                      {money(payment.importo)}
-                    </td>
-                    <td className="px-3 py-3">{payment.data || "-"}</td>
-                    <td className="px-3 py-3">{payment.modalita || "-"}</td>
-                    <td className="px-3 py-3">{payment.note || "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </section>
       </main>
 

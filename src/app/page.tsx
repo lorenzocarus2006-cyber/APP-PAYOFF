@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
 
@@ -200,6 +201,30 @@ export default function HomePage() {
     return result;
   }, [rows, query, filtersActive, platformFilter, statusFilter, sortMode]);
 
+  const people = useMemo(() => {
+    const map = new Map<
+      string,
+      { nome: string; rows: BonusRecord[]; totalNetto: number; statuses: Set<string> }
+    >();
+    for (const row of filteredRows) {
+      const nome = row.personaInvitata.trim() || "(senza nome)";
+      const key = nome.toLowerCase();
+      const entry = map.get(key) ?? {
+        nome,
+        rows: [],
+        totalNetto: 0,
+        statuses: new Set<string>(),
+      };
+      entry.rows.push(row);
+      entry.totalNetto += row.netto;
+      if (row.stato) entry.statuses.add(row.stato);
+      map.set(key, entry);
+    }
+    return [...map.values()].sort((a, b) =>
+      a.nome.localeCompare(b.nome, "it", { sensitivity: "base" }),
+    );
+  }, [filteredRows]);
+
   async function handleSaveBonus() {
     setSaving(true);
     setError("");
@@ -378,7 +403,7 @@ export default function HomePage() {
           </button>
         </section>
 
-        <section className="rounded-[24px] border border-white/30 bg-white/15 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+        <section className="relative z-40 rounded-[24px] border border-white/30 bg-white/15 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
           <h2 className="mb-3 text-xl font-bold">Cerca persona</h2>
           <div className="relative">
             <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
@@ -392,7 +417,7 @@ export default function HomePage() {
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap items-start gap-3">
+          <div className="mt-4 flex flex-wrap items-start gap-2">
             <div className="relative">
               <button
                 type="button"
@@ -400,7 +425,7 @@ export default function HomePage() {
                   setShowStatusMenu(false);
                   setShowPlatformMenu((prev) => !prev);
                 }}
-                className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                   platformFilter
                     ? "border-white bg-white text-[#2D5BE3]"
                     : "border-white/30 bg-white/20 text-white hover:bg-white/30"
@@ -409,14 +434,14 @@ export default function HomePage() {
                 🎁 {platformFilter ?? "Bonus"} ▾
               </button>
               {showPlatformMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-52 overflow-y-auto rounded-xl border border-white/30 bg-[#1a3a8f] py-1 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-48 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/30 bg-[#1a3a8f] pt-1 pb-24 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
                   <button
                     type="button"
                     onClick={() => {
                       setPlatformFilter(null);
                       setShowPlatformMenu(false);
                     }}
-                    className={`block w-full px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
                       platformFilter === null ? "bg-white/10" : ""
                     }`}
                   >
@@ -430,7 +455,7 @@ export default function HomePage() {
                         setPlatformFilter(platform);
                         setShowPlatformMenu(false);
                       }}
-                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
                         platformFilter === platform ? "bg-white/10" : ""
                       }`}
                     >
@@ -452,7 +477,7 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu((prev) => !prev);
                 }}
-                className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+                className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                   statusFilter
                     ? "border-white bg-white text-[#2D5BE3]"
                     : "border-white/30 bg-white/20 text-white hover:bg-white/30"
@@ -461,14 +486,14 @@ export default function HomePage() {
                 📌 {statusFilter ?? "Stato"} ▾
               </button>
               {showStatusMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-72 w-64 overflow-y-auto rounded-xl border border-white/30 bg-[#1a3a8f] py-1 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-60 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/30 bg-[#1a3a8f] pt-1 pb-24 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
                   <button
                     type="button"
                     onClick={() => {
                       setStatusFilter(null);
                       setShowStatusMenu(false);
                     }}
-                    className={`block w-full px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
                       statusFilter === null ? "bg-white/10" : ""
                     }`}
                   >
@@ -482,7 +507,7 @@ export default function HomePage() {
                         setStatusFilter(status);
                         setShowStatusMenu(false);
                       }}
-                      className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-[15px] font-bold text-white hover:bg-white/15 ${
+                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
                         statusFilter === status ? "bg-white/10" : ""
                       }`}
                     >
@@ -505,28 +530,6 @@ export default function HomePage() {
                 setShowPlatformMenu(false);
                 setShowStatusMenu(false);
                 setSortMode((prev) =>
-                  prev === "alpha-asc"
-                    ? "alpha-desc"
-                    : prev === "alpha-desc"
-                      ? null
-                      : "alpha-asc",
-                );
-              }}
-              className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
-                sortMode === "alpha-asc" || sortMode === "alpha-desc"
-                  ? "border-white bg-white text-[#2D5BE3]"
-                  : "border-white/30 bg-white/20 text-white hover:bg-white/30"
-              }`}
-            >
-              {sortMode === "alpha-desc" ? "🔤 Z → A" : "🔤 A → Z"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowPlatformMenu(false);
-                setShowStatusMenu(false);
-                setSortMode((prev) =>
                   prev === "date-asc"
                     ? "date-desc"
                     : prev === "date-desc"
@@ -534,15 +537,13 @@ export default function HomePage() {
                       : "date-asc",
                 );
               }}
-              className={`min-h-12 rounded-xl border px-4 py-2.5 text-[15px] font-bold transition-colors ${
+              className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                 sortMode === "date-asc" || sortMode === "date-desc"
                   ? "border-white bg-white text-[#2D5BE3]"
                   : "border-white/30 bg-white/20 text-white hover:bg-white/30"
               }`}
             >
-              {sortMode === "date-desc"
-                ? "📅 Più recenti prima"
-                : "📅 Meno recenti prima"}
+              {sortMode === "date-desc" ? "📅 Recenti" : "📅 Vecchie"}
             </button>
 
             {filtersActive ? (
@@ -555,7 +556,7 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu(false);
                 }}
-                className="min-h-12 rounded-xl border border-white/30 bg-transparent px-4 py-2.5 text-[15px] font-bold text-white/80 hover:bg-white/10"
+                className="rounded-lg border border-white/30 bg-transparent px-3 py-1.5 text-[13px] font-bold text-white/80 hover:bg-white/10"
               >
                 ✕ Azzera filtri
               </button>
@@ -574,7 +575,84 @@ export default function HomePage() {
           </div>
         ) : null}
 
-        {query.trim().length > 0 || filtersActive ? (
+        {query.trim().length > 0 ? (
+          <section className="space-y-3">
+            <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">
+              Persone ({people.length})
+            </h2>
+
+            {loadingRead ? (
+              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+                Caricamento righe in corso...
+              </div>
+            ) : people.length === 0 ? (
+              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+                Nessun risultato
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {people.map((person, index) => (
+                  <li
+                    key={person.nome}
+                    className="animate-[fadeSlide_0.4s_ease_both]"
+                    style={{ animationDelay: `${index * 45}ms` }}
+                  >
+                    <Link
+                      href={`/persona/${encodeURIComponent(person.nome)}`}
+                      className="group flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+                    >
+                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/15 text-base font-bold uppercase text-white">
+                        {person.nome.slice(0, 2)}
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-lg font-semibold leading-tight">
+                          {person.nome}
+                        </p>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <span className="text-xs text-white/55">
+                            {person.rows.length} bonus
+                          </span>
+                          <span className="flex items-center gap-1">
+                            {[...person.statuses].map((stato) => (
+                              <span
+                                key={stato}
+                                title={stato}
+                                className="h-2.5 w-2.5 rounded-full"
+                                style={{ backgroundColor: STATUS_DOT_COLORS[stato] ?? "#ffffff" }}
+                              />
+                            ))}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-xl font-bold leading-none tabular-nums">
+                          {person.totalNetto.toFixed(2)}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-white/50">netto $</p>
+                      </div>
+
+                      <svg
+                        className="h-5 w-5 shrink-0 text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/70"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
+        {!query.trim() && filtersActive ? (
           <section className="space-y-4">
             <h2 className="text-xl font-semibold sm:text-2xl">
               Risultati ({filteredRows.length})
