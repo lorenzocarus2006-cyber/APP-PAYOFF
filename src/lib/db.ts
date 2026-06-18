@@ -46,6 +46,14 @@ export async function insertAffiliate(nome: string): Promise<void> {
   }
 }
 
+export async function deleteAffiliate(nome: string): Promise<void> {
+  const clean = nome.trim();
+  if (!clean) throw new Error("Nome affiliato obbligatorio.");
+  const supabase = getSupabase();
+  const { error } = await supabase.from("affiliates").delete().ilike("nome", clean);
+  if (error) throw new Error(error.message);
+}
+
 type BonusRow = {
   id: number;
   piattaforma: string;

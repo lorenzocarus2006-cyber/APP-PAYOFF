@@ -66,6 +66,8 @@ export default function AffiliatiPage() {
   const [showAddAffiliate, setShowAddAffiliate] = useState(false);
   const [newAffiliateName, setNewAffiliateName] = useState("");
   const [savingAffiliate, setSavingAffiliate] = useState(false);
+  const [deleteAffiliate, setDeleteAffiliate] = useState<AffiliateSummary | null>(null);
+  const [deletingAffiliate, setDeletingAffiliate] = useState(false);
 
   async function fetchAffiliates() {
     setLoading(true);
@@ -149,6 +151,33 @@ export default function AffiliatiPage() {
       setError(message);
     } finally {
       setSavingAffiliate(false);
+    }
+  }
+
+  async function handleDeleteAffiliate() {
+    if (!deleteAffiliate) return;
+    const nome = deleteAffiliate.nome;
+    setDeletingAffiliate(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/affiliati/affiliate", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Errore eliminazione affiliato.");
+
+      setSuccess(`Affiliato "${nome}" rimosso.`);
+      setDeleteAffiliate(null);
+      setExpanded((cur) => (cur === nome ? null : cur));
+      await fetchAffiliates();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setDeletingAffiliate(false);
     }
   }
 
@@ -346,6 +375,13 @@ export default function AffiliatiPage() {
                           <dt className="text-[11px] text-white/60">🔢 Pagamenti</dt>
                           <dd className="mt-0.5 text-lg font-bold tabular-nums">{summary.pagamentiCount}</dd>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteAffiliate(summary)}
+                          className="col-span-2 mt-1 flex min-h-11 items-center justify-center gap-2 rounded-xl border border-red-300/40 bg-red-500/15 px-4 py-2 text-sm font-semibold text-red-100 transition-colors hover:bg-red-500/25"
+                        >
+                          🗑️ Rimuovi affiliato
+                        </button>
                       </dl>
                     ) : null}
                   </li>
@@ -495,6 +531,49 @@ export default function AffiliatiPage() {
                 className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >
                 {savingAffiliate ? "Salvataggio..." : "Aggiungi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteAffiliate ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deletingAffiliate) setDeleteAffiliate(null);
+          }}
+        >
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-neutral-900">Rimuovi affiliato?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+              Vuoi rimuovere{" "}
+              <span className="font-semibold">{deleteAffiliate.nome}</span> dal registro?
+              {deleteAffiliate.pagamentiCount > 0 || deleteAffiliate.generato > 0 ? (
+                <span className="mt-2 block rounded-lg bg-amber-50 px-3 py-2 text-amber-800">
+                  ⚠️ Ha attività ({deleteAffiliate.pagamentiCount} pagamenti, generato{" "}
+                  {money(deleteAffiliate.generato)} €). I dati storici dei bonus/pagamenti col suo
+                  nome restano, sparisce solo dalla lista.
+                </span>
+              ) : null}
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
+              <button
+                type="button"
+                disabled={deletingAffiliate}
+                onClick={() => void handleDeleteAffiliate()}
+                className="min-h-12 flex-1 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
+              >
+                {deletingAffiliate ? "Rimozione..." : "Rimuovi"}
+              </button>
+              <button
+                type="button"
+                disabled={deletingAffiliate}
+                onClick={() => setDeleteAffiliate(null)}
+                className="min-h-12 flex-1 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+              >
+                Annulla
               </button>
             </div>
           </div>
