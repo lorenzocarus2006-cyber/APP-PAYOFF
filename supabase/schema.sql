@@ -31,8 +31,13 @@ create table if not exists public.affiliate_payments (
 create table if not exists public.affiliates (
   id          bigint generated always as identity primary key,
   nome        text    not null unique,
+  percentuale numeric not null default 0.20,
   created_at  timestamptz not null default now()
 );
+
+-- Migrazione per database già esistenti senza la colonna percentuale:
+-- alter table public.affiliates add column if not exists percentuale numeric not null default 0.20;
+-- update public.affiliates set percentuale = 0.25 where nome = 'PEPI';
 
 create index if not exists bonuses_ricevente_idx   on public.bonuses (ricevente);
 create index if not exists bonuses_piattaforma_idx on public.bonuses (piattaforma);

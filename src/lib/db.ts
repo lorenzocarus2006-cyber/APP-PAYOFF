@@ -24,6 +24,8 @@ const AFFILIATE_FALLBACK = [
   "TONY",
 ];
 
+const DEFAULT_AFFILIATE_RATE = 0.2;
+
 export async function readAffiliateRoster(): Promise<string[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -33,6 +35,35 @@ export async function readAffiliateRoster(): Promise<string[]> {
   if (error) throw new Error(error.message);
   const names = (data as Array<{ nome: string }> | null)?.map((r) => r.nome.trim()) ?? [];
   return names.length ? names : AFFILIATE_FALLBACK;
+}
+
+/** Mappa NOME (uppercase) -> percentuale (0-1) di guadagno affiliato. */
+export async function readAffiliateRates(): Promise<Record<string, number>> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.from("affiliates").select("nome,percentuale");
+  if (error) throw new Error(error.message);
+  const rows = (data as Array<{ nome: string; percentuale: number | string | null }> | null) ?? [];
+  return rows.reduce<Record<string, number>>((acc, row) => {
+    const nome = row.nome?.trim().toUpperCase();
+    if (!nome) return acc;
+    const rate = num(row.percentuale);
+    acc[nome] = rate > 0 ? rate : DEFAULT_AFFILIATE_RATE;
+    return acc;
+  }, {});
+}
+
+export async function updateAffiliateRate(nome: string, percentuale: number): Promise<void> {
+  const clean = nome.trim();
+  if (!clean) throw new Error("Nome affiliato obbligatorio.");
+  if (!Number.isFinite(percentuale) || percentuale < 0 || percentuale > 1) {
+    throw new Error("Percentuale non valida: deve essere tra 0 e 100.");
+  }
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("affiliates")
+    .update({ percentuale })
+    .ilike("nome", clean);
+  if (error) throw new Error(error.message);
 }
 
 export async function insertAffiliate(nome: string): Promise<void> {
@@ -209,16 +240,17 @@ export async function readAffiliatesData(): Promise<{
   payments: AffiliatePayment[];
   roster: string[];
 }> {
-  const [bonuses, payments, roster] = await Promise.all([
+  const [bonuses, payments, roster, rates] = await Promise.all([
     readBonusRows(),
     readAffiliatePayments(),
     readAffiliateRoster(),
+    readAffiliateRates(),
   ]);
 
   const generatedByAffiliate = bonuses.reduce<Record<string, number>>((acc, row) => {
     const name = row.affiliati.trim().toUpperCase();
     if (!name) return acc;
-    const rate = name === "PEPI" ? 0.25 : 0.2;
+    const rate = rates[name] ?? DEFAULT_AFFILIATE_RATE;
     acc[name] = (acc[name] ?? 0) + row.netto * rate;
     return acc;
   }, {});
@@ -236,6 +268,7 @@ export async function readAffiliatesData(): Promise<{
     const generato = generatedByAffiliate[key] ?? 0;
     return {
       nome,
+      percentuale: rates[key] ?? DEFAULT_AFFILIATE_RATE,
       generato,
       pagato,
       daPagare: generato - pagato,
@@ -348,7 +381,7 @@ export async function readBilancioStats(): Promise<{
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
 }> {
-  const bonuses = await readBonusRows();
+  const [bonuses, affiliateRates] = await Promise.all([readBonusRows(), readAffiliateRates()]);
 
   const receiverList = [
     "Lori",
@@ -424,7 +457,10 @@ export async function readBilancioStats(): Promise<{
       failCount += 1;
     }
 
-    if (affiliato) totalePercentoAffiliati += netto * 0.2;
+    if (affiliato) {
+      const rate = affiliateRates[affiliato.toUpperCase()] ?? DEFAULT_AFFILIATE_RATE;
+      totalePercentoAffiliati += netto * rate;
+    }
 
     if (receiverMap[ricevente]?.[piattaforma] && statusToKey[stato]) {
       const statusKey = statusToKey[stato];

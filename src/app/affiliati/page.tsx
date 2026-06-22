@@ -68,6 +68,9 @@ export default function AffiliatiPage() {
   const [savingAffiliate, setSavingAffiliate] = useState(false);
   const [deleteAffiliate, setDeleteAffiliate] = useState<AffiliateSummary | null>(null);
   const [deletingAffiliate, setDeletingAffiliate] = useState(false);
+  const [editPercentage, setEditPercentage] = useState<AffiliateSummary | null>(null);
+  const [percentageInput, setPercentageInput] = useState("");
+  const [savingPercentage, setSavingPercentage] = useState(false);
 
   async function fetchAffiliates() {
     setLoading(true);
@@ -178,6 +181,37 @@ export default function AffiliatiPage() {
       setError(message);
     } finally {
       setDeletingAffiliate(false);
+    }
+  }
+
+  async function handleSavePercentage() {
+    if (!editPercentage) return;
+    const nome = editPercentage.nome;
+    const value = Number(percentageInput.replace(",", "."));
+    if (!Number.isFinite(value) || value < 0 || value > 100) {
+      setError("Percentuale non valida: inserisci un numero tra 0 e 100.");
+      return;
+    }
+    setSavingPercentage(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/affiliati/affiliate", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, percentuale: value }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Errore aggiornamento percentuale.");
+
+      setSuccess(`Percentuale di "${nome}" aggiornata a ${value}%.`);
+      setEditPercentage(null);
+      await fetchAffiliates();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setSavingPercentage(false);
     }
   }
 
@@ -306,10 +340,17 @@ export default function AffiliatiPage() {
                     className="animate-[fadeSlide_0.4s_ease_both]"
                     style={{ animationDelay: `${index * 45}ms` }}
                   >
-                    <button
-                      type="button"
+                    <div
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setExpanded(isOpen ? null : summary.nome)}
-                      className="flex w-full items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform active:scale-[0.99] hover:bg-white/15"
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setExpanded(isOpen ? null : summary.nome);
+                        }
+                      }}
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform active:scale-[0.99] hover:bg-white/15"
                     >
                       <span
                         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"
@@ -337,8 +378,24 @@ export default function AffiliatiPage() {
                           <span className={hasDebt ? "text-red-200" : "text-emerald-200"}>
                             {hasDebt ? `Debito ${money(summary.daPagare)} €` : "Nessun debito"}
                           </span>
+                          <span className="text-white/50">
+                            · Quota {Math.round(summary.percentuale * 100)}%
+                          </span>
                         </span>
                       </div>
+
+                      <button
+                        type="button"
+                        aria-label={`Modifica percentuale di ${summary.nome}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setEditPercentage(summary);
+                          setPercentageInput(String(Math.round(summary.percentuale * 100)));
+                        }}
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-base text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                      >
+                        ✏️
+                      </button>
 
                       <svg
                         className={`h-5 w-5 shrink-0 text-white/40 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
@@ -351,7 +408,7 @@ export default function AffiliatiPage() {
                       >
                         <path d="m6 9 6 6 6-6" />
                       </svg>
-                    </button>
+                    </div>
 
                     {isOpen ? (
                       <dl className="animate-[fadeSlide_0.25s_ease_both] mt-2 grid grid-cols-2 gap-2">
@@ -531,6 +588,69 @@ export default function AffiliatiPage() {
                 className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >
                 {savingAffiliate ? "Salvataggio..." : "Aggiungi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {editPercentage ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !savingPercentage) setEditPercentage(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+          >
+            <h2 className="text-xl font-bold text-white">
+              Percentuale di {editPercentage.nome}
+            </h2>
+            <p className="mt-1 text-sm text-white/70">
+              Quota del netto generato che spetta a questo affiliato.
+            </p>
+            <label className="mt-5 block space-y-1">
+              <span className="text-sm text-white/80">Percentuale %</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={100}
+                step="0.1"
+                value={percentageInput}
+                onChange={(event) => setPercentageInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !savingPercentage) {
+                    event.preventDefault();
+                    void handleSavePercentage();
+                  }
+                }}
+                autoFocus
+                placeholder="20"
+                className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+              />
+            </label>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                disabled={savingPercentage}
+                onClick={() => setEditPercentage(null)}
+                className="min-h-12 flex-1 rounded-2xl border border-white/40 bg-transparent px-5 py-3 text-base font-semibold text-white disabled:opacity-60"
+              >
+                Annulla
+              </button>
+              <button
+                type="button"
+                disabled={savingPercentage || percentageInput.trim() === ""}
+                onClick={() => void handleSavePercentage()}
+                className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+              >
+                {savingPercentage ? "Salvataggio..." : "Salva"}
               </button>
             </div>
           </div>

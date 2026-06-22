@@ -40,6 +40,7 @@ export type LinkOverviewRow = {
 
 export type AffiliateSummary = {
   nome: string;
+  percentuale: number;
   generato: number;
   pagato: number;
   daPagare: number;
