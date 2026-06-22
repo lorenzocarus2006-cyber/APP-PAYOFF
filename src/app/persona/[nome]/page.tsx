@@ -1,8 +1,10 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { readBonusRows } from "@/lib/db";
+"use client";
 
-export const dynamic = "force-dynamic";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
+import type { BonusRecord } from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
   "Bonus arrivato": "#16A34A",
@@ -22,6 +24,13 @@ const PLATFORM_COLORS: Record<string, string> = {
   KRAKEN: "#5741D9",
 };
 
+function statusSelectStyle(status: string) {
+  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
+  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
+  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
+  return "bg-[#DC2626] text-white";
+}
+
 function statusColor(stato: string) {
   return STATUS_COLORS[stato] ?? "#6B7280";
 }
@@ -30,29 +39,171 @@ function platformColor(name: string) {
   return PLATFORM_COLORS[name] ?? "#2D7DD2";
 }
 
-export default async function PersonaPage({
-  params,
-}: {
-  params: Promise<{ nome: string }>;
-}) {
-  const { nome: rawNome } = await params;
-  const nome = decodeURIComponent(rawNome);
+type DeleteConfirm = { id: number; piattaforma: string };
+
+export default function PersonaPage() {
+  const params = useParams<{ nome: string }>();
+  const nome = decodeURIComponent(params.nome ?? "");
   const target = nome.trim().toLowerCase();
 
-  const allRows = await readBonusRows();
-  const rows = allRows.filter(
-    (row) => (row.personaInvitata.trim() || "(senza nome)").toLowerCase() === target,
+  const [rows, setRows] = useState<BonusRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFoundError, setNotFoundError] = useState(false);
+  const [error, setError] = useState("");
+  const [updatingKey, setUpdatingKey] = useState<string | null>(null);
+  const [infoDrafts, setInfoDrafts] = useState<Record<number, string>>({});
+  const [infoSavedRow, setInfoSavedRow] = useState<number | null>(null);
+  const [affiliatiRoster, setAffiliatiRoster] = useState<string[]>([...AFFILIATES]);
+  const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirm | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function fetchRows() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/sheets/read", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Errore lettura dati.");
+      const allRows: BonusRecord[] = data.rows ?? [];
+      const personRows = allRows.filter(
+        (row) => (row.personaInvitata.trim() || "(senza nome)").toLowerCase() === target,
+      );
+      if (personRows.length === 0) {
+        setNotFoundError(true);
+      } else {
+        setNotFoundError(false);
+      }
+      setRows(personRows);
+      setInfoDrafts(
+        personRows.reduce<Record<number, string>>((acc, row) => {
+          acc[row.id] = row.info ?? "";
+          return acc;
+        }, {}),
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      void fetchRows();
+    }, 0);
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/affiliati/read", { cache: "no-store" });
+        const data = (await res.json()) as { roster?: string[] };
+        if (res.ok && data.roster?.length) setAffiliatiRoster(data.roster);
+      } catch {
+        // mantiene il fallback AFFILIATES
+      }
+    })();
+  }, []);
+
+  async function handleInlineUpdate(
+    row: BonusRecord,
+    field: "stato" | "ricevente" | "affiliati" | "bonus" | "spese" | "amazon" | "info",
+    value: string | number,
+  ): Promise<boolean> {
+    const key = `${row.id}-${field}`;
+    setUpdatingKey(key);
+    setError("");
+
+    try {
+      const res = await fetch("/api/sheets/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: row.id,
+          field,
+          value:
+            field === "bonus" || field === "spese" || field === "amazon"
+              ? Number(value) || 0
+              : String(value),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Aggiornamento non riuscito.");
+
+      setRows((prev) =>
+        prev.map((item) =>
+          item.id === row.id
+            ? {
+                ...item,
+                [field]:
+                  field === "bonus" || field === "spese" || field === "amazon"
+                    ? Number(value) || 0
+                    : value,
+              }
+            : item,
+        ),
+      );
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+      return false;
+    } finally {
+      setUpdatingKey(null);
+    }
+  }
+
+  async function handleInfoSave(row: BonusRecord) {
+    const nextInfo = (infoDrafts[row.id] ?? "").trim();
+    if (nextInfo === row.info.trim()) return;
+
+    const ok = await handleInlineUpdate(row, "info", nextInfo);
+    if (!ok) return;
+
+    setInfoSavedRow(row.id);
+    setTimeout(() => {
+      setInfoSavedRow((current) => (current === row.id ? null : current));
+    }, 1500);
+  }
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    const deletedId = deleteConfirm.id;
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/sheets/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: deletedId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Eliminazione non riuscita.");
+
+      setDeleteConfirm(null);
+      setRows((prev) => prev.filter((r) => r.id !== deletedId));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Errore sconosciuto.";
+      setError(message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const totalNetto = useMemo(() => rows.reduce((sum, row) => sum + row.netto, 0), [rows]);
+  const totalBonus = useMemo(() => rows.reduce((sum, row) => sum + row.bonus, 0), [rows]);
+  const statusBreakdown = useMemo(
+    () =>
+      rows.reduce<Record<string, number>>((acc, row) => {
+        const key = row.stato || "—";
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      }, {}),
+    [rows],
   );
-  if (rows.length === 0) notFound();
-
-  const totalNetto = rows.reduce((sum, row) => sum + row.netto, 0);
-  const totalBonus = rows.reduce((sum, row) => sum + row.bonus, 0);
-
-  const statusBreakdown = rows.reduce<Record<string, number>>((acc, row) => {
-    const key = row.stato || "—";
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
@@ -75,108 +226,273 @@ export default async function PersonaPage({
           Cerca
         </Link>
 
-        <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
-          <div className="flex items-center gap-4">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
-              {nome.slice(0, 2)}
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
-                Profilo
-              </p>
-              <h1 className="truncate text-2xl font-bold tracking-tight">{nome}</h1>
-            </div>
-          </div>
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+        ) : null}
 
-          <div className="mt-5 flex gap-3">
-            <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
-              <p className="text-3xl font-bold tabular-nums leading-none">
-                {totalNetto.toFixed(2)}
-              </p>
-              <p className="mt-1 text-xs text-white/60">netto $ totale</p>
-            </div>
-            <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
-              <p className="text-3xl font-bold tabular-nums leading-none">{rows.length}</p>
-              <p className="mt-1 text-xs text-white/60">bonus · {totalBonus.toFixed(0)}$ lordo</p>
-            </div>
+        {loading ? (
+          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            Caricamento bonus in corso...
           </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {Object.entries(statusBreakdown).map(([stato, count]) => (
-              <span
-                key={stato}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium"
-              >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: statusColor(stato) }}
-                />
-                {stato} · {count}
-              </span>
-            ))}
+        ) : notFoundError ? (
+          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            Nessun bonus trovato per &quot;{nome}&quot;.
           </div>
-        </header>
+        ) : (
+          <>
+            <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+              <div className="flex items-center gap-4">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
+                  {nome.slice(0, 2)}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                    Profilo
+                  </p>
+                  <h1 className="truncate text-2xl font-bold tracking-tight">{nome}</h1>
+                </div>
+              </div>
 
-        <ul className="space-y-3">
-          {rows.map((row, index) => (
-            <li
-              key={row.id}
-              className="animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
-              style={{
-                animationDelay: `${index * 50}ms`,
-                borderLeft: `5px solid ${platformColor(row.piattaforma)}`,
-              }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span
-                  className="rounded-full px-3 py-1 text-sm font-bold text-white"
-                  style={{ backgroundColor: platformColor(row.piattaforma) }}
+              <div className="mt-5 flex gap-3">
+                <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
+                  <p className="text-3xl font-bold tabular-nums leading-none">
+                    {totalNetto.toFixed(2)}
+                  </p>
+                  <p className="mt-1 text-xs text-white/60">netto $ totale</p>
+                </div>
+                <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
+                  <p className="text-3xl font-bold tabular-nums leading-none">{rows.length}</p>
+                  <p className="mt-1 text-xs text-white/60">bonus · {totalBonus.toFixed(0)}$ lordo</p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {Object.entries(statusBreakdown).map(([stato, count]) => (
+                  <span
+                    key={stato}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-medium"
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: statusColor(stato) }}
+                    />
+                    {stato} · {count}
+                  </span>
+                ))}
+              </div>
+            </header>
+
+            <ul className="space-y-3">
+              {rows.map((row, index) => (
+                <li
+                  key={row.id}
+                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 pt-11 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    borderLeft: `5px solid ${platformColor(row.piattaforma)}`,
+                  }}
                 >
-                  {row.piattaforma || "—"}
-                </span>
-                <span className="text-2xl font-bold leading-none tabular-nums">
-                  {row.netto.toFixed(2)}
-                </span>
-              </div>
+                  <button
+                    type="button"
+                    aria-label="Elimina bonus"
+                    className="absolute left-4 top-4 text-lg opacity-70 transition-opacity hover:opacity-100"
+                    style={{ color: "#DC2626" }}
+                    onClick={() =>
+                      setDeleteConfirm({ id: row.id, piattaforma: row.piattaforma || "" })
+                    }
+                  >
+                    🗑️
+                  </button>
 
-              <div className="mt-3 flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: statusColor(row.stato) }}
-                />
-                <span className="text-sm font-medium text-white/85">{row.stato || "—"}</span>
-              </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <span
+                      className="ml-auto rounded-full px-3 py-1 text-sm font-bold text-white"
+                      style={{ backgroundColor: platformColor(row.piattaforma) }}
+                    >
+                      {row.piattaforma || "—"}
+                    </span>
+                    <span className="text-2xl font-bold leading-none tabular-nums">
+                      {row.netto.toFixed(2)}
+                    </span>
+                  </div>
 
-              <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <div>
-                  <dt className="text-[11px] text-white/50">Data</dt>
-                  <dd className="font-semibold">{row.data || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] text-white/50">Ricevente</dt>
-                  <dd className="font-semibold">{row.ricevente || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] text-white/50">Affiliati</dt>
-                  <dd className="font-semibold">{row.affiliati || "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] text-white/50">Bonus / Spese / Amazon</dt>
-                  <dd className="font-semibold tabular-nums">
-                    {row.bonus} / {row.spese} / {row.amazon}
-                  </dd>
-                </div>
-              </dl>
+                  <p className="mt-3 text-[12px] font-bold text-white/70">Data</p>
+                  <p className="text-[15px] font-black text-white">{row.data || "—"}</p>
 
-              {row.info.trim() ? (
-                <p className="mt-3 rounded-xl bg-black/15 px-3 py-2 text-sm text-white/80">
-                  {row.info}
-                </p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">STATO</span>
+                      <select
+                        value={row.stato}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "stato", event.target.value)
+                        }
+                        disabled={updatingKey === `${row.id}-stato`}
+                        className={`min-h-12 w-full rounded-xl border border-black/20 px-4 py-2.5 text-[15px] font-bold outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20 ${statusSelectStyle(row.stato)}`}
+                      >
+                        {STATUSES.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">Ricevente</span>
+                      <select
+                        value={row.ricevente}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "ricevente", event.target.value)
+                        }
+                        disabled={updatingKey === `${row.id}-ricevente`}
+                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      >
+                        <option value="">-</option>
+                        {RECEIVERS.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">AFFILIATI</span>
+                      <select
+                        value={row.affiliati}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "affiliati", event.target.value)
+                        }
+                        disabled={updatingKey === `${row.id}-affiliati`}
+                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      >
+                        <option value="">-</option>
+                        {affiliatiRoster.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="space-y-1 md:col-span-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-white/70">INFO</span>
+                        {infoSavedRow === row.id ? (
+                          <span className="text-sm font-semibold text-emerald-300">
+                            ✓ Salvato
+                          </span>
+                        ) : null}
+                      </div>
+                      <textarea
+                        value={infoDrafts[row.id] ?? row.info}
+                        onChange={(event) =>
+                          setInfoDrafts((prev) => ({ ...prev, [row.id]: event.target.value }))
+                        }
+                        onBlur={() => {
+                          void handleInfoSave(row);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && !event.shiftKey) {
+                            event.preventDefault();
+                            event.currentTarget.blur();
+                          }
+                        }}
+                        disabled={updatingKey === `${row.id}-info`}
+                        rows={3}
+                        className="w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none placeholder:text-black/50 focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">Bonus $</span>
+                      <input
+                        type="number"
+                        value={row.bonus}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "bonus", Number(event.target.value || 0))
+                        }
+                        disabled={updatingKey === `${row.id}-bonus`}
+                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">Spese</span>
+                      <input
+                        type="number"
+                        value={row.spese}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "spese", Number(event.target.value || 0))
+                        }
+                        disabled={updatingKey === `${row.id}-spese`}
+                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      />
+                    </label>
+
+                    <label className="space-y-1">
+                      <span className="text-[12px] font-bold text-white/70">Amazon</span>
+                      <input
+                        type="number"
+                        value={row.amazon}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "amazon", Number(event.target.value || 0))
+                        }
+                        disabled={updatingKey === `${row.id}-amazon`}
+                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      />
+                    </label>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </main>
+
+      {deleteConfirm ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleting) setDeleteConfirm(null);
+          }}
+        >
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-[20px] font-bold text-neutral-900">Elimina bonus?</h2>
+            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+              Sei sicuro di voler eliminare il bonus su{" "}
+              <span className="font-semibold">{deleteConfirm.piattaforma.trim() || "—"}</span>?
+              Questa azione non può essere annullata.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:justify-end">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void handleDelete();
+                }}
+                className="min-h-12 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
+              >
+                {deleting ? "Eliminazione..." : "Elimina"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteConfirm(null);
+                }}
+                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
