@@ -905,8 +905,8 @@ export default function HomePage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm">
-          <div className="h-[100dvh] w-full overflow-y-auto bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
+          <div className="min-h-[100dvh] w-full bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Registra Nuovo Bonus</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1091,7 +1091,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 mt-6 flex flex-col gap-3 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-3 sm:flex-row sm:justify-end">
+            <div className="mt-6 flex flex-col gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] pt-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
