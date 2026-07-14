@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES } from "@/config/dropdowns";
 import type { AffiliatePayment, AffiliateSummary } from "@/lib/types";
@@ -10,6 +11,7 @@ type AffiliatesResponse = {
   summaries: AffiliateSummary[];
   payments: AffiliatePayment[];
   roster: string[];
+  role?: "og" | "salvo";
 };
 
 type PaymentForm = {
@@ -63,6 +65,7 @@ export default function AffiliatiPage() {
   const [showRegistro, setShowRegistro] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [roster, setRoster] = useState<string[]>([...AFFILIATES]);
+  const [role, setRole] = useState<"og" | "salvo" | null>(null);
   const [showAddAffiliate, setShowAddAffiliate] = useState(false);
   const [newAffiliateName, setNewAffiliateName] = useState("");
   const [savingAffiliate, setSavingAffiliate] = useState(false);
@@ -84,6 +87,7 @@ export default function AffiliatiPage() {
       setSummaries(data.summaries ?? []);
       setPayments(data.payments ?? []);
       if (data.roster?.length) setRoster(data.roster);
+      setRole(data.role ?? null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Errore sconosciuto.";
       setError(message);
@@ -223,9 +227,19 @@ export default function AffiliatiPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
-          <p className="mt-2 text-base text-white/70">Registro affiliati e pagamenti</p>
+        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
+            <p className="mt-2 text-base text-white/70">Registro affiliati e pagamenti (da oggi in poi)</p>
+          </div>
+          {role === "og" ? (
+            <Link
+              href="/affiliati/storico"
+              className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
+            >
+              📜 Storico
+            </Link>
+          ) : null}
         </header>
 
         {error ? (

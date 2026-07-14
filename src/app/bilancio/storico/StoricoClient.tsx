@@ -3,21 +3,17 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { BilancioOverview, BilancioReceiverStats } from "@/lib/types";
-import BilancioView from "./BilancioView";
+import BilancioView from "../BilancioView";
 
 type BilancioResponse = {
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
-  role?: "og" | "salvo";
   error?: string;
 };
 
-export const dynamic = "force-dynamic";
-
-export default function BilancioPage() {
+export default function StoricoClient() {
   const [overview, setOverview] = useState<BilancioOverview | null>(null);
   const [riceventi, setRiceventi] = useState<BilancioReceiverStats[]>([]);
-  const [role, setRole] = useState<"og" | "salvo" | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -26,12 +22,11 @@ export default function BilancioPage() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/bilancio/stats", { cache: "no-store" });
+        const res = await fetch("/api/bilancio/stats?scope=storico", { cache: "no-store" });
         const data = (await res.json()) as BilancioResponse;
-        if (!res.ok) throw new Error(data.error ?? "Errore nel caricamento del bilancio.");
+        if (!res.ok) throw new Error(data.error ?? "Errore nel caricamento dello storico.");
         setOverview(data.overview);
         setRiceventi(data.riceventi ?? []);
-        setRole(data.role ?? null);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Errore sconosciuto.";
         setError(message);
@@ -49,17 +44,15 @@ export default function BilancioPage() {
       riceventi={riceventi}
       loading={loading}
       error={error}
-      title="Bilancio 🏦"
-      subtitle="Overview e dettaglio per ricevente (da oggi in poi)"
+      title="Storico 📜"
+      subtitle="Bonus precedenti al 14/07/2026 (solo og)"
       headerAction={
-        role === "og" ? (
-          <Link
-            href="/bilancio/storico"
-            className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
-          >
-            📜 Storico
-          </Link>
-        ) : undefined
+        <Link
+          href="/bilancio"
+          className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
+        >
+          ← Bilancio
+        </Link>
       }
     />
   );

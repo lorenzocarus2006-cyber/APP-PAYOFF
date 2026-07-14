@@ -1,3 +1,5 @@
+import { isOnOrAfterCutoff } from "./date";
+import type { Role } from "./role";
 import { getSupabase } from "./supabase";
 import type {
   AffiliatePayment,
@@ -9,6 +11,19 @@ import type {
   LinkOverviewRow,
   NewBonusPayload,
 } from "./types";
+
+/**
+ * "all" = nessun filtro (vista storica per og su Home/Persona, invariata).
+ * "current" = solo bonus/pagamenti da oggi (14/07/2026) in poi (vista di default di Bilancio/Affiliati, per tutti).
+ * "storico" = solo dati precedenti al 14/07/2026 (pulsante Storico, riservato a og).
+ */
+export type DataScope = "all" | "current" | "storico";
+
+function matchesScope(dateValue: string, scope: DataScope): boolean {
+  if (scope === "all") return true;
+  const isNew = isOnOrAfterCutoff(dateValue);
+  return scope === "current" ? isNew : !isNew;
+}
 
 /** Roster di fallback se la tabella affiliates è vuota/non raggiungibile. */
 const AFFILIATE_FALLBACK = [
@@ -127,14 +142,15 @@ function mapBonus(row: BonusRow): BonusRecord {
 const BONUS_COLUMNS =
   "id,piattaforma,persona_invitata,stato,ricevente,data,info,affiliati,bonus,spese,amazon,netto,ritirato";
 
-export async function readBonusRows(): Promise<BonusRecord[]> {
+export async function readBonusRows(scope: DataScope = "all"): Promise<BonusRecord[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("bonuses")
     .select(BONUS_COLUMNS)
     .order("id", { ascending: true });
   if (error) throw new Error(error.message);
-  return (data as BonusRow[] | null)?.map(mapBonus) ?? [];
+  const rows = (data as BonusRow[] | null)?.map(mapBonus) ?? [];
+  return scope === "all" ? rows : rows.filter((row) => matchesScope(row.data, scope));
 }
 
 export async function insertBonus(payload: NewBonusPayload): Promise<BonusRecord> {
@@ -173,32 +189,47 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   ritirato: "ritirato",
 };
 
+/** Se role è "salvo", verifica che il bonus target sia >= cutoff prima di procedere (mai per id indovinato). */
+async function assertSalvoCanTouch(id: number, role: Role | undefined): Promise<void> {
+  if (role !== "salvo") return;
+  const supabase = getSupabase();
+  const { data, error } = await supabase.from("bonuses").select("data").eq("id", id).single();
+  if (error) throw new Error(error.message);
+  const dateValue = (data as { data: string } | null)?.data ?? "";
+  if (!isOnOrAfterCutoff(dateValue)) {
+    throw new Error("Non hai i permessi per modificare questo bonus.");
+  }
+}
+
 export async function updateBonusField(
   id: number,
   field: string,
   value: string | number | boolean,
+  role?: Role,
 ): Promise<void> {
   const column = FIELD_TO_COLUMN[field];
   if (!column) throw new Error(`Campo non aggiornabile: ${field}`);
+  await assertSalvoCanTouch(id, role);
   const supabase = getSupabase();
   const { error } = await supabase.from("bonuses").update({ [column]: value }).eq("id", id);
   if (error) throw new Error(error.message);
 }
 
-export async function deleteBonus(id: number): Promise<void> {
+export async function deleteBonus(id: number, role?: Role): Promise<void> {
+  await assertSalvoCanTouch(id, role);
   const supabase = getSupabase();
   const { error } = await supabase.from("bonuses").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
 
-export async function readAffiliatePayments(): Promise<AffiliatePayment[]> {
+export async function readAffiliatePayments(scope: DataScope = "all"): Promise<AffiliatePayment[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("affiliate_payments")
     .select("affiliato,importo,data,modalita,note")
     .order("id", { ascending: true });
   if (error) throw new Error(error.message);
-  return (
+  const rows = (
     (data as Array<{
       affiliato: string;
       importo: number | string;
@@ -215,6 +246,7 @@ export async function readAffiliatePayments(): Promise<AffiliatePayment[]> {
       note: (row.note ?? "").trim(),
     }))
     .filter((row) => row.affiliato);
+  return scope === "all" ? rows : rows.filter((row) => matchesScope(row.data, scope));
 }
 
 export async function insertAffiliatePayment(payload: {
@@ -235,14 +267,14 @@ export async function insertAffiliatePayment(payload: {
   if (error) throw new Error(error.message);
 }
 
-export async function readAffiliatesData(): Promise<{
+export async function readAffiliatesData(scope: DataScope = "current"): Promise<{
   summaries: AffiliateSummary[];
   payments: AffiliatePayment[];
   roster: string[];
 }> {
   const [bonuses, payments, roster, rates] = await Promise.all([
-    readBonusRows(),
-    readAffiliatePayments(),
+    readBonusRows(scope),
+    readAffiliatePayments(scope),
     readAffiliateRoster(),
     readAffiliateRates(),
   ]);
@@ -377,11 +409,14 @@ export async function setReceiverWithdrawn(
   if (error) throw new Error(error.message);
 }
 
-export async function readBilancioStats(): Promise<{
+export async function readBilancioStats(scope: DataScope = "current"): Promise<{
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
 }> {
-  const [bonuses, affiliateRates] = await Promise.all([readBonusRows(), readAffiliateRates()]);
+  const [bonuses, affiliateRates] = await Promise.all([
+    readBonusRows(scope),
+    readAffiliateRates(),
+  ]);
 
   const receiverList = [
     "Lori",

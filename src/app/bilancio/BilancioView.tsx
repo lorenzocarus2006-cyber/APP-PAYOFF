@@ -1,0 +1,224 @@
+"use client";
+
+import type { ReactNode } from "react";
+import type { BilancioOverview, BilancioReceiverStats } from "@/lib/types";
+
+const receiverGradients: Record<string, string> = {
+  Lori: "linear-gradient(135deg, #667eea, #764ba2)",
+  Diego: "linear-gradient(135deg, #f093fb, #f5576c)",
+  Cusi: "linear-gradient(135deg, #4facfe, #00f2fe)",
+  Ludovica: "linear-gradient(135deg, #43e97b, #38f9d7)",
+  Rubi: "linear-gradient(135deg, #fa709a, #fee140)",
+  "MATTIA RUSSO": "linear-gradient(135deg, #a18cd1, #fbc2eb)",
+  "Luca pietra": "linear-gradient(135deg, #fda085, #f6d365)",
+  "Alessia longo": "linear-gradient(135deg, #5eead4, #3b82f6)",
+};
+
+function money(value: number) {
+  return `$${value.toFixed(2)}`;
+}
+
+function AmountCell({
+  value,
+  colorHex,
+  size = "17",
+}: {
+  value: number;
+  colorHex: string;
+  size?: "17" | "18";
+}) {
+  const sizeClass = size === "18" ? "text-[18px]" : "text-[17px]";
+  if (value === 0) {
+    return <span className={`${sizeClass} font-black text-white/25`}>{money(0)}</span>;
+  }
+  return (
+    <span className={`${sizeClass} font-black`} style={{ color: colorHex }}>
+      {money(value)}
+    </span>
+  );
+}
+
+type BilancioViewProps = {
+  overview: BilancioOverview | null;
+  riceventi: BilancioReceiverStats[];
+  loading: boolean;
+  error: string;
+  title: string;
+  subtitle: string;
+  headerAction?: ReactNode;
+};
+
+export default function BilancioView({
+  overview,
+  riceventi,
+  loading,
+  error,
+  title,
+  subtitle,
+  headerAction,
+}: BilancioViewProps) {
+  const metrics = overview
+    ? [
+        { label: "💰 Netto Totale", value: money(overview.nettoTotale) },
+        { label: "⏳ In Arrivo", value: money(overview.inArrivoTotale) },
+        { label: "📋 Da Completare", value: money(overview.daCompletareTotale) },
+        { label: "🎁 Totale Amazon", value: money(overview.amazonTotale) },
+        { label: "🎁 Amazon Arrivato", value: money(overview.amazonArrivato) },
+        { label: "🎁 Amazon in Arrivo", value: money(overview.amazonInArrivo) },
+        { label: "🎁 Amazon da Completare", value: money(overview.amazonDaCompletare) },
+        { label: "❌ FAIL", value: String(overview.failCount) },
+        { label: "🤝 Totale % Affiliati", value: money(overview.totalePercentoAffiliati) },
+        { label: "🧾 Spese", value: money(overview.speseTotali) },
+        { label: "✅ Completati", value: String(overview.completatiCount) },
+        { label: "⏳ In Arrivo count", value: String(overview.inArrivoCount) },
+        { label: "📋 Da Completare count", value: String(overview.daCompletareCount) },
+      ]
+    : [];
+
+  return (
+    <div className="min-h-screen bg-transparent px-5 py-5 text-white">
+      <main className="mx-auto w-full space-y-5">
+        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+            <p className="mt-2 text-base text-white/70">{subtitle}</p>
+          </div>
+          {headerAction}
+        </header>
+
+        {error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+        ) : null}
+
+        <section className="space-y-4">
+          <h2 className="text-xl font-semibold">Overview Totale</h2>
+          {loading ? (
+            <div className="rounded-2xl border border-white/25 bg-white/10 p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              Caricamento metriche...
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {metrics.map((metric) => (
+                <article
+                  key={metric.label}
+                  className="rounded-2xl border border-white/25 bg-white/12 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                >
+                  <p className="text-xs text-white/70">{metric.label}</p>
+                  <p className="mt-2 text-2xl font-extrabold">{metric.value}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4 pb-4">
+          <h2 className="text-xl font-semibold">Schede per Ricevente</h2>
+          {riceventi.map((receiver) => (
+            <article
+              key={receiver.ricevente}
+              className="rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
+              style={{
+                background:
+                  receiverGradients[receiver.ricevente] ??
+                  "linear-gradient(135deg, #667eea, #764ba2)",
+              }}
+            >
+              <h3 className="mb-4 text-[28px] font-extrabold text-white">{receiver.ricevente}</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-[640px] w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="px-[8px] py-[10px] text-left text-[13px] font-bold text-white/90">
+                        App
+                      </th>
+                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
+                        ✅ Arrivato $
+                      </th>
+                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
+                        ⏳ Arrivo $
+                      </th>
+                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
+                        📋 Da fare $
+                      </th>
+                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
+                        ❌ Fail $
+                      </th>
+                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
+                        🎁 Amzn $
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-white/10 bg-black/20">
+                      <td className="px-[8px] py-[10px] text-[18px] font-black text-white">TOTALE</td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.total.arrivato} colorHex="#86efac" size="18" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.total.arrivo} colorHex="#fde68a" size="18" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.total.daFare} colorHex="#c4b5fd" size="18" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.total.fail} colorHex="#fca5a5" size="18" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.total.amazon} colorHex="#fed7aa" size="18" />
+                      </td>
+                    </tr>
+                    {receiver.platforms.map((platform, index) => (
+                      <tr
+                        key={platform.app}
+                        className={`border-b border-white/10 ${index % 2 === 0 ? "bg-white/5" : "bg-transparent"}`}
+                      >
+                        <td className="px-[8px] py-[10px] text-[14px] font-bold text-white">
+                          {platform.app}
+                        </td>
+                        <td className="px-[8px] py-[10px] text-center">
+                          <AmountCell value={platform.arrivato} colorHex="#86efac" />
+                        </td>
+                        <td className="px-[8px] py-[10px] text-center">
+                          <AmountCell value={platform.arrivo} colorHex="#fde68a" />
+                        </td>
+                        <td className="px-[8px] py-[10px] text-center">
+                          <AmountCell value={platform.daFare} colorHex="#c4b5fd" />
+                        </td>
+                        <td className="px-[8px] py-[10px] text-center">
+                          <AmountCell value={platform.fail} colorHex="#fca5a5" />
+                        </td>
+                        <td className="px-[8px] py-[10px] text-center">
+                          <AmountCell value={platform.amazon} colorHex="#fed7aa" />
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-black/15">
+                      <td className="px-[8px] py-[10px] text-[14px] font-bold text-white">
+                        {receiver.amazonRow.app}
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.amazonRow.arrivato} colorHex="#86efac" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.amazonRow.arrivo} colorHex="#fde68a" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.amazonRow.daFare} colorHex="#c4b5fd" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.amazonRow.fail} colorHex="#fca5a5" />
+                      </td>
+                      <td className="px-[8px] py-[10px] text-center">
+                        <AmountCell value={receiver.amazonRow.amazon} colorHex="#fed7aa" />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          ))}
+        </section>
+      </main>
+    </div>
+  );
+}

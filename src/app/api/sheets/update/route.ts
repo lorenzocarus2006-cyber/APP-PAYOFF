@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { updateBonusField } from "@/lib/db";
+import { getRole } from "@/lib/role";
 
 type UpdateBody = {
   id?: number;
@@ -9,6 +10,9 @@ type UpdateBody = {
 
 export async function PUT(request: Request) {
   try {
+    const role = await getRole();
+    if (!role) return NextResponse.json({ error: "Non autenticato." }, { status: 401 });
+
     const body = (await request.json()) as UpdateBody;
     if (!body.id || !body.field || body.value === undefined) {
       return NextResponse.json(
@@ -17,7 +21,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    await updateBonusField(body.id, body.field, body.value);
+    await updateBonusField(body.id, body.field, body.value, role);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =

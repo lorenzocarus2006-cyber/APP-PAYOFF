@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PayOff",
-  description: "Gestione bonus con Google Sheets",
+  description: "Gestione bonus",
 };
 
 export const viewport: Viewport = {
