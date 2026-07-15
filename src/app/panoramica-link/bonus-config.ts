@@ -21,6 +21,7 @@ export const BONUSES: BonusConfig[] = [
   { key: "isybank", label: "Isybank", short: "IB", color: "#FF6B35" },
   { key: "revolut", label: "Revolut", short: "RV", color: "#6B7280" },
   { key: "ing", label: "ING", short: "IN", color: "#FF6200" },
+  { key: "myfin", label: "MyFin", short: "MF", color: "#0D9488" },
 ];
 
 export function getBonus(key: string): BonusConfig | undefined {

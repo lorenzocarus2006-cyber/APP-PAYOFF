@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   "Bonus arrivato": "#16A34A",
@@ -64,6 +66,7 @@ const PLATFORM_BADGE_COLORS: Record<string, string> = {
   BUDDYBANK: "#FF4B7B",
   BINANCE: "#D4A017",
   KRAKEN: "#5741D9",
+  MYFIN: "#0D9488",
 };
 
 const PLATFORM_BORDER_COLORS: Record<string, string> = {
@@ -75,6 +78,7 @@ const PLATFORM_BORDER_COLORS: Record<string, string> = {
   ING: "#FF6200",
   BINANCE: "#D4A017",
   KRAKEN: "#5741D9",
+  MYFIN: "#0D9488",
 };
 
 const PLATFORM_SELECT_STYLES: Record<string, { background: string; color: string }> = {
@@ -86,6 +90,7 @@ const PLATFORM_SELECT_STYLES: Record<string, { background: string; color: string
   ING: { background: "#FF6200", color: "#ffffff" },
   BINANCE: { background: "#D4A017", color: "#000000" },
   KRAKEN: { background: "#5741D9", color: "#ffffff" },
+  MYFIN: { background: "#0D9488", color: "#ffffff" },
 };
 
 function platformBadgeColor(name: string) {
@@ -101,6 +106,10 @@ function platformSelectStyle(name: string) {
 }
 
 export default function HomePage() {
+  const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [rows, setRows] = useState<BonusRecord[]>([]);
   const [query, setQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -337,6 +346,14 @@ export default function HomePage() {
     }, 1500);
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    const supabase = createSupabaseBrowserClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
+
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     const deletedRn = deleteConfirm.id;
@@ -375,7 +392,39 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="-mx-5 -mt-5 bg-transparent px-5 pb-8 pt-10 text-center">
+        <header className="relative -mx-5 -mt-5 bg-transparent px-5 pb-8 pt-10 text-center">
+          <div className="absolute left-5 top-10">
+            <button
+              type="button"
+              aria-label="Profilo"
+              onClick={() => setShowProfileMenu((prev) => !prev)}
+              className="grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-white/15 text-xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-colors hover:bg-white/25"
+            >
+              👤
+            </button>
+            {showProfileMenu ? (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  role="presentation"
+                  onClick={() => setShowProfileMenu(false)}
+                />
+                <div className="absolute left-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-white/30 bg-[#1a3a8f] shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setShowLogoutConfirm(true);
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-bold text-white hover:bg-white/15"
+                  >
+                    🚪 Esci dall&apos;account
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+
           <Image
             src="/logo.png"
             alt="PayOff logo"
@@ -1174,6 +1223,51 @@ export default function HomePage() {
       {deleteToast ? (
         <div className="pointer-events-none fixed bottom-24 left-1/2 z-[70] -translate-x-1/2 rounded-xl bg-emerald-600 px-5 py-3 text-base font-bold text-white shadow-lg">
           Bonus eliminato ✓
+        </div>
+      ) : null}
+
+      {showLogoutConfirm ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-5 backdrop-blur-sm"
+          role="presentation"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !loggingOut) setShowLogoutConfirm(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-confirm-title"
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="logout-confirm-title" className="text-[20px] font-bold text-neutral-900">
+              Sei sicuro di voler uscire?
+            </h2>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:justify-end">
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void handleLogout();
+                }}
+                className="min-h-12 rounded-xl bg-[#DC2626] px-5 py-3 text-base font-bold text-white disabled:opacity-60"
+              >
+                {loggingOut ? "Uscita..." : "Esci"}
+              </button>
+              <button
+                type="button"
+                disabled={loggingOut}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLogoutConfirm(false);
+                }}
+                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+              >
+                Annulla
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

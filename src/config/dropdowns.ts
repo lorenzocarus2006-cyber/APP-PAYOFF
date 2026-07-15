@@ -7,6 +7,7 @@ export const PLATFORMS = [
   "BINANCE",
   "ISYBANK",
   "ING",
+  "MYFIN",
 ] as const;
 
 export const STATUSES = [

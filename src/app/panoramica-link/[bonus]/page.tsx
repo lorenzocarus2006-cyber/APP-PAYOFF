@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getReceiverLinks } from "@/lib/db";
+import { getReceiverLinks, readLinks } from "@/lib/db";
 import { BONUSES, getBonus } from "../bonus-config";
 import BonusReceivers from "./BonusReceivers";
 
@@ -20,7 +20,10 @@ export default async function BonusDetailPage({
   if (!bonus) notFound();
 
   const piattaforma = bonus.key.toUpperCase();
-  const receivers = await getReceiverLinks(piattaforma);
+  const [receivers, savedLinks] = await Promise.all([
+    getReceiverLinks(piattaforma),
+    readLinks(piattaforma),
+  ]);
 
   const totale = receivers.reduce((sum, r) => sum + r.count, 0);
   const attivi = receivers.filter((r) => r.count > 0).length;
@@ -99,6 +102,47 @@ export default async function BonusDetailPage({
         </header>
 
         <BonusReceivers piattaforma={piattaforma} color={bonus.color} initial={receivers} />
+
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">
+            Link salvati ({savedLinks.length})
+          </h2>
+          {savedLinks.length === 0 ? (
+            <div className="rounded-2xl border border-white/15 bg-white/[0.04] p-5 text-sm text-white/60">
+              Nessun link salvato per questo bonus. Usa &quot;Aggiungi link&quot; nella pagina
+              Panoramica per registrarne uno.
+            </div>
+          ) : (
+            <ul className="space-y-2.5">
+              {savedLinks.map((link) => (
+                <li
+                  key={link.id}
+                  className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-[20px]"
+                >
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white"
+                    style={{ backgroundColor: bonus.color }}
+                  >
+                    {link.intestatario.slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {link.intestatario}
+                    </p>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-0.5 block truncate text-xs text-white/60 underline decoration-white/30 hover:text-white"
+                    >
+                      {link.url}
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
     </div>
   );

@@ -8,8 +8,10 @@ import type {
   BilancioReceiverPlatformStats,
   BilancioReceiverStats,
   BonusRecord,
+  Lead,
   LinkOverviewRow,
   NewBonusPayload,
+  SavedLink,
 } from "./types";
 
 /**
@@ -334,6 +336,7 @@ const LINK_PLATFORM_KEYS: Record<string, keyof Omit<LinkOverviewRow, "intestatar
   ISYBANK: "isybank",
   REVOLUT: "revolut",
   ING: "ing",
+  MYFIN: "myfin",
 };
 
 export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
@@ -349,6 +352,7 @@ export async function readLinkOverviewRows(): Promise<LinkOverviewRow[]> {
       isybank: 0,
       revolut: 0,
       ing: 0,
+      myfin: 0,
     });
   }
 
@@ -428,7 +432,7 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
     "Luca pietra",
     "Alessia longo",
   ];
-  const fullPlatformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ING"];
+  const fullPlatformList = ["COINBASE", "BUDDYBANK", "BBVA", "REVOLUT", "ING", "MYFIN"];
   const limitedPlatformReceivers = new Set(["Luca pietra", "Alessia longo"]);
   const platformsForReceiver = (r: string) =>
     limitedPlatformReceivers.has(r) ? ["COINBASE", "BBVA"] : fullPlatformList;
@@ -544,4 +548,129 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
   };
 
   return { overview, riceventi };
+}
+
+type LinkRow = {
+  id: number;
+  piattaforma: string;
+  intestatario: string;
+  url: string;
+  created_at: string;
+};
+
+function mapLink(row: LinkRow): SavedLink {
+  return {
+    id: row.id,
+    piattaforma: row.piattaforma ?? "",
+    intestatario: row.intestatario ?? "",
+    url: row.url ?? "",
+    createdAt: row.created_at ?? "",
+  };
+}
+
+export async function readLinks(piattaforma?: string): Promise<SavedLink[]> {
+  const supabase = getSupabase();
+  let query = supabase.from("links").select("id,piattaforma,intestatario,url,created_at");
+  if (piattaforma) query = query.eq("piattaforma", piattaforma);
+  const { data, error } = await query.order("id", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data as LinkRow[] | null)?.map(mapLink) ?? [];
+}
+
+export async function insertLink(payload: {
+  piattaforma: string;
+  intestatario: string;
+  url: string;
+}): Promise<SavedLink> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("links")
+    .insert({
+      piattaforma: payload.piattaforma,
+      intestatario: payload.intestatario,
+      url: payload.url,
+    })
+    .select("id,piattaforma,intestatario,url,created_at")
+    .single();
+  if (error) throw new Error(error.message);
+  return mapLink(data as LinkRow);
+}
+
+type LeadRow = {
+  id: number;
+  nome: string;
+  telefono: string;
+  descrizione: string;
+  bonus_interesse: string[] | null;
+  created_at: string;
+};
+
+function mapLead(row: LeadRow): Lead {
+  return {
+    id: row.id,
+    nome: row.nome ?? "",
+    telefono: row.telefono ?? "",
+    descrizione: row.descrizione ?? "",
+    bonusInteresse: row.bonus_interesse ?? [],
+    createdAt: row.created_at ?? "",
+  };
+}
+
+const LEAD_COLUMNS = "id,nome,telefono,descrizione,bonus_interesse,created_at";
+
+export async function readLeads(): Promise<Lead[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("leads")
+    .select(LEAD_COLUMNS)
+    .order("id", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data as LeadRow[] | null)?.map(mapLead) ?? [];
+}
+
+export async function insertLead(payload: {
+  nome: string;
+  telefono: string;
+  descrizione: string;
+  bonusInteresse: string[];
+}): Promise<Lead> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("leads")
+    .insert({
+      nome: payload.nome,
+      telefono: payload.telefono,
+      descrizione: payload.descrizione,
+      bonus_interesse: payload.bonusInteresse,
+    })
+    .select(LEAD_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return mapLead(data as LeadRow);
+}
+
+export async function updateLead(
+  id: number,
+  payload: { nome: string; telefono: string; descrizione: string; bonusInteresse: string[] },
+): Promise<Lead> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("leads")
+    .update({
+      nome: payload.nome,
+      telefono: payload.telefono,
+      descrizione: payload.descrizione,
+      bonus_interesse: payload.bonusInteresse,
+    })
+    .eq("id", id)
+    .select(LEAD_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return mapLead(data as LeadRow);
+}
+
+export async function deleteLead(id: number): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("leads").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }

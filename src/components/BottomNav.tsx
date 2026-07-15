@@ -1,28 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/", icon: "🏠", label: "Home" },
   { href: "/panoramica-link", icon: "🔗", label: "Panoramica Link" },
   { href: "/affiliati", icon: "👥", label: "Affiliati" },
   { href: "/bilancio", icon: "🏦", label: "Bilancio" },
+  { href: "/lead", icon: "🎯", label: "Lead" },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
 
   if (pathname === "/login") return null;
-
-  async function handleLogout() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/20 bg-white/10 backdrop-blur-[20px]">
@@ -33,7 +25,7 @@ export default function BottomNav() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex min-h-12 min-w-[68px] flex-col items-center justify-center rounded-2xl px-1 ${
+              className={`flex min-h-12 min-w-[60px] flex-col items-center justify-center rounded-2xl px-1 ${
                 isActive ? "bg-white/20 text-white font-bold" : "text-white/90"
               }`}
             >
@@ -42,15 +34,6 @@ export default function BottomNav() {
             </Link>
           );
         })}
-        <button
-          type="button"
-          onClick={() => void handleLogout()}
-          aria-label="Esci"
-          className="flex min-h-12 min-w-[52px] flex-col items-center justify-center rounded-2xl px-1 text-white/70"
-        >
-          <span className="text-lg leading-none">🚪</span>
-          <span className="text-[11px] font-semibold">Esci</span>
-        </button>
       </div>
     </nav>
   );

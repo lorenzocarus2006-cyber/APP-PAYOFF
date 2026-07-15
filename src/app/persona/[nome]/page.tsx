@@ -22,6 +22,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   BUDDYBANK: "#FF4B7B",
   BINANCE: "#D4A017",
   KRAKEN: "#5741D9",
+  MYFIN: "#0D9488",
 };
 
 function statusSelectStyle(status: string) {

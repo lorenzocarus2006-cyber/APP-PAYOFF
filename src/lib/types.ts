@@ -36,6 +36,24 @@ export type LinkOverviewRow = {
   isybank: number;
   revolut: number;
   ing: number;
+  myfin: number;
+};
+
+export type SavedLink = {
+  id: number;
+  piattaforma: string;
+  intestatario: string;
+  url: string;
+  createdAt: string;
+};
+
+export type Lead = {
+  id: number;
+  nome: string;
+  telefono: string;
+  descrizione: string;
+  bonusInteresse: string[];
+  createdAt: string;
 };
 
 export type AffiliateSummary = {

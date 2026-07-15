@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { readLinkOverviewRows } from "@/lib/db";
+import AddLinkButton from "./AddLinkButton";
 import { BONUSES } from "./bonus-config";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,8 @@ export default async function PanoramicaLinkPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-6">
+        <AddLinkButton />
+
         <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
             Panoramica
