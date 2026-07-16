@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { BilancioOverview, BilancioReceiverStats } from "@/lib/types";
+import type { BilancioDetail, BilancioOverview, BilancioReceiverStats } from "@/lib/types";
 import BilancioView from "../BilancioView";
 
 type BilancioResponse = {
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
+  detail: BilancioDetail;
   error?: string;
 };
 
 export default function StoricoClient() {
   const [overview, setOverview] = useState<BilancioOverview | null>(null);
   const [riceventi, setRiceventi] = useState<BilancioReceiverStats[]>([]);
+  const [detail, setDetail] = useState<BilancioDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -27,6 +29,7 @@ export default function StoricoClient() {
         if (!res.ok) throw new Error(data.error ?? "Errore nel caricamento dello storico.");
         setOverview(data.overview);
         setRiceventi(data.riceventi ?? []);
+        setDetail(data.detail ?? null);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Errore sconosciuto.";
         setError(message);
@@ -42,6 +45,7 @@ export default function StoricoClient() {
     <BilancioView
       overview={overview}
       riceventi={riceventi}
+      detail={detail}
       loading={loading}
       error={error}
       title="Storico 📜"

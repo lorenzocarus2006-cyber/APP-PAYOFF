@@ -43,3 +43,25 @@ export function statusColor(stato: string) {
 export function platformColor(name: string) {
   return PLATFORM_COLORS[name] ?? "#2D7DD2";
 }
+
+const STATUS_SELECT_CLASS: Record<string, string> = {
+  "Bonus arrivato": "bg-[#16A34A] text-white",
+  "Bonus in arrivo": "bg-[#D97706] text-white",
+  "Registrato da completare": "bg-[#7C3AED] text-white",
+  FAIL: "bg-[#DC2626] text-white",
+};
+
+export function statusSelectStyle(stato: string) {
+  return STATUS_SELECT_CLASS[stato] ?? "bg-[#DC2626] text-white";
+}
+
+const STATUS_OPTION_STYLE: Record<string, { backgroundColor: string; color: string }> = {
+  "Bonus arrivato": { backgroundColor: "#dcfce7", color: "#16A34A" },
+  "Bonus in arrivo": { backgroundColor: "#fef9c3", color: "#D97706" },
+  "Registrato da completare": { backgroundColor: "#ede9fe", color: "#7C3AED" },
+  FAIL: { backgroundColor: "#fee2e2", color: "#DC2626" },
+};
+
+export function statusOptionStyle(stato: string) {
+  return { ...(STATUS_OPTION_STYLE[stato] ?? STATUS_OPTION_STYLE.FAIL), fontWeight: 700 as const };
+}

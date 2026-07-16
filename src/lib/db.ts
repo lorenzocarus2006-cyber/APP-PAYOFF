@@ -5,6 +5,7 @@ import { initialsFor, nextPlatformColor, platformKeyFor, type PlatformConfig } f
 import type {
   AffiliatePayment,
   AffiliateSummary,
+  BilancioDetail,
   BilancioOverview,
   BilancioReceiverPlatformStats,
   BilancioReceiverStats,
@@ -534,6 +535,7 @@ export async function getReceiverLinks(piattaformaUpper: string): Promise<Receiv
 export async function readBilancioStats(scope: DataScope = "current"): Promise<{
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
+  detail: BilancioDetail;
 }> {
   const [bonuses, affiliateRates, links, customPlatforms] = await Promise.all([
     readBonusRows(scope),
@@ -610,6 +612,13 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
   let inArrivoCount = 0;
   let daCompletareCount = 0;
 
+  const bonusInArrivo: BonusRecord[] = [];
+  const bonusDaCompletare: BonusRecord[] = [];
+  const amazonInArrivoList: BonusRecord[] = [];
+  const amazonDaCompletareList: BonusRecord[] = [];
+  const affiliatiTotals = new Map<string, number>();
+  const speseByPlatform = new Map<string, number>();
+
   for (const row of bonuses) {
     const piattaforma = row.piattaforma.trim().toUpperCase();
     const stato = row.stato.trim();
@@ -618,26 +627,37 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
     const { spese, amazon, netto } = row;
     amazonTotale += amazon;
 
+    // Spese: contate solo per bonus "in arrivo" o "arrivato".
+    if (stato === "Bonus arrivato" || stato === "Bonus in arrivo") {
+      speseTotali += spese;
+      speseByPlatform.set(piattaforma, (speseByPlatform.get(piattaforma) ?? 0) + spese);
+    }
+
     if (stato === "Bonus arrivato") {
       nettoTotale += netto;
-      speseTotali += spese;
       completatiCount += 1;
       amazonArrivato += amazon;
+      // % Affiliati: contata solo per bonus "arrivato".
+      if (affiliato) {
+        const rate = affiliateRates[affiliato.toUpperCase()] ?? DEFAULT_AFFILIATE_RATE;
+        const quota = netto * rate;
+        totalePercentoAffiliati += quota;
+        affiliatiTotals.set(affiliato, (affiliatiTotals.get(affiliato) ?? 0) + quota);
+      }
     } else if (stato === "Bonus in arrivo") {
       inArrivoTotale += netto;
       inArrivoCount += 1;
       amazonInArrivo += amazon;
+      bonusInArrivo.push(row);
+      if (amazon > 0) amazonInArrivoList.push(row);
     } else if (stato === "Registrato da completare") {
       daCompletareTotale += netto;
       daCompletareCount += 1;
       amazonDaCompletare += amazon;
+      bonusDaCompletare.push(row);
+      if (amazon > 0) amazonDaCompletareList.push(row);
     } else if (stato === "FAIL") {
       failCount += 1;
-    }
-
-    if (affiliato) {
-      const rate = affiliateRates[affiliato.toUpperCase()] ?? DEFAULT_AFFILIATE_RATE;
-      totalePercentoAffiliati += netto * rate;
     }
 
     if (receiverMap[ricevente]?.[piattaforma] && statusToKey[stato]) {
@@ -686,7 +706,20 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
     daCompletareCount,
   };
 
-  return { overview, riceventi };
+  const detail: BilancioDetail = {
+    bonusInArrivo,
+    bonusDaCompletare,
+    amazonInArrivo: amazonInArrivoList,
+    amazonDaCompletare: amazonDaCompletareList,
+    affiliati: [...affiliatiTotals.entries()]
+      .map(([nome, totale]) => ({ nome, totale }))
+      .sort((a, b) => b.totale - a.totale),
+    spese: [...speseByPlatform.entries()]
+      .map(([piattaforma, totale]) => ({ piattaforma, totale }))
+      .sort((a, b) => b.totale - a.totale),
+  };
+
+  return { overview, riceventi, detail };
 }
 
 type LinkRow = {

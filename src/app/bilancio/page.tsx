@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { BilancioOverview, BilancioReceiverStats } from "@/lib/types";
+import type { BilancioDetail, BilancioOverview, BilancioReceiverStats } from "@/lib/types";
 import BilancioView from "./BilancioView";
 
 type BilancioResponse = {
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
+  detail: BilancioDetail;
   role?: "og" | "salvo";
   error?: string;
 };
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 export default function BilancioPage() {
   const [overview, setOverview] = useState<BilancioOverview | null>(null);
   const [riceventi, setRiceventi] = useState<BilancioReceiverStats[]>([]);
+  const [detail, setDetail] = useState<BilancioDetail | null>(null);
   const [role, setRole] = useState<"og" | "salvo" | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,6 +33,7 @@ export default function BilancioPage() {
         if (!res.ok) throw new Error(data.error ?? "Errore nel caricamento del bilancio.");
         setOverview(data.overview);
         setRiceventi(data.riceventi ?? []);
+        setDetail(data.detail ?? null);
         setRole(data.role ?? null);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Errore sconosciuto.";
@@ -47,6 +50,7 @@ export default function BilancioPage() {
     <BilancioView
       overview={overview}
       riceventi={riceventi}
+      detail={detail}
       loading={loading}
       error={error}
       title="Bilancio 🏦"

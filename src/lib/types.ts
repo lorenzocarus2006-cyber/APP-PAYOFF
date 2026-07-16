@@ -94,6 +94,25 @@ export type BilancioOverview = {
   daCompletareCount: number;
 };
 
+export type BilancioAffiliateBreakdown = {
+  nome: string;
+  totale: number;
+};
+
+export type BilancioPlatformExpense = {
+  piattaforma: string;
+  totale: number;
+};
+
+export type BilancioDetail = {
+  bonusInArrivo: BonusRecord[];
+  bonusDaCompletare: BonusRecord[];
+  amazonInArrivo: BonusRecord[];
+  amazonDaCompletare: BonusRecord[];
+  affiliati: BilancioAffiliateBreakdown[];
+  spese: BilancioPlatformExpense[];
+};
+
 export type BilancioReceiverPlatformStats = {
   app: string;
   arrivato: number;
