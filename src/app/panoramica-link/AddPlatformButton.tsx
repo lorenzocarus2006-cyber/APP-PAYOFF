@@ -2,21 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { RECEIVERS } from "@/config/dropdowns";
-import type { PlatformConfig } from "@/config/platforms";
 
-type Props = {
-  platforms: PlatformConfig[];
-};
-
-export default function AddLinkButton({ platforms }: Props) {
+export default function AddPlatformButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [piattaforma, setPiattaforma] = useState<string>(platforms[0]?.key ?? "");
-  const [intestatario, setIntestatario] = useState<string>("");
-  const [url, setUrl] = useState("");
+  const [label, setLabel] = useState("");
+  const [bonus, setBonus] = useState("");
+  const [spese, setSpese] = useState("");
+  const [amazon, setAmazon] = useState("");
 
   function close() {
     if (saving) return;
@@ -24,28 +19,36 @@ export default function AddLinkButton({ platforms }: Props) {
     setError("");
   }
 
+  function reset() {
+    setLabel("");
+    setBonus("");
+    setSpese("");
+    setAmazon("");
+  }
+
   async function handleSave() {
-    if (!intestatario.trim()) {
-      setError("Inserisci l'intestatario.");
-      return;
-    }
-    if (!url.trim()) {
-      setError("Inserisci il link o codice.");
+    if (!label.trim()) {
+      setError("Inserisci il nome della piattaforma.");
       return;
     }
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/links/write", {
+      const res = await fetch("/api/platforms/write", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ piattaforma, intestatario: intestatario.trim(), url: url.trim() }),
+        body: JSON.stringify({
+          label: label.trim(),
+          bonus: Number(bonus || 0),
+          spese: Number(spese || 0),
+          amazon: Number(amazon || 0),
+        }),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Errore salvataggio link.");
+      if (!res.ok) throw new Error(data.error ?? "Errore creazione piattaforma.");
 
       setOpen(false);
-      setUrl("");
+      reset();
       router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Errore sconosciuto.";
@@ -60,9 +63,9 @@ export default function AddLinkButton({ platforms }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/40 bg-white/5 px-5 py-3 text-base font-semibold text-white transition-colors hover:border-white/60 hover:bg-white/10"
       >
-        ＋ Aggiungi link
+        ＋ Registra nuova tipologia di bonus
       </button>
 
       {open ? (
@@ -78,9 +81,9 @@ export default function AddLinkButton({ platforms }: Props) {
             aria-modal="true"
             className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
-            <h2 className="text-xl font-bold text-white">Nuovo link</h2>
+            <h2 className="text-xl font-bold text-white">Nuova tipologia di bonus</h2>
             <p className="mt-1 text-sm text-white/70">
-              Salvalo nella sezione del bonus giusto, resta lì anche dopo il reload.
+              Diventa disponibile subito in tutta l&apos;app: dropdown, filtri, statistiche.
             </p>
 
             {error ? (
@@ -91,49 +94,51 @@ export default function AddLinkButton({ platforms }: Props) {
 
             <div className="mt-5 space-y-4">
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Bonus / Piattaforma</span>
-                <select
-                  value={piattaforma}
-                  onChange={(event) => setPiattaforma(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
-                >
-                  {platforms.map((option) => (
-                    <option key={option.key} value={option.key}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block space-y-1">
-                <span className="text-sm text-white/80">Intestatario</span>
+                <span className="text-sm text-white/80">Nome piattaforma</span>
                 <input
-                  value={intestatario}
-                  onChange={(event) => setIntestatario(event.target.value)}
-                  list="intestatario-suggerimenti"
-                  placeholder="Nome intestatario"
+                  value={label}
+                  onChange={(event) => setLabel(event.target.value)}
+                  autoFocus
+                  placeholder="Es. N26"
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
-                <datalist id="intestatario-suggerimenti">
-                  {RECEIVERS.map((option) => (
-                    <option key={option} value={option} />
-                  ))}
-                </datalist>
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Link o codice</span>
+                <span className="text-sm text-white/80">Bonus totale</span>
                 <input
-                  value={url}
-                  onChange={(event) => setUrl(event.target.value)}
+                  type="number"
+                  value={bonus}
+                  placeholder="0"
+                  onChange={(event) => setBonus(event.target.value)}
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-sm text-white/80">Spese</span>
+                <input
+                  type="number"
+                  value={spese}
+                  placeholder="0"
+                  onChange={(event) => setSpese(event.target.value)}
+                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                />
+              </label>
+
+              <label className="block space-y-1">
+                <span className="text-sm text-white/80">Buoni Amazon (opzionale)</span>
+                <input
+                  type="number"
+                  value={amazon}
+                  placeholder="0"
+                  onChange={(event) => setAmazon(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" && !saving) {
                       event.preventDefault();
                       void handleSave();
                     }
                   }}
-                  autoFocus
-                  placeholder="https://... oppure codice invito"
                   className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
                 />
               </label>
@@ -150,7 +155,7 @@ export default function AddLinkButton({ platforms }: Props) {
               </button>
               <button
                 type="button"
-                disabled={saving || !url.trim() || !intestatario.trim()}
+                disabled={saving || !label.trim()}
                 onClick={() => void handleSave()}
                 className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >

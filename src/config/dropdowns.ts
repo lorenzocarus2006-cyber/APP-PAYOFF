@@ -1,14 +1,7 @@
-export const PLATFORMS = [
-  "BUDDYBANK",
-  "COINBASE",
-  "BBVA",
-  "KRAKEN",
-  "REVOLUT",
-  "BINANCE",
-  "ISYBANK",
-  "ING",
-  "MYFIN",
-] as const;
+import { STATIC_PLATFORMS } from "./platforms";
+
+/** Elenco piattaforme statiche (fallback prima del fetch delle piattaforme personalizzate). */
+export const PLATFORMS = STATIC_PLATFORMS.map((p) => p.key) as unknown as readonly string[];
 
 export const STATUSES = [
   "Bonus arrivato",
@@ -34,18 +27,7 @@ export const RECEIVERS = [
   "Extra7",
 ] as const;
 
-export const AFFILIATES = [
-  "AGATA",
-  "DAVIDE",
-  "SAMUEL",
-  "LELE",
-  "ZINNA",
-  "LUCA LADRO",
-  "DANIELE LO FARO",
-  "PITTA",
-  "PEPI",
-  "TONY",
-] as const;
+export const AFFILIATES = ["Salvo Coco"] as const;
 
 export type Platform = (typeof PLATFORMS)[number];
 export type Status = (typeof STATUSES)[number];

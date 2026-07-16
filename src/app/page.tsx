@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { AFFILIATES, PLATFORMS, RECEIVERS, STATUSES } from "@/config/dropdowns";
+import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
+import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const STATUS_DOT_COLORS: Record<string, string> = {
@@ -30,7 +31,7 @@ type BonusFormState = Omit<NewBonusPayload, "bonus" | "spese" | "amazon"> & {
 type SortMode = "alpha-asc" | "alpha-desc" | "date-asc" | "date-desc" | null;
 
 const defaultForm: BonusFormState = {
-  piattaforma: PLATFORMS[0],
+  piattaforma: STATIC_PLATFORMS[0].key,
   personaInvitata: "",
   stato: STATUSES[0],
   ricevente: "",
@@ -42,14 +43,6 @@ const defaultForm: BonusFormState = {
   amazon: "",
 };
 
-const defaultImporti: Record<string, { bonus: number; spese: number; amazon: number }> = {
-  ING: { bonus: 50, spese: 1, amazon: 0 },
-  BUDDYBANK: { bonus: 50, spese: 11, amazon: 0 },
-  BBVA: { bonus: 20, spese: 1, amazon: 0 },
-  COINBASE: { bonus: 20, spese: 3, amazon: 0 },
-  ISYBANK: { bonus: 30, spese: 0, amazon: 30 },
-};
-
 function statusSelectStyle(status: string) {
   if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
   if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
@@ -57,52 +50,8 @@ function statusSelectStyle(status: string) {
   return "bg-[#DC2626] text-white";
 }
 
-const PLATFORM_BADGE_COLORS: Record<string, string> = {
-  COINBASE: "#0052FF",
-  REVOLUT: "#1A1A2E",
-  ING: "#FF6200",
-  ISYBANK: "#FF6B35",
-  BBVA: "#004481",
-  BUDDYBANK: "#FF4B7B",
-  BINANCE: "#D4A017",
-  KRAKEN: "#5741D9",
-  MYFIN: "#0D9488",
-};
-
-const PLATFORM_BORDER_COLORS: Record<string, string> = {
-  COINBASE: "#0052FF",
-  BUDDYBANK: "#FF4B7B",
-  BBVA: "#004481",
-  REVOLUT: "#374151",
-  ISYBANK: "#FF6B35",
-  ING: "#FF6200",
-  BINANCE: "#D4A017",
-  KRAKEN: "#5741D9",
-  MYFIN: "#0D9488",
-};
-
-const PLATFORM_SELECT_STYLES: Record<string, { background: string; color: string }> = {
-  COINBASE: { background: "#0052FF", color: "#ffffff" },
-  BUDDYBANK: { background: "#FF4B7B", color: "#ffffff" },
-  BBVA: { background: "#004481", color: "#ffffff" },
-  REVOLUT: { background: "#374151", color: "#ffffff" },
-  ISYBANK: { background: "#FF6B35", color: "#ffffff" },
-  ING: { background: "#FF6200", color: "#ffffff" },
-  BINANCE: { background: "#D4A017", color: "#000000" },
-  KRAKEN: { background: "#5741D9", color: "#ffffff" },
-  MYFIN: { background: "#0D9488", color: "#ffffff" },
-};
-
-function platformBadgeColor(name: string) {
-  return PLATFORM_BADGE_COLORS[name] ?? "#2D7DD2";
-}
-
-function platformBorderColor(name: string) {
-  return PLATFORM_BORDER_COLORS[name] ?? "#2D7DD2";
-}
-
-function platformSelectStyle(name: string) {
-  return PLATFORM_SELECT_STYLES[name] ?? { background: "rgba(255,255,255,0.15)", color: "#ffffff" };
+function platformSelectStyle(color: string) {
+  return { background: color, color: "#ffffff" };
 }
 
 export default function HomePage() {
@@ -130,11 +79,18 @@ export default function HomePage() {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>(null);
   const [affiliatiRoster, setAffiliatiRoster] = useState<string[]>([...AFFILIATES]);
+  const [platforms, setPlatforms] = useState<PlatformConfig[]>(STATIC_PLATFORMS);
 
   const bonusValue = Number(form.bonus || 0);
   const speseValue = Number(form.spese || 0);
   const amazonValue = Number(form.amazon || 0);
   const nettoForm = bonusValue - speseValue - amazonValue;
+
+  const platformColorMap = useMemo(() => buildPlatformColorMap(platforms), [platforms]);
+  function platformBadgeColor(name: string) {
+    return platformColorMap[name] ?? "#2D7DD2";
+  }
+  const platformBorderColor = platformBadgeColor;
 
   async function fetchRows() {
     setLoadingRead(true);
@@ -174,6 +130,25 @@ export default function HomePage() {
         if (res.ok && data.roster?.length) setAffiliatiRoster(data.roster);
       } catch {
         // mantiene il fallback AFFILIATES
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/platforms/read", { cache: "no-store" });
+        const data = (await res.json()) as { platforms?: PlatformConfig[] };
+        if (res.ok && data.platforms?.length) {
+          setPlatforms(data.platforms);
+          setForm((prev) =>
+            data.platforms!.some((p) => p.key === prev.piattaforma)
+              ? prev
+              : { ...prev, piattaforma: data.platforms![0].key },
+          );
+        }
+      } catch {
+        // mantiene il fallback STATIC_PLATFORMS
       }
     })();
   }, []);
@@ -493,23 +468,23 @@ export default function HomePage() {
                   >
                     Tutti i bonus
                   </button>
-                  {PLATFORMS.map((platform) => (
+                  {platforms.map((platform) => (
                     <button
-                      key={platform}
+                      key={platform.key}
                       type="button"
                       onClick={() => {
-                        setPlatformFilter(platform);
+                        setPlatformFilter(platform.key);
                         setShowPlatformMenu(false);
                       }}
                       className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
-                        platformFilter === platform ? "bg-white/10" : ""
+                        platformFilter === platform.key ? "bg-white/10" : ""
                       }`}
                     >
                       <span
                         className="inline-block h-3 w-3 rounded-full"
-                        style={{ backgroundColor: platformBadgeColor(platform) }}
+                        style={{ backgroundColor: platform.color }}
                       />
-                      {platform}
+                      {platform.label}
                     </button>
                   ))}
                 </div>
@@ -965,42 +940,29 @@ export default function HomePage() {
                   value={form.piattaforma}
                   onChange={(event) => {
                     const piattaforma = event.target.value;
-                    const importi = defaultImporti[piattaforma];
-                    setForm((prev) =>
-                      importi
-                        ? {
-                            ...prev,
-                            piattaforma,
-                            bonus: String(importi.bonus),
-                            spese: String(importi.spese),
-                            amazon: String(importi.amazon),
-                          }
-                        : {
-                            ...prev,
-                            piattaforma,
-                            bonus: "",
-                            spese: "",
-                            amazon: "",
-                          },
-                    );
+                    const importi = platforms.find((p) => p.key === piattaforma);
+                    setForm((prev) => ({
+                      ...prev,
+                      piattaforma,
+                      bonus: importi ? String(importi.bonusDefault) : "",
+                      spese: importi ? String(importi.speseDefault) : "",
+                      amazon: importi ? String(importi.amazonDefault) : "",
+                    }));
                   }}
                   className="min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
-                  style={{
-                    background: platformSelectStyle(form.piattaforma).background,
-                    color: platformSelectStyle(form.piattaforma).color,
-                  }}
+                  style={platformSelectStyle(platformBadgeColor(form.piattaforma))}
                 >
-                  {PLATFORMS.map((option) => (
+                  {platforms.map((option) => (
                     <option
-                      key={option}
-                      value={option}
+                      key={option.key}
+                      value={option.key}
                       style={{
-                        backgroundColor: platformSelectStyle(option).background,
-                        color: platformSelectStyle(option).color,
+                        backgroundColor: option.color,
+                        color: "#ffffff",
                         fontWeight: 700,
                       }}
                     >
-                      {option}
+                      {option.label}
                     </option>
                   ))}
                 </select>

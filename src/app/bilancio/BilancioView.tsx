@@ -1,42 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { BilancioOverview, BilancioReceiverStats } from "@/lib/types";
-
-const receiverGradients: Record<string, string> = {
-  Lori: "linear-gradient(135deg, #667eea, #764ba2)",
-  Diego: "linear-gradient(135deg, #f093fb, #f5576c)",
-  Cusi: "linear-gradient(135deg, #4facfe, #00f2fe)",
-  Ludovica: "linear-gradient(135deg, #43e97b, #38f9d7)",
-  Rubi: "linear-gradient(135deg, #fa709a, #fee140)",
-  "MATTIA RUSSO": "linear-gradient(135deg, #a18cd1, #fbc2eb)",
-  "Luca pietra": "linear-gradient(135deg, #fda085, #f6d365)",
-  "Alessia longo": "linear-gradient(135deg, #5eead4, #3b82f6)",
-};
-
-function money(value: number) {
-  return `$${value.toFixed(2)}`;
-}
-
-function AmountCell({
-  value,
-  colorHex,
-  size = "17",
-}: {
-  value: number;
-  colorHex: string;
-  size?: "17" | "18";
-}) {
-  const sizeClass = size === "18" ? "text-[18px]" : "text-[17px]";
-  if (value === 0) {
-    return <span className={`${sizeClass} font-black text-white/25`}>{money(0)}</span>;
-  }
-  return (
-    <span className={`${sizeClass} font-black`} style={{ color: colorHex }}>
-      {money(value)}
-    </span>
-  );
-}
+import { money, receiverGradient } from "./shared";
 
 type BilancioViewProps = {
   overview: BilancioOverview | null;
@@ -46,6 +13,7 @@ type BilancioViewProps = {
   title: string;
   subtitle: string;
   headerAction?: ReactNode;
+  scope?: "current" | "storico";
 };
 
 export default function BilancioView({
@@ -56,6 +24,7 @@ export default function BilancioView({
   title,
   subtitle,
   headerAction,
+  scope = "current",
 }: BilancioViewProps) {
   const metrics = overview
     ? [
@@ -111,111 +80,25 @@ export default function BilancioView({
           )}
         </section>
 
-        <section className="space-y-4 pb-4">
+        <section className="space-y-3 pb-4">
           <h2 className="text-xl font-semibold">Schede per Ricevente</h2>
           {riceventi.map((receiver) => (
-            <article
+            <Link
               key={receiver.ricevente}
-              className="rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.25)]"
-              style={{
-                background:
-                  receiverGradients[receiver.ricevente] ??
-                  "linear-gradient(135deg, #667eea, #764ba2)",
-              }}
+              href={`/bilancio/ricevente/${encodeURIComponent(receiver.ricevente)}${
+                scope === "storico" ? "?scope=storico" : ""
+              }`}
+              className="flex items-center justify-between rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98]"
+              style={{ background: receiverGradient(receiver.ricevente) }}
             >
-              <h3 className="mb-4 text-[28px] font-extrabold text-white">{receiver.ricevente}</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-[640px] w-full border-collapse text-left">
-                  <thead>
-                    <tr className="border-b border-white/20">
-                      <th className="px-[8px] py-[10px] text-left text-[13px] font-bold text-white/90">
-                        App
-                      </th>
-                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
-                        ✅ Arrivato $
-                      </th>
-                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
-                        ⏳ Arrivo $
-                      </th>
-                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
-                        📋 Da fare $
-                      </th>
-                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
-                        ❌ Fail $
-                      </th>
-                      <th className="px-[8px] py-[10px] text-center text-[13px] font-bold text-white/90">
-                        🎁 Amzn $
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-white/10 bg-black/20">
-                      <td className="px-[8px] py-[10px] text-[18px] font-black text-white">TOTALE</td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.total.arrivato} colorHex="#86efac" size="18" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.total.arrivo} colorHex="#fde68a" size="18" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.total.daFare} colorHex="#c4b5fd" size="18" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.total.fail} colorHex="#fca5a5" size="18" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.total.amazon} colorHex="#fed7aa" size="18" />
-                      </td>
-                    </tr>
-                    {receiver.platforms.map((platform, index) => (
-                      <tr
-                        key={platform.app}
-                        className={`border-b border-white/10 ${index % 2 === 0 ? "bg-white/5" : "bg-transparent"}`}
-                      >
-                        <td className="px-[8px] py-[10px] text-[14px] font-bold text-white">
-                          {platform.app}
-                        </td>
-                        <td className="px-[8px] py-[10px] text-center">
-                          <AmountCell value={platform.arrivato} colorHex="#86efac" />
-                        </td>
-                        <td className="px-[8px] py-[10px] text-center">
-                          <AmountCell value={platform.arrivo} colorHex="#fde68a" />
-                        </td>
-                        <td className="px-[8px] py-[10px] text-center">
-                          <AmountCell value={platform.daFare} colorHex="#c4b5fd" />
-                        </td>
-                        <td className="px-[8px] py-[10px] text-center">
-                          <AmountCell value={platform.fail} colorHex="#fca5a5" />
-                        </td>
-                        <td className="px-[8px] py-[10px] text-center">
-                          <AmountCell value={platform.amazon} colorHex="#fed7aa" />
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="bg-black/15">
-                      <td className="px-[8px] py-[10px] text-[14px] font-bold text-white">
-                        {receiver.amazonRow.app}
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.amazonRow.arrivato} colorHex="#86efac" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.amazonRow.arrivo} colorHex="#fde68a" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.amazonRow.daFare} colorHex="#c4b5fd" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.amazonRow.fail} colorHex="#fca5a5" />
-                      </td>
-                      <td className="px-[8px] py-[10px] text-center">
-                        <AmountCell value={receiver.amazonRow.amazon} colorHex="#fed7aa" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div>
+                <h3 className="text-xl font-extrabold text-white">{receiver.ricevente}</h3>
+                <p className="mt-1 text-sm text-white/80">
+                  ✅ {money(receiver.total.arrivato)} · ⏳ {money(receiver.total.arrivo)}
+                </p>
               </div>
-            </article>
+              <span className="text-2xl text-white/80">›</span>
+            </Link>
           ))}
         </section>
       </main>

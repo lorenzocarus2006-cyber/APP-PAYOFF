@@ -46,6 +46,7 @@ export default function StoricoClient() {
       error={error}
       title="Storico 📜"
       subtitle="Bonus precedenti al 14/07/2026 (solo og)"
+      scope="storico"
       headerAction={
         <Link
           href="/bilancio"

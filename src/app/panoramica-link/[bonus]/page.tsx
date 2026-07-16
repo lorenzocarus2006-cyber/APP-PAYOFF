@@ -1,33 +1,32 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getReceiverLinks, readLinks } from "@/lib/db";
-import { BONUSES, getBonus } from "../bonus-config";
-import BonusReceivers from "./BonusReceivers";
+import { getReceiverLinks, readCustomPlatforms, readLinks } from "@/lib/db";
+import { getPlatform, mergePlatforms } from "@/config/platforms";
+import ReceiverList from "./ReceiverList";
 
 export const dynamic = "force-dynamic";
-
-export function generateStaticParams() {
-  return BONUSES.map((bonus) => ({ bonus: bonus.key }));
-}
 
 export default async function BonusDetailPage({
   params,
 }: {
   params: Promise<{ bonus: string }>;
 }) {
-  const { bonus: bonusKey } = await params;
-  const bonus = getBonus(bonusKey);
+  const { bonus: bonusParam } = await params;
+  const piattaforma = bonusParam.toUpperCase();
+
+  const customPlatforms = await readCustomPlatforms();
+  const platforms = mergePlatforms(customPlatforms);
+  const bonus = getPlatform(piattaforma, platforms);
   if (!bonus) notFound();
 
-  const piattaforma = bonus.key.toUpperCase();
   const [receivers, savedLinks] = await Promise.all([
     getReceiverLinks(piattaforma),
     readLinks(piattaforma),
   ]);
 
   const totale = receivers.reduce((sum, r) => sum + r.count, 0);
-  const attivi = receivers.filter((r) => r.count > 0).length;
-  const daRitirare = receivers.filter((r) => r.count > 0 && !r.ritirato).length;
+  const attivi = receivers.filter((r) => !r.maxed).length;
+  const daPrelevare = receivers.filter((r) => r.soldiDaPrelevare > 0.009).length;
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
@@ -84,24 +83,24 @@ export default async function BonusDetailPage({
               <p className="mt-1 text-xs text-white/60">riceventi attivi</p>
             </div>
             <div className="flex-1 rounded-2xl bg-black/15 px-4 py-3">
-              <p className="text-3xl font-bold tabular-nums leading-none text-red-300">
-                {daRitirare}
+              <p className="text-3xl font-bold tabular-nums leading-none text-emerald-300">
+                {daPrelevare}
               </p>
-              <p className="mt-1 text-xs text-white/60">da ritirare</p>
+              <p className="mt-1 text-xs text-white/60">da prelevare</p>
             </div>
           </div>
 
           <p className="mt-4 flex items-center gap-4 text-xs text-white/55">
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-400" /> da ritirare
+              <span className="h-2.5 w-2.5 rounded-full bg-white/20" /> attivo
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> ritirati
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /> maxato
             </span>
           </p>
         </header>
 
-        <BonusReceivers piattaforma={piattaforma} color={bonus.color} initial={receivers} />
+        <ReceiverList piattaforma={piattaforma} color={bonus.color} initial={receivers} />
 
         <section className="space-y-3">
           <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">

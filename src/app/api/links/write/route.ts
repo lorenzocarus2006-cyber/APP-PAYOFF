@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { insertLink } from "@/lib/db";
+import { upsertReceiverLinkValue } from "@/lib/db";
 import { getRole } from "@/lib/role";
 
 type Body = {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const link = await insertLink({ piattaforma, intestatario, url });
+    const link = await upsertReceiverLinkValue(piattaforma, intestatario, url);
     return NextResponse.json({ link });
   } catch (error) {
     const message =

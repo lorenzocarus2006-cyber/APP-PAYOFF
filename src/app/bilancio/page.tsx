@@ -51,6 +51,7 @@ export default function BilancioPage() {
       error={error}
       title="Bilancio 🏦"
       subtitle="Overview e dettaglio per ricevente (da oggi in poi)"
+      scope="current"
       headerAction={
         role === "og" ? (
           <Link

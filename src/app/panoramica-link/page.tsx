@@ -1,25 +1,31 @@
 import Link from "next/link";
-import { readLinkOverviewRows } from "@/lib/db";
+import { readCustomPlatforms, readPlatformStats } from "@/lib/db";
+import { mergePlatforms } from "@/config/platforms";
 import AddLinkButton from "./AddLinkButton";
-import { BONUSES } from "./bonus-config";
+import AddPlatformButton from "./AddPlatformButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function PanoramicaLinkPage() {
-  const rows = await readLinkOverviewRows();
+  const [customPlatforms, platformStats] = await Promise.all([
+    readCustomPlatforms(),
+    readPlatformStats(),
+  ]);
+  const platforms = mergePlatforms(customPlatforms);
+  const statsByKey = new Map(platformStats.map((s) => [s.key, s]));
 
-  const stats = BONUSES.map((bonus) => {
-    const total = rows.reduce((sum, row) => sum + row[bonus.key], 0);
-    const attivi = rows.filter((row) => row[bonus.key] > 0).length;
-    return { ...bonus, total, attivi };
-  });
+  const stats = platforms.map((platform) => ({
+    ...platform,
+    total: statsByKey.get(platform.key)?.total ?? 0,
+    attivi: statsByKey.get(platform.key)?.attivi ?? 0,
+  }));
 
   const totaleLink = stats.reduce((sum, bonus) => sum + bonus.total, 0);
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-6">
-        <AddLinkButton />
+        <AddLinkButton platforms={platforms} />
 
         <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
@@ -85,6 +91,8 @@ export default async function PanoramicaLinkPage() {
             </li>
           ))}
         </ul>
+
+        <AddPlatformButton />
       </main>
     </div>
   );

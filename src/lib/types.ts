@@ -27,16 +27,20 @@ export type NewBonusPayload = {
   amazon: number;
 };
 
-export type LinkOverviewRow = {
-  intestatario: string;
-  coinbase: number;
-  bbva: number;
-  binance: number;
-  buddybank: number;
-  isybank: number;
-  revolut: number;
-  ing: number;
-  myfin: number;
+export type PlatformStat = {
+  key: string;
+  total: number;
+  attivi: number;
+};
+
+export type ReceiverLinkDetail = {
+  ricevente: string;
+  count: number;
+  maxed: boolean;
+  linkOCodice: string;
+  soldiSulConto: number;
+  soldiRitirati: number;
+  soldiDaPrelevare: number;
 };
 
 export type SavedLink = {

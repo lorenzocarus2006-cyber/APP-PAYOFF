@@ -1,27 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { PLATFORMS } from "@/config/dropdowns";
+import { useEffect, useMemo, useState } from "react";
+import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import type { Lead } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-const PLATFORM_COLORS: Record<string, string> = {
-  COINBASE: "#0052FF",
-  REVOLUT: "#374151",
-  ING: "#FF6200",
-  ISYBANK: "#FF6B35",
-  BBVA: "#004481",
-  BUDDYBANK: "#FF4B7B",
-  BINANCE: "#D4A017",
-  KRAKEN: "#5741D9",
-  MYFIN: "#0D9488",
-};
-
-function platformColor(name: string) {
-  return PLATFORM_COLORS[name] ?? "#2D7DD2";
-}
 
 type LeadForm = {
   nome: string;
@@ -44,6 +28,11 @@ export default function LeadPage() {
   const [showModal, setShowModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<LeadForm>(defaultForm);
+  const [platforms, setPlatforms] = useState<PlatformConfig[]>(STATIC_PLATFORMS);
+  const platformColorMap = useMemo(() => buildPlatformColorMap(platforms), [platforms]);
+  function platformColor(name: string) {
+    return platformColorMap[name] ?? "#2D7DD2";
+  }
 
   async function fetchLeads() {
     setLoading(true);
@@ -66,6 +55,18 @@ export default function LeadPage() {
       void fetchLeads();
     }, 0);
     return () => clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/platforms/read", { cache: "no-store" });
+        const data = (await res.json()) as { platforms?: PlatformConfig[] };
+        if (res.ok && data.platforms?.length) setPlatforms(data.platforms);
+      } catch {
+        // mantiene il fallback STATIC_PLATFORMS
+      }
+    })();
   }, []);
 
   function toggleBonus(platform: string) {
@@ -221,14 +222,14 @@ export default function LeadPage() {
               <div className="space-y-2">
                 <span className="text-[13px] font-bold text-white">Bonus da fare</span>
                 <div className="flex flex-wrap gap-2">
-                  {PLATFORMS.map((platform) => {
-                    const active = form.bonusInteresse.includes(platform);
-                    const color = platformColor(platform);
+                  {platforms.map((platform) => {
+                    const active = form.bonusInteresse.includes(platform.key);
+                    const color = platformColor(platform.key);
                     return (
                       <button
-                        key={platform}
+                        key={platform.key}
                         type="button"
-                        onClick={() => toggleBonus(platform)}
+                        onClick={() => toggleBonus(platform.key)}
                         className="rounded-full border px-3 py-1.5 text-[13px] font-bold transition-colors"
                         style={
                           active
@@ -241,7 +242,7 @@ export default function LeadPage() {
                         }
                       >
                         {active ? "✓ " : ""}
-                        {platform}
+                        {platform.label}
                       </button>
                     );
                   })}

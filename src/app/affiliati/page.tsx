@@ -35,22 +35,11 @@ function money(value: number) {
 }
 
 const AFFILIATE_HEADER_COLORS: Record<string, string> = {
-  AGATA: "#FF6B6B",
-  DAVIDE: "#4ECDC4",
-  SAMUEL: "#45B7D1",
-  LELE: "#96CEB4",
-  ZINNA: "#FFEAA7",
-  "LUCA LADRO": "#DDA0DD",
-  "DANIELE LO FARO": "#98D8C8",
-  PITTA: "#F7DC6F",
-  PEPI: "#BB8FCE",
-  TONY: "#85C1E9",
-  EXTRA6: "#F0B27A",
-  EXTRA7: "#82E0AA",
+  "Salvo Coco": "#4ECDC4",
 };
 
-function affiliateHeaderTextColor(name: string) {
-  return name === "ZINNA" || name === "PITTA" ? "#1A1A2E" : "#ffffff";
+function affiliateHeaderTextColor() {
+  return "#ffffff";
 }
 
 export default function AffiliatiPage() {
@@ -299,7 +288,7 @@ export default function AffiliatiPage() {
                         className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold"
                         style={{
                           backgroundColor: AFFILIATE_HEADER_COLORS[payment.affiliato] ?? "#2D7DD2",
-                          color: affiliateHeaderTextColor(payment.affiliato),
+                          color: affiliateHeaderTextColor(),
                         }}
                       >
                         {payment.affiliato.slice(0, 2).toUpperCase()}
@@ -370,7 +359,7 @@ export default function AffiliatiPage() {
                         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"
                         style={{
                           backgroundColor: color,
-                          color: affiliateHeaderTextColor(summary.nome),
+                          color: affiliateHeaderTextColor(),
                         }}
                       >
                         {summary.nome.slice(0, 2).toUpperCase()}
