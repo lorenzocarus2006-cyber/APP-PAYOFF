@@ -17,18 +17,33 @@ export async function GET(request: Request) {
       );
     }
 
-    const [data, liquiditaOverview] = await Promise.all([
-      readBilancioStats(wantsStorico ? "storico" : "current"),
-      getLiquiditaOverview({ includeLedger: false }),
-    ]);
-    const liquidita = {
-      configured: liquiditaOverview.config !== null,
-      valore: liquiditaOverview.valore,
-      valoreIniziale: liquiditaOverview.valoreIniziale,
-      speseDedotte: liquiditaOverview.speseDedotte,
-      prelieviTotali: liquiditaOverview.prelieviTotali,
-      dataAttivazione: liquiditaOverview.config?.dataAttivazione ?? null,
-    };
+    // Le stats principali del Bilancio devono SEMPRE tornare, anche se la Liquidità fallisce:
+    // per questo sono due fetch separati (non un Promise.all) invece che accoppiati in un solo
+    // fallimento tutto-o-niente.
+    const data = await readBilancioStats(wantsStorico ? "storico" : "current");
+
+    let liquidita: {
+      configured: boolean;
+      valore: number;
+      valoreIniziale: number;
+      speseDedotte: number;
+      prelieviTotali: number;
+      dataAttivazione: string | null;
+    } | null = null;
+    try {
+      const liquiditaOverview = await getLiquiditaOverview({ includeLedger: false });
+      liquidita = {
+        configured: liquiditaOverview.config !== null,
+        valore: liquiditaOverview.valore,
+        valoreIniziale: liquiditaOverview.valoreIniziale,
+        speseDedotte: liquiditaOverview.speseDedotte,
+        prelieviTotali: liquiditaOverview.prelieviTotali,
+        dataAttivazione: liquiditaOverview.config?.dataAttivazione ?? null,
+      };
+    } catch (liquiditaError) {
+      console.error("Liquidità non disponibile, il Bilancio prosegue senza:", liquiditaError);
+    }
+
     return NextResponse.json({ ...data, role, liquidita });
   } catch (error) {
     const message =

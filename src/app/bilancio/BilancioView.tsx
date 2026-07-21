@@ -34,17 +34,19 @@ type ModalKind =
   | "spese"
   | null;
 
-function HighlightCard({
-  icon,
-  iconClass,
+function SectionLabel({ children }: { children: ReactNode }) {
+  return <p className="page-eyebrow px-1">{children}</p>;
+}
+
+function MetricCard({
   label,
   value,
+  accent,
   onClick,
 }: {
-  icon: string;
-  iconClass: string;
   label: string;
   value: string;
+  accent: string;
   onClick?: () => void;
 }) {
   const Tag = onClick ? "button" : "div";
@@ -52,19 +54,19 @@ function HighlightCard({
     <Tag
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`flex items-center gap-3 surface-card p-4 text-left transition-transform ${
+      className={`surface-card flex flex-col gap-1.5 p-4 text-left transition-transform ${
         onClick ? "active:scale-[0.97]" : ""
       }`}
     >
-      <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg ${iconClass}`}
-      >
-        {icon}
+      <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-white/45">
+        {label}
       </span>
-      <div className="min-w-0">
-        <p className="truncate text-xs font-semibold text-white/70">{label}</p>
-        <p className="mt-0.5 truncate text-lg font-extrabold text-white">{value}</p>
-      </div>
+      <span
+        className="font-mono text-xl font-extrabold tabular-nums"
+        style={{ color: accent }}
+      >
+        {value}
+      </span>
     </Tag>
   );
 }
@@ -97,16 +99,16 @@ function StatCard({
         {icon}
       </span>
       <p className="pr-10 text-[11px] font-bold uppercase tracking-wide text-white/60">{label}</p>
-      <p className="mt-3 font-mono text-2xl font-extrabold text-white">{value}</p>
+      <p className="mt-3 font-mono text-2xl font-extrabold tabular-nums text-white">{value}</p>
     </Tag>
   );
 }
 
-function CounterCard({ icon, label, value }: { icon: string; label: string; value: number }) {
+function CounterPill({ icon, label, value }: { icon: string; label: string; value: number }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-white/20 bg-white/8 p-3 text-center shadow-[0_2px_8px_rgba(0,0,0,0.1)] backdrop-blur-[16px]">
       <span className="text-base">{icon}</span>
-      <p className="text-xl font-extrabold text-white">{value}</p>
+      <p className="text-xl font-extrabold tabular-nums text-white">{value}</p>
       <p className="text-[10px] font-semibold uppercase tracking-wide text-white/60">{label}</p>
     </div>
   );
@@ -128,7 +130,7 @@ export default function BilancioView({
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
-      <main className="mx-auto w-full space-y-5">
+      <main className="mx-auto w-full space-y-6">
         <header className="flex items-start justify-between gap-3 surface-card p-5">
           <div>
             <h1 className="page-title">{title}</h1>
@@ -147,74 +149,64 @@ export default function BilancioView({
           </div>
         ) : (
           <>
-            {/* HERO */}
-            <section className="rounded-3xl border border-white/10 bg-[linear-gradient(160deg,#111827_0%,#1f2937_55%,#0b1220_100%)] p-7 text-center shadow-[0_12px_30px_rgba(0,0,0,0.35)]">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/50">Netto Totale</p>
-              <p className="mt-3 text-5xl font-black tracking-tight text-white">
-                {money(overview.nettoTotale)}
-              </p>
-            </section>
-
-            {/* LIQUIDITÀ */}
+            {/* 1. CASSA — Liquidità è il saldo reale, hero della pagina come il totale di un portafoglio. */}
             {liquidita ? (
               <Link
                 href="/liquidita"
-                className="block rounded-3xl border border-emerald-400/20 bg-[linear-gradient(160deg,#0b1f18_0%,#0f2a20_60%,#0b1220_100%)] p-6 shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98]"
+                className="block rounded-3xl border border-emerald-400/20 bg-[linear-gradient(160deg,#0b1f18_0%,#0f2a20_60%,#0b1220_100%)] p-7 text-center shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98]"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-center gap-2">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300/70">
                     💵 Liquidità
                   </p>
-                  <span className="text-lg text-white/40">›</span>
+                  <span className="text-sm text-white/40">›</span>
                 </div>
                 {liquidita.configured ? (
                   <>
-                    <p className="mt-2 text-4xl font-black tracking-tight text-white">
+                    <p className="mt-3 text-5xl font-black tracking-tight text-white">
                       {money(liquidita.valore)}
                     </p>
-                    <div className="mt-3 space-y-1 text-xs text-white/50">
-                      <p>Iniziale: {money(liquidita.valoreIniziale)}</p>
-                      <p>
-                        − Spese dal {liquidita.dataAttivazione}: {money(liquidita.speseDedotte)}
-                      </p>
-                      <p>+ Prelievi totali: {money(liquidita.prelieviTotali)}</p>
+                    <div className="mx-auto mt-4 flex max-w-sm flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/50">
+                      <span>Iniziale {money(liquidita.valoreIniziale)}</span>
+                      <span>− Spese dal {liquidita.dataAttivazione} {money(liquidita.speseDedotte)}</span>
+                      <span>+ Prelievi {money(liquidita.prelieviTotali)}</span>
                     </div>
                   </>
                 ) : (
-                  <p className="mt-2 text-sm text-white/60">
+                  <p className="mt-3 text-sm text-white/60">
                     Non ancora configurata — tocca per impostare il valore iniziale.
                   </p>
                 )}
               </Link>
             ) : null}
 
-            {/* HIGHLIGHTS */}
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <HighlightCard
-                icon="⏳"
-                iconClass="bg-amber-400/20 text-amber-300"
-                label="Soldi in arrivo"
-                value={money(overview.inArrivoTotale)}
-                onClick={() => setModal("inArrivo")}
-              />
-              <HighlightCard
-                icon="📋"
-                iconClass="bg-violet-400/20 text-violet-300"
-                label="Registrato da completare"
-                value={money(overview.daCompletareTotale)}
-                onClick={() => setModal("daCompletare")}
-              />
-              <HighlightCard
-                icon="🎁"
-                iconClass="bg-emerald-400/20 text-emerald-300"
-                label="Buoni Amazon"
-                value={money(overview.amazonArrivato)}
-              />
+            {/* 2. FLUSSO — netto, in arrivo (lordo) e da completare, come asset class sotto il totale. */}
+            <section className="space-y-2.5">
+              <SectionLabel>Flusso</SectionLabel>
+              <div className="grid grid-cols-3 gap-2.5">
+                <MetricCard
+                  label="Netto totale"
+                  value={money(overview.nettoTotale)}
+                  accent="#e2e8f0"
+                />
+                <MetricCard
+                  label="In arrivo"
+                  value={money(overview.inArrivoTotale)}
+                  accent="#fbbf24"
+                  onClick={() => setModal("inArrivo")}
+                />
+                <MetricCard
+                  label="Da completare"
+                  value={money(overview.daCompletareTotale)}
+                  accent="#c4b5fd"
+                  onClick={() => setModal("daCompletare")}
+                />
+              </div>
             </section>
 
-            {/* MAIN STATS GRID */}
-            <section className="space-y-3">
-              <h2 className="text-xl font-semibold">Panoramica</h2>
+            {/* 3. DETTAGLI — breakdown, come la lista asset di un'app bancaria. */}
+            <section className="space-y-2.5">
+              <SectionLabel>Dettagli</SectionLabel>
               <div className="grid grid-cols-2 gap-3">
                 <StatCard
                   icon="🤝"
@@ -245,41 +237,54 @@ export default function BilancioView({
                   onClick={() => setModal("amazonDaCompletare")}
                 />
               </div>
+
+              {/* Amazon: buoni non spendibili come cassa, tenuti separati dalla liquidità. */}
+              <div className="flex items-center justify-between rounded-2xl border border-dashed border-white/[0.12] bg-white/[0.02] px-4 py-3">
+                <span className="text-xs font-semibold text-white/50">
+                  🎁 Buoni Amazon arrivati <span className="text-white/30">(non cassa)</span>
+                </span>
+                <span className="font-mono text-sm font-bold tabular-nums text-white/70">
+                  {money(overview.amazonArrivato)}
+                </span>
+              </div>
             </section>
 
-            {/* SMALL COUNTERS */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-semibold text-white/70">Conteggi</h2>
+            {/* 4. STATO — conteggi bonus per stato. */}
+            <section className="space-y-2.5">
+              <SectionLabel>Stato bonus</SectionLabel>
               <div className="grid grid-cols-4 gap-2">
-                <CounterCard icon="❌" label="Fail" value={overview.failCount} />
-                <CounterCard icon="✅" label="Completati" value={overview.completatiCount} />
-                <CounterCard icon="⏳" label="In arrivo" value={overview.inArrivoCount} />
-                <CounterCard icon="📋" label="Da completare" value={overview.daCompletareCount} />
+                <CounterPill icon="❌" label="Fail" value={overview.failCount} />
+                <CounterPill icon="✅" label="Completati" value={overview.completatiCount} />
+                <CounterPill icon="⏳" label="In arrivo" value={overview.inArrivoCount} />
+                <CounterPill icon="📋" label="Da completare" value={overview.daCompletareCount} />
               </div>
             </section>
           </>
         )}
 
-        <section className="space-y-3 pb-4">
-          <h2 className="text-xl font-semibold">Schede per Ricevente</h2>
-          {riceventi.map((receiver) => (
-            <Link
-              key={receiver.ricevente}
-              href={`/bilancio/ricevente/${encodeURIComponent(receiver.ricevente)}${
-                scope === "storico" ? "?scope=storico" : ""
-              }`}
-              className="flex items-center justify-between rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98]"
-              style={{ background: receiverGradient(receiver.ricevente) }}
-            >
-              <div>
-                <h3 className="text-xl font-extrabold text-white">{receiver.ricevente}</h3>
-                <p className="mt-1 text-sm text-white/80">
-                  ✅ {money(receiver.total.arrivato)} · ⏳ {money(receiver.total.arrivo)}
-                </p>
-              </div>
-              <span className="text-2xl text-white/80">›</span>
-            </Link>
-          ))}
+        {/* 5. RICEVENTI — dettaglio per persona. */}
+        <section className="space-y-2.5 pb-4">
+          <SectionLabel>Schede per ricevente</SectionLabel>
+          <div className="space-y-3">
+            {riceventi.map((receiver) => (
+              <Link
+                key={receiver.ricevente}
+                href={`/bilancio/ricevente/${encodeURIComponent(receiver.ricevente)}${
+                  scope === "storico" ? "?scope=storico" : ""
+                }`}
+                className="flex items-center justify-between rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98]"
+                style={{ background: receiverGradient(receiver.ricevente) }}
+              >
+                <div>
+                  <h3 className="text-xl font-extrabold text-white">{receiver.ricevente}</h3>
+                  <p className="mt-1 text-sm text-white/80">
+                    ✅ {money(receiver.total.arrivato)} · ⏳ {money(receiver.total.arrivo)}
+                  </p>
+                </div>
+                <span className="text-2xl text-white/80">›</span>
+              </Link>
+            ))}
+          </div>
         </section>
       </main>
 

@@ -1,4 +1,4 @@
-import { isOnOrAfterCutoff } from "./date";
+import { isOnOrAfterCutoff, isOnOrAfterDate, toISODate } from "./date";
 import type { Role } from "./role";
 import { getSupabase } from "./supabase";
 import { initialsFor, nextPlatformColor, platformKeyFor, type PlatformConfig } from "@/config/platforms";
@@ -494,7 +494,12 @@ export async function getReceiverLinks(piattaformaUpper: string): Promise<Receiv
     readBonusRows(),
     readLinks(piattaformaUpper),
     readReceiverMeta(piattaformaUpper),
-    sumPrelieviPerRicevente(),
+    // Non deve mai far fallire la pagina Link: se la lettura dei prelievi si rompe, i riceventi
+    // restano comunque visibili con "soldi ritirati" a 0 invece di un errore in tutta la pagina.
+    sumPrelieviPerRicevente().catch((err) => {
+      console.error("Errore lettura prelievi liquidità:", err);
+      return new Map<string, number>();
+    }),
   ]);
 
   const acc = new Map<string, { ricevente: string; count: number; soldiSulConto: number }>();
@@ -1130,7 +1135,7 @@ export async function getLiquiditaOverview(options?: { includeLedger?: boolean }
     };
   }
 
-  const bonusRilevanti = bonuses.filter((b) => b.data >= config.dataAttivazione);
+  const bonusRilevanti = bonuses.filter((b) => isOnOrAfterDate(b.data, config.dataAttivazione));
   const speseDedotte = bonusRilevanti.reduce((sum, b) => sum + b.spese, 0);
 
   const prelieviTotali = movimenti
@@ -1149,7 +1154,7 @@ export async function getLiquiditaOverview(options?: { includeLedger?: boolean }
         importo: -b.spese,
         descrizione: `Spesa ${b.piattaforma} · ${b.personaInvitata || b.ricevente || "—"}`,
         riferimento: `bonus:${b.id}`,
-        data: b.data,
+        data: toISODate(b.data),
       }));
     ledger = [...movimenti, ...speseLedger].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
   }

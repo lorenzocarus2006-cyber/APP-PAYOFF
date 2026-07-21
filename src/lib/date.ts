@@ -32,6 +32,26 @@ export function isOnOrAfterCutoff(value: string): boolean {
   return parsed !== null && parsed.getTime() >= SALVO_CUTOFF.getTime();
 }
 
+/**
+ * true solo se `value` è una data valida (ISO "YYYY-MM-DD" o "DD/MM/YYYY") >= `cutoffIso`.
+ * Confronto fatto su Date reali, MAI su stringhe: i bonus storici migrati hanno data "DD/MM/YYYY"
+ * e un confronto tipo `a >= b` su stringhe le fa risultare erroneamente "più recenti" di qualsiasi
+ * cutoff "YYYY-MM-DD..." che inizi con una cifra più piccola (es. "30/03/2026" >= "2026-07-21").
+ */
+export function isOnOrAfterDate(value: string, cutoffIso: string): boolean {
+  const parsedValue = parseFlexibleDate(value);
+  const parsedCutoff = parseFlexibleDate(cutoffIso);
+  if (!parsedValue || !parsedCutoff) return false;
+  return parsedValue.getTime() >= parsedCutoff.getTime();
+}
+
+/** "YYYY-MM-DD" o "DD/MM/YYYY" -> "YYYY-MM-DD". Ritorna il valore originale se non parsabile. */
+export function toISODate(value: string): string {
+  const parsed = parseFlexibleDate(value);
+  if (!parsed) return value;
+  return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
+}
+
 const IT_MONTHS = [
   "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
   "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
