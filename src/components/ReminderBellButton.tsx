@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Check } from "lucide-react";
 import { todayISO } from "@/lib/date";
 
@@ -13,16 +13,41 @@ type Props = {
   label: string;
   variant?: "icon" | "button";
   onSaved?: () => void;
+  /** Se passato, l'apertura del popup è controllata dal genitore (usato per aprirlo subito dopo un salvataggio). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 /** Bottone 🔔 riusabile: apre un piccolo form (data + descrizione) e crea un promemoria collegato a un bonus o a un lead. */
-export default function ReminderBellButton({ link, label, variant = "icon", onSaved }: Props) {
-  const [open, setOpen] = useState(false);
+export default function ReminderBellButton({
+  link,
+  label,
+  variant = "icon",
+  onSaved,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const isControlled = openProp !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? openProp : internalOpen;
+  function setOpen(next: boolean) {
+    if (isControlled) onOpenChange?.(next);
+    else setInternalOpen(next);
+  }
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState(todayISO());
   const [descrizione, setDescrizione] = useState("");
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   function close() {
     if (saving) return;
@@ -105,7 +130,7 @@ export default function ReminderBellButton({ link, label, variant = "icon", onSa
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#11141C] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+            className="w-full max-w-sm rounded-[20px] border border-white/10 bg-[#11141C] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
           >
             <h2 className="flex items-center gap-2 text-lg font-bold text-white">
               <Bell className="h-5 w-5" /> Nuovo promemoria

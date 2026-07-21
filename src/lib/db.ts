@@ -912,10 +912,19 @@ function mapReminder(row: ReminderRow): Reminder {
  * aggiuntiva (pg_cron/Edge Function) e la pagina Promemoria è l'unico punto da cui si leggono questi
  * dati, quindi la pulizia resta comunque puntuale ad ogni apertura della pagina.
  */
+const CUTOFF_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 async function cleanupOldReminders(): Promise<void> {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - REMINDER_RETENTION_DAYS);
   const cutoffIso = cutoff.toISOString().slice(0, 10);
+
+  // Guardia di sicurezza: mai eseguire la delete se il filtro data non è un "YYYY-MM-DD" valido e sensato
+  // (né nel passato remoto né nel futuro), per evitare in ogni caso una .lt() senza reale limite superiore.
+  const todayIso = new Date().toISOString().slice(0, 10);
+  if (!CUTOFF_DATE_RE.test(cutoffIso) || cutoffIso >= todayIso) {
+    throw new Error("Data di cutoff per la pulizia promemoria non valida: pulizia annullata.");
+  }
 
   const supabase = getSupabase();
   const { error } = await supabase.from("promemoria").delete().lt("data_promemoria", cutoffIso);

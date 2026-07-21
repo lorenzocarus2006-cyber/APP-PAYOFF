@@ -9,6 +9,7 @@ import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import ReminderBellButton from "@/components/ReminderBellButton";
 import {
+  Bell,
   Calendar,
   Check,
   ChevronDown,
@@ -58,17 +59,6 @@ const defaultForm: BonusFormState = {
   amazon: "",
 };
 
-function statusSelectStyle(status: string) {
-  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
-  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
-  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
-  return "bg-[#DC2626] text-white";
-}
-
-function platformSelectStyle(color: string) {
-  return { background: color, color: "#ffffff" };
-}
-
 export default function HomePage() {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -91,6 +81,7 @@ export default function HomePage() {
   const [lastCreatedBonus, setLastCreatedBonus] = useState<{ id: number; label: string } | null>(
     null,
   );
+  const [bellForceOpen, setBellForceOpen] = useState(false);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -240,7 +231,7 @@ export default function HomePage() {
     );
   }, [filteredRows]);
 
-  async function handleSaveBonus() {
+  async function handleSaveBonus(options?: { openReminder?: boolean }) {
     setSaving(true);
     setError("");
     setSuccess("");
@@ -264,6 +255,7 @@ export default function HomePage() {
           id: data.row.id,
           label: `${data.row.piattaforma || "Bonus"} · ${data.row.personaInvitata || "(senza nome)"}`,
         });
+        if (options?.openReminder) setBellForceOpen(true);
       }
       setForm(defaultForm);
       setShowModal(false);
@@ -630,7 +622,12 @@ export default function HomePage() {
                 link={{ type: "bonus", id: lastCreatedBonus.id }}
                 label={lastCreatedBonus.label}
                 variant="button"
-                onSaved={() => setLastCreatedBonus(null)}
+                open={bellForceOpen}
+                onOpenChange={setBellForceOpen}
+                onSaved={() => {
+                  setLastCreatedBonus(null);
+                  setBellForceOpen(false);
+                }}
               />
               <button
                 type="button"
@@ -788,71 +785,43 @@ export default function HomePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">STATO</span>
-                    <select
-                      value={row.stato}
-                      onChange={(event) =>
-                        void handleInlineUpdate(row, "stato", event.target.value)
-                      }
-                      disabled={updatingKey === `${row.id}-stato`}
-                      className={`min-h-12 w-full rounded-xl border border-black/20 px-4 py-2.5 text-[15px] font-bold outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20 ${statusSelectStyle(row.stato)}`}
-                    >
-                      <option
-                        value="Bonus arrivato"
-                        style={{
-                          backgroundColor: "#dcfce7",
-                          color: "#16A34A",
-                          fontWeight: 700,
-                        }}
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO</span>
+                    <div className="relative">
+                      <span
+                        className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
+                        style={{ backgroundColor: STATUS_DOT_COLORS[row.stato] ?? "#ffffff" }}
+                      />
+                      <select
+                        value={row.stato}
+                        onChange={(event) =>
+                          void handleInlineUpdate(row, "stato", event.target.value)
+                        }
+                        disabled={updatingKey === `${row.id}-stato`}
+                        className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-2.5 pl-9 pr-9 text-[15px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
-                        Bonus arrivato
-                      </option>
-                      <option
-                        value="Bonus in arrivo"
-                        style={{
-                          backgroundColor: "#fef9c3",
-                          color: "#D97706",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Bonus in arrivo
-                      </option>
-                      <option
-                        value="Registrato da completare"
-                        style={{
-                          backgroundColor: "#ede9fe",
-                          color: "#7C3AED",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Registrato da completare
-                      </option>
-                      <option
-                        value="FAIL"
-                        style={{
-                          backgroundColor: "#fee2e2",
-                          color: "#DC2626",
-                          fontWeight: 700,
-                        }}
-                      >
-                        FAIL
-                      </option>
-                    </select>
+                        {STATUSES.map((status) => (
+                          <option key={status} value={status} className="bg-[#11141C] text-white">
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    </div>
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">Ricevente</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
                     <select
                       value={row.ricevente}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "ricevente", event.target.value)
                       }
                       disabled={updatingKey === `${row.id}-ricevente`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     >
-                      <option value="">-</option>
+                      <option value="" className="bg-[#11141C] text-white">-</option>
                       {RECEIVERS.map((option) => (
-                        <option key={option} value={option}>
+                        <option key={option} value={option} className="bg-[#11141C] text-white">
                           {option}
                         </option>
                       ))}
@@ -860,18 +829,18 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">AFFILIATI</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
                     <select
                       value={row.affiliati}
                       onChange={(event) =>
                         void handleInlineUpdate(row, "affiliati", event.target.value)
                       }
                       disabled={updatingKey === `${row.id}-affiliati`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     >
-                      <option value="">-</option>
+                      <option value="" className="bg-[#11141C] text-white">-</option>
                       {affiliatiRoster.map((option) => (
-                        <option key={option} value={option}>
+                        <option key={option} value={option} className="bg-[#11141C] text-white">
                           {option}
                         </option>
                       ))}
@@ -880,7 +849,7 @@ export default function HomePage() {
 
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-bold text-white/70">INFO</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
                       {infoSavedRow === row.id ? (
                         <span className="flex items-center gap-1 text-sm font-semibold text-emerald-400">
                           <Check className="h-4 w-4" /> Salvato
@@ -905,13 +874,13 @@ export default function HomePage() {
                         }
                       }}
                       disabled={updatingKey === `${row.id}-info`}
-                      rows={3}
-                      className="w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none placeholder:text-black/50 focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      rows={2}
+                      className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">Bonus $</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
                     <input
                       type="number"
                       value={row.bonus}
@@ -923,12 +892,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.id}-bonus`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">Spese</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
                     <input
                       type="number"
                       value={row.spese}
@@ -940,12 +909,12 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.id}-spese`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     />
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[12px] font-bold text-white/70">Amazon</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
                     <input
                       type="number"
                       value={row.amazon}
@@ -957,7 +926,7 @@ export default function HomePage() {
                         )
                       }
                       disabled={updatingKey === `${row.id}-amazon`}
-                      className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                      className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     />
                   </label>
                 </div>
@@ -975,41 +944,39 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Piattaforma *</span>
-                <select
-                  value={form.piattaforma}
-                  onChange={(event) => {
-                    const piattaforma = event.target.value;
-                    const importi = platforms.find((p) => p.key === piattaforma);
-                    setForm((prev) => ({
-                      ...prev,
-                      piattaforma,
-                      bonus: importi ? String(importi.bonusDefault) : "",
-                      spese: importi ? String(importi.speseDefault) : "",
-                      amazon: importi ? String(importi.amazonDefault) : "",
-                    }));
-                  }}
-                  className="min-h-12 w-full rounded-[12px] border border-white/10 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
-                  style={platformSelectStyle(platformBadgeColor(form.piattaforma))}
-                >
-                  {platforms.map((option) => (
-                    <option
-                      key={option.key}
-                      value={option.key}
-                      style={{
-                        backgroundColor: option.color,
-                        color: "#ffffff",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Piattaforma *</span>
+                <div className="relative">
+                  <span
+                    className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
+                    style={{ backgroundColor: platformBadgeColor(form.piattaforma) }}
+                  />
+                  <select
+                    value={form.piattaforma}
+                    onChange={(event) => {
+                      const piattaforma = event.target.value;
+                      const importi = platforms.find((p) => p.key === piattaforma);
+                      setForm((prev) => ({
+                        ...prev,
+                        piattaforma,
+                        bonus: importi ? String(importi.bonusDefault) : "",
+                        spese: importi ? String(importi.speseDefault) : "",
+                        amazon: importi ? String(importi.amazonDefault) : "",
+                      }));
+                    }}
+                    className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-[14px] pl-9 pr-10 text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  >
+                    {platforms.map((option) => (
+                      <option key={option.key} value={option.key} className="bg-[#11141C] text-white">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                </div>
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Persona invitata</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Persona invitata</span>
                 <input
                   value={form.personaInvitata}
                   onChange={(event) =>
@@ -1020,24 +987,31 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">STATO *</span>
-                <select
-                  value={form.stato}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, stato: event.target.value }))
-                  }
-                  className={`min-h-12 w-full rounded-[12px] border border-white/10 px-4 py-[10px] text-[15px] font-bold outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 ${statusSelectStyle(form.stato)}`}
-                >
-                  {STATUSES.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO *</span>
+                <div className="relative">
+                  <span
+                    className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
+                    style={{ backgroundColor: STATUS_DOT_COLORS[form.stato] ?? "#ffffff" }}
+                  />
+                  <select
+                    value={form.stato}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, stato: event.target.value }))
+                    }
+                    className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-[14px] pl-9 pr-10 text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  >
+                    {STATUSES.map((option) => (
+                      <option key={option} value={option} className="bg-[#11141C] text-white">
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                </div>
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Ricevente</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
                 <select
                   value={form.ricevente}
                   onChange={(event) =>
@@ -1055,7 +1029,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Data</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Data</span>
                 <input
                   type="date"
                   value={form.data}
@@ -1067,7 +1041,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">AFFILIATI</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
                 <select
                   value={form.affiliati}
                   onChange={(event) =>
@@ -1085,19 +1059,19 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1 md:col-span-2">
-                <span className="text-[13px] font-bold text-white">INFO</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
                 <textarea
                   value={form.info}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, info: event.target.value }))
                   }
-                  className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
-                  rows={3}
+                  className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-3 text-[15px] font-semibold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  rows={2}
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Bonus $</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
                 <input
                   type="number"
                   value={form.bonus}
@@ -1110,7 +1084,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Spese</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
                 <input
                   type="number"
                   value={form.spese}
@@ -1123,7 +1097,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[13px] font-bold text-white">Amazon</span>
+                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
                 <input
                   type="number"
                   value={form.amazon}
@@ -1149,6 +1123,15 @@ export default function HomePage() {
                 className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
               >
                 Annulla
+              </button>
+              <button
+                type="button"
+                aria-label="Salva e aggiungi promemoria"
+                disabled={saving}
+                onClick={() => void handleSaveBonus({ openReminder: true })}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-60"
+              >
+                <Bell className="h-4 w-4" /> Salva + promemoria
               </button>
               <button
                 type="button"

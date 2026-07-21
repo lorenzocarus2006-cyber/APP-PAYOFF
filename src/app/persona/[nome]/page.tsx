@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
+import ReminderBellButton from "@/components/ReminderBellButton";
 import type { BonusRecord } from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -24,13 +26,6 @@ const PLATFORM_COLORS: Record<string, string> = {
   KRAKEN: "#5741D9",
   MYFIN: "#0D9488",
 };
-
-function statusSelectStyle(status: string) {
-  if (status === "Bonus arrivato") return "bg-[#16A34A] text-white";
-  if (status === "Bonus in arrivo") return "bg-[#D97706] text-white";
-  if (status === "Registrato da completare") return "bg-[#7C3AED] text-white";
-  return "bg-[#DC2626] text-white";
-}
 
 function statusColor(stato: string) {
   return STATUS_COLORS[stato] ?? "#6B7280";
@@ -287,23 +282,28 @@ export default function PersonaPage() {
               {rows.map((row, index) => (
                 <li
                   key={row.id}
-                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 pt-11 shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
+                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] p-5 pt-12 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
                   style={{
                     animationDelay: `${index * 50}ms`,
-                    borderLeft: `5px solid ${platformColor(row.piattaforma)}`,
+                    borderLeft: `4px solid ${platformColor(row.piattaforma)}`,
                   }}
                 >
-                  <button
-                    type="button"
-                    aria-label="Elimina bonus"
-                    className="absolute left-4 top-4 text-lg opacity-70 transition-opacity hover:opacity-100"
-                    style={{ color: "#DC2626" }}
-                    onClick={() =>
-                      setDeleteConfirm({ id: row.id, piattaforma: row.piattaforma || "" })
-                    }
-                  >
-                    🗑️
-                  </button>
+                  <div className="absolute left-4 top-4 flex items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Elimina bonus"
+                      className="grid h-8 w-8 place-items-center rounded-full text-red-400/80 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                      onClick={() =>
+                        setDeleteConfirm({ id: row.id, piattaforma: row.piattaforma || "" })
+                      }
+                    >
+                      <Trash2 className="h-[18px] w-[18px]" />
+                    </button>
+                    <ReminderBellButton
+                      link={{ type: "bonus", id: row.id }}
+                      label={`${row.piattaforma || "Bonus"} · ${nome || "(senza nome)"}`}
+                    />
+                  </div>
 
                   <div className="flex items-start justify-between gap-3">
                     <span
@@ -317,41 +317,48 @@ export default function PersonaPage() {
                     </span>
                   </div>
 
-                  <p className="mt-3 text-[12px] font-bold text-white/70">Data</p>
+                  <p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-white/50">Data</p>
                   <p className="text-[15px] font-black text-white">{row.data || "—"}</p>
 
                   <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">STATO</span>
-                      <select
-                        value={row.stato}
-                        onChange={(event) =>
-                          void handleInlineUpdate(row, "stato", event.target.value)
-                        }
-                        disabled={updatingKey === `${row.id}-stato`}
-                        className={`min-h-12 w-full rounded-xl border border-black/20 px-4 py-2.5 text-[15px] font-bold outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20 ${statusSelectStyle(row.stato)}`}
-                      >
-                        {STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO</span>
+                      <div className="relative">
+                        <span
+                          className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
+                          style={{ backgroundColor: statusColor(row.stato) }}
+                        />
+                        <select
+                          value={row.stato}
+                          onChange={(event) =>
+                            void handleInlineUpdate(row, "stato", event.target.value)
+                          }
+                          disabled={updatingKey === `${row.id}-stato`}
+                          className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-2.5 pl-9 pr-9 text-[15px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
+                        >
+                          {STATUSES.map((status) => (
+                            <option key={status} value={status} className="bg-[#11141C] text-white">
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                      </div>
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">Ricevente</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
                       <select
                         value={row.ricevente}
                         onChange={(event) =>
                           void handleInlineUpdate(row, "ricevente", event.target.value)
                         }
                         disabled={updatingKey === `${row.id}-ricevente`}
-                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
-                        <option value="">-</option>
+                        <option value="" className="bg-[#11141C] text-white">-</option>
                         {RECEIVERS.map((option) => (
-                          <option key={option} value={option}>
+                          <option key={option} value={option} className="bg-[#11141C] text-white">
                             {option}
                           </option>
                         ))}
@@ -359,18 +366,18 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">AFFILIATI</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
                       <select
                         value={row.affiliati}
                         onChange={(event) =>
                           void handleInlineUpdate(row, "affiliati", event.target.value)
                         }
                         disabled={updatingKey === `${row.id}-affiliati`}
-                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-base font-bold text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
-                        <option value="">-</option>
+                        <option value="" className="bg-[#11141C] text-white">-</option>
                         {affiliatiRoster.map((option) => (
-                          <option key={option} value={option}>
+                          <option key={option} value={option} className="bg-[#11141C] text-white">
                             {option}
                           </option>
                         ))}
@@ -379,7 +386,7 @@ export default function PersonaPage() {
 
                     <label className="space-y-1 md:col-span-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-bold text-white/70">INFO</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
                         {infoSavedRow === row.id ? (
                           <span className="text-sm font-semibold text-emerald-300">
                             ✓ Salvato
@@ -401,13 +408,13 @@ export default function PersonaPage() {
                           }
                         }}
                         disabled={updatingKey === `${row.id}-info`}
-                        rows={3}
-                        className="w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none placeholder:text-black/50 focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        rows={2}
+                        className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       />
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">Bonus $</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
                       <input
                         type="number"
                         value={row.bonus}
@@ -415,12 +422,12 @@ export default function PersonaPage() {
                           void handleInlineUpdate(row, "bonus", Number(event.target.value || 0))
                         }
                         disabled={updatingKey === `${row.id}-bonus`}
-                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       />
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">Spese</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
                       <input
                         type="number"
                         value={row.spese}
@@ -428,12 +435,12 @@ export default function PersonaPage() {
                           void handleInlineUpdate(row, "spese", Number(event.target.value || 0))
                         }
                         disabled={updatingKey === `${row.id}-spese`}
-                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       />
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[12px] font-bold text-white/70">Amazon</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
                       <input
                         type="number"
                         value={row.amazon}
@@ -441,7 +448,7 @@ export default function PersonaPage() {
                           void handleInlineUpdate(row, "amazon", Number(event.target.value || 0))
                         }
                         disabled={updatingKey === `${row.id}-amazon`}
-                        className="min-h-12 w-full rounded-xl border border-black/20 bg-white/30 px-3 py-2 text-[16px] font-black text-black outline-none focus:border-black/40 focus:ring-2 focus:ring-black/20"
+                        className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       />
                     </label>
                   </div>

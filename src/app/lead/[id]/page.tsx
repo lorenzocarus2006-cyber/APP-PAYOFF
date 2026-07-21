@@ -290,7 +290,11 @@ export default function LeadDetailPage() {
                         className="rounded-full border px-3 py-1.5 text-[13px] font-bold transition-colors"
                         style={
                           active
-                            ? { backgroundColor: color, borderColor: color, color: "#ffffff" }
+                            ? {
+                                backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+                                borderColor: color,
+                                color: "#ffffff",
+                              }
                             : {
                                 backgroundColor: "rgba(255,255,255,0.1)",
                                 borderColor: "rgba(255,255,255,0.3)",

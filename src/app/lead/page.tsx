@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Plus } from "lucide-react";
+import { Bell, Check, ChevronRight, Plus } from "lucide-react";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import ReminderBellButton from "@/components/ReminderBellButton";
 import type { Lead } from "@/lib/types";
@@ -34,6 +34,7 @@ export default function LeadPage() {
   const [lastCreatedLead, setLastCreatedLead] = useState<{ id: number; label: string } | null>(
     null,
   );
+  const [bellForceOpen, setBellForceOpen] = useState(false);
   const platformColorMap = useMemo(() => buildPlatformColorMap(platforms), [platforms]);
   function platformColor(name: string) {
     return platformColorMap[name] ?? "#2D7DD2";
@@ -83,7 +84,7 @@ export default function LeadPage() {
     }));
   }
 
-  async function handleSave() {
+  async function handleSave(options?: { openReminder?: boolean }) {
     if (!form.nome.trim()) return;
     setSaving(true);
     setError("");
@@ -98,6 +99,7 @@ export default function LeadPage() {
 
       if (data.lead) {
         setLastCreatedLead({ id: data.lead.id, label: data.lead.nome || "(senza nome)" });
+        if (options?.openReminder) setBellForceOpen(true);
       }
       setShowModal(false);
       setForm(defaultForm);
@@ -147,7 +149,12 @@ export default function LeadPage() {
                 link={{ type: "lead", id: lastCreatedLead.id }}
                 label={lastCreatedLead.label}
                 variant="button"
-                onSaved={() => setLastCreatedLead(null)}
+                open={bellForceOpen}
+                onOpenChange={setBellForceOpen}
+                onSaved={() => {
+                  setLastCreatedLead(null);
+                  setBellForceOpen(false);
+                }}
               />
             </div>
           </div>
@@ -257,7 +264,11 @@ export default function LeadPage() {
                         className="rounded-full border px-3 py-1.5 text-[13px] font-bold transition-colors"
                         style={
                           active
-                            ? { backgroundColor: color, borderColor: color, color: "#ffffff" }
+                            ? {
+                                backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+                                borderColor: color,
+                                color: "#ffffff",
+                              }
                             : {
                                 backgroundColor: "rgba(255,255,255,0.1)",
                                 borderColor: "rgba(255,255,255,0.3)",
@@ -283,6 +294,15 @@ export default function LeadPage() {
                 className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
               >
                 Annulla
+              </button>
+              <button
+                type="button"
+                aria-label="Salva e aggiungi promemoria"
+                disabled={saving || !form.nome.trim()}
+                onClick={() => void handleSave({ openReminder: true })}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-60"
+              >
+                <Bell className="h-4 w-4" /> Salva + promemoria
               </button>
               <button
                 type="button"

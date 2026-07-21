@@ -5,9 +5,7 @@ import {
   Bell,
   Check,
   CheckCircle2,
-  ChevronDown,
   ChevronRight,
-  ChevronUp,
   History,
   Pencil,
   Plus,
@@ -64,9 +62,7 @@ function emptyForm(): ReminderFormState {
   };
 }
 
-type CalendarEntry =
-  | { kind: "day"; date: string; items: Reminder[] }
-  | { kind: "gap"; from: string; to: string };
+type CalendarEntry = { kind: "day"; date: string; items: Reminder[] };
 
 function groupByDate(list: Reminder[]): Map<string, Reminder[]> {
   const map = new Map<string, Reminder[]>();
@@ -78,27 +74,15 @@ function groupByDate(list: Reminder[]): Map<string, Reminder[]> {
   return map;
 }
 
-/** Cammina giorno per giorno da oggi in avanti: oggi è sempre mostrato, i giorni vuoti in mezzo si accorpano in un divisore compatto. */
+/** Cammina giorno per giorno da oggi fino a endDate: ogni giorno è un blocco visibile, anche quelli vuoti (nessun accorpamento). */
 function buildForwardCalendar(byDate: Map<string, Reminder[]>, today: string, endDate: string): CalendarEntry[] {
-  const entries: CalendarEntry[] = [{ kind: "day", date: today, items: byDate.get(today) ?? [] }];
-  if (endDate <= today) return entries;
-
-  let cursor = addDaysISO(today, 1);
-  let gapStart: string | null = null;
+  const entries: CalendarEntry[] = [];
+  let cursor = today;
   let guard = 0;
   while (cursor <= endDate && guard < 400) {
-    guard++;
-    const items = byDate.get(cursor);
-    if (items && items.length) {
-      if (gapStart) {
-        entries.push({ kind: "gap", from: gapStart, to: addDaysISO(cursor, -1) });
-        gapStart = null;
-      }
-      entries.push({ kind: "day", date: cursor, items });
-    } else if (!gapStart) {
-      gapStart = cursor;
-    }
+    entries.push({ kind: "day", date: cursor, items: byDate.get(cursor) ?? [] });
     cursor = addDaysISO(cursor, 1);
+    guard++;
   }
   return entries;
 }
@@ -108,13 +92,6 @@ function buildDescendingDays(byDate: Map<string, Reminder[]>): CalendarEntry[] {
   return [...byDate.entries()]
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, items]) => ({ kind: "day" as const, date, items }));
-}
-
-function formatGapLabel(from: string, to: string): string {
-  const fromDay = Number(from.slice(8, 10));
-  const toDay = Number(to.slice(8, 10));
-  if (from === to) return `${fromDay} · nessun promemoria`;
-  return `${fromDay}–${toDay} · nessun promemoria`;
 }
 
 function ReminderCard({
@@ -191,35 +168,30 @@ function CalendarSection({
 }) {
   return (
     <div className="space-y-3">
-      {entries.map((entry) =>
-        entry.kind === "day" ? (
-          <section key={entry.date} className="space-y-2">
-            <h2 className="flex items-baseline gap-2 text-[13px] font-bold tracking-wide text-white/50">
-              {formatCalendarDayHeader(entry.date)}
-              {entry.date === today ? (
-                <span className="rounded-full bg-[#2D5BE3]/25 px-2 py-0.5 text-[10px] font-bold tracking-normal text-[#7ea0ff]">
-                  OGGI
-                </span>
-              ) : null}
-            </h2>
-            {entry.items.length === 0 ? (
-              <p className="pl-0.5 text-xs text-white/30">Nessun promemoria</p>
-            ) : (
-              <div className="space-y-2">
-                {entry.items.map((reminder) => (
-                  <ReminderCard key={reminder.id} reminder={reminder} platformColor={platformColor} onOpen={onOpen} />
-                ))}
-              </div>
-            )}
-          </section>
-        ) : (
-          <div key={`gap-${entry.from}`} className="flex items-center gap-3 py-1 pl-0.5">
-            <div className="h-px flex-1 bg-white/[0.06]" />
-            <span className="shrink-0 text-[11px] text-white/25">{formatGapLabel(entry.from, entry.to)}</span>
-            <div className="h-px flex-1 bg-white/[0.06]" />
-          </div>
-        ),
-      )}
+      {entries.map((entry) => (
+        <section
+          key={entry.date}
+          className="min-h-[64px] space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3"
+        >
+          <h2 className="flex items-baseline gap-2 text-[13px] font-bold tracking-wide text-white/50">
+            {formatCalendarDayHeader(entry.date)}
+            {entry.date === today ? (
+              <span className="rounded-full bg-[#2D5BE3]/25 px-2 py-0.5 text-[10px] font-bold tracking-normal text-[#7ea0ff]">
+                OGGI
+              </span>
+            ) : null}
+          </h2>
+          {entry.items.length === 0 ? (
+            <p className="pl-0.5 text-xs text-white/30">Nessun promemoria</p>
+          ) : (
+            <div className="space-y-2">
+              {entry.items.map((reminder) => (
+                <ReminderCard key={reminder.id} reminder={reminder} platformColor={platformColor} onOpen={onOpen} />
+              ))}
+            </div>
+          )}
+        </section>
+      ))}
     </div>
   );
 }
@@ -381,6 +353,31 @@ export default function PromemoriaPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  /** Ricalcolata al mount e ad ogni ritorno di focus/visibilità: così il calendario slitta da solo a mezzanotte senza restare bloccato sul giorno di apertura. */
+  const [today, setToday] = useState(() => todayISO());
+  useEffect(() => {
+    function recomputeToday() {
+      setToday(todayISO());
+    }
+    recomputeToday();
+    document.addEventListener("visibilitychange", recomputeToday);
+    window.addEventListener("focus", recomputeToday);
+    return () => {
+      document.removeEventListener("visibilitychange", recomputeToday);
+      window.removeEventListener("focus", recomputeToday);
+    };
+  }, []);
+
+  useEffect(() => {
+    const locked = showCreate || detail !== null || deleteId !== null;
+    if (!locked) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showCreate, detail, deleteId]);
+
   const platformColorMap = useMemo(() => buildPlatformColorMap(platforms), [platforms]);
   function platformColor(name: string) {
     return platformColorMap[name] ?? "#2D7DD2";
@@ -437,8 +434,6 @@ export default function PromemoriaPage() {
     })();
   }, []);
 
-  const today = todayISO();
-
   const activeReminders = useMemo(() => reminders.filter((r) => !r.completato), [reminders]);
   const completedReminders = useMemo(() => reminders.filter((r) => r.completato), [reminders]);
 
@@ -451,12 +446,15 @@ export default function PromemoriaPage() {
     [activeReminders, today],
   );
 
+  /** Il calendario mostra sempre almeno 30 giorni a partire da oggi (anche vuoti), esteso oltre se esistono promemoria più lontani. */
   const forwardCalendar = useMemo(() => {
     const byDate = groupByDate(futureActive);
-    const maxDate = futureActive.length
+    const minEndDate = addDaysISO(today, 30);
+    const maxReminderDate = futureActive.length
       ? futureActive.reduce((max, r) => (r.dataPromemoria > max ? r.dataPromemoria : max), today)
       : today;
-    return buildForwardCalendar(byDate, today, maxDate);
+    const endDate = maxReminderDate > minEndDate ? maxReminderDate : minEndDate;
+    return buildForwardCalendar(byDate, today, endDate);
   }, [futureActive, today]);
 
   const pastCalendar = useMemo(() => buildDescendingDays(groupByDate(pastActive)), [pastActive]);
@@ -637,6 +635,69 @@ export default function PromemoriaPage() {
           </button>
         </header>
 
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPast((prev) => !prev)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition-colors ${
+              showPast
+                ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
+                : "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/10"
+            }`}
+          >
+            <History className="h-3.5 w-3.5" /> Precedenti ({pastActive.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCompleted((prev) => !prev)}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition-colors ${
+              showCompleted
+                ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
+                : "border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/10"
+            }`}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" /> Completati ({completedReminders.length})
+          </button>
+        </div>
+
+        {showPast ? (
+          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+            <p className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-white/50">
+              <History className="h-3.5 w-3.5" /> Giorni precedenti
+            </p>
+            {pastCalendar.length === 0 ? (
+              <p className="px-1 text-xs text-white/40">
+                Nessun promemoria scaduto negli ultimi {RETENTION_DAYS} giorni.
+              </p>
+            ) : (
+              <CalendarSection
+                entries={pastCalendar}
+                today={today}
+                platformColor={platformColor}
+                onOpen={openDetail}
+              />
+            )}
+          </div>
+        ) : null}
+
+        {showCompleted ? (
+          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.02] p-3">
+            <p className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wide text-white/50">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Promemoria completati
+            </p>
+            {completedCalendar.length === 0 ? (
+              <p className="px-1 text-xs text-white/40">Nessun promemoria completato.</p>
+            ) : (
+              <CalendarSection
+                entries={completedCalendar}
+                today={today}
+                platformColor={platformColor}
+                onOpen={openDetail}
+              />
+            )}
+          </div>
+        ) : null}
+
         {error ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
         ) : null}
@@ -646,70 +707,18 @@ export default function PromemoriaPage() {
             Caricamento promemoria...
           </div>
         ) : (
-          <>
-            <CalendarSection
-              entries={forwardCalendar}
-              today={today}
-              platformColor={platformColor}
-              onOpen={openDetail}
-            />
-
-            <div className="space-y-2 border-t border-white/[0.06] pt-4">
-              <button
-                type="button"
-                onClick={() => setShowPast((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-semibold text-white/70 hover:bg-white/[0.07]"
-              >
-                <span className="flex items-center gap-2">
-                  <History className="h-4 w-4" /> Giorni precedenti ({pastActive.length})
-                </span>
-                {showPast ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-              {showPast ? (
-                pastCalendar.length === 0 ? (
-                  <p className="px-1 text-xs text-white/40">
-                    Nessun promemoria scaduto negli ultimi {RETENTION_DAYS} giorni.
-                  </p>
-                ) : (
-                  <CalendarSection
-                    entries={pastCalendar}
-                    today={today}
-                    platformColor={platformColor}
-                    onOpen={openDetail}
-                  />
-                )
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => setShowCompleted((prev) => !prev)}
-                className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-semibold text-white/70 hover:bg-white/[0.07]"
-              >
-                <span className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> Promemoria completati ({completedReminders.length})
-                </span>
-                {showCompleted ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-              {showCompleted ? (
-                completedCalendar.length === 0 ? (
-                  <p className="px-1 text-xs text-white/40">Nessun promemoria completato.</p>
-                ) : (
-                  <CalendarSection
-                    entries={completedCalendar}
-                    today={today}
-                    platformColor={platformColor}
-                    onOpen={openDetail}
-                  />
-                )
-              ) : null}
-            </div>
-          </>
+          <CalendarSection
+            entries={forwardCalendar}
+            today={today}
+            platformColor={platformColor}
+            onOpen={openDetail}
+          />
         )}
       </main>
 
       {showCreate ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60">
-          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-xl font-bold text-white">
                 <Bell className="h-5 w-5" /> Nuovo promemoria
@@ -784,7 +793,7 @@ export default function PromemoriaPage() {
 
       {detail ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60">
-          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 {editMode ? "Modifica promemoria" : "Promemoria"}
