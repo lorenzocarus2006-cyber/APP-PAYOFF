@@ -31,3 +31,43 @@ export function isOnOrAfterCutoff(value: string): boolean {
   const parsed = parseFlexibleDate(value);
   return parsed !== null && parsed.getTime() >= SALVO_CUTOFF.getTime();
 }
+
+const IT_MONTHS = [
+  "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+  "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
+];
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** Data "YYYY-MM-DD" per il giorno corrente, in ora locale (non UTC). */
+export function todayISO(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+/** "YYYY-MM-DD" -> "DD/MM/YYYY". Ritorna "-" se la data non è valida. */
+export function formatItalianDate(iso: string): string {
+  const isoMatch = ISO_RE.exec(iso.trim());
+  if (!isoMatch) return "-";
+  const [, y, m, d] = isoMatch;
+  return `${d}/${m}/${y}`;
+}
+
+/** "YYYY-MM-DD" -> "20 giugno" (aggiunge l'anno solo se diverso da quello corrente). */
+export function formatDayHeader(iso: string): string {
+  const isoMatch = ISO_RE.exec(iso.trim());
+  if (!isoMatch) return iso;
+  const [, y, m, d] = isoMatch;
+  const day = Number(d);
+  const month = IT_MONTHS[Number(m) - 1] ?? "";
+  const currentYear = new Date().getFullYear();
+  const year = Number(y);
+  return year === currentYear ? `${day} ${month}` : `${day} ${month} ${year}`;
+}
+
+/** true se la data (YYYY-MM-DD) è precedente a oggi. */
+export function isPastDate(iso: string): boolean {
+  return iso.trim() < todayISO();
+}

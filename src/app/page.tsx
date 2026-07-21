@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import ReminderBellButton from "@/components/ReminderBellButton";
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   "Bonus arrivato": "#16A34A",
@@ -73,6 +74,9 @@ export default function HomePage() {
   const [deleteToast, setDeleteToast] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [lastCreatedBonus, setLastCreatedBonus] = useState<{ id: number; label: string } | null>(
+    null,
+  );
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -241,6 +245,12 @@ export default function HomePage() {
       if (!res.ok) throw new Error(data.error ?? "Impossibile salvare il bonus.");
 
       setSuccess("Bonus salvato con successo.");
+      if (data.row) {
+        setLastCreatedBonus({
+          id: data.row.id,
+          label: `${data.row.piattaforma || "Bonus"} · ${data.row.personaInvitata || "(senza nome)"}`,
+        });
+      }
       setForm(defaultForm);
       setShowModal(false);
       await fetchRows();
@@ -596,6 +606,30 @@ export default function HomePage() {
           </div>
         ) : null}
 
+        {lastCreatedBonus ? (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/25 bg-white/12 p-4 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            <p className="min-w-0 flex-1 truncate text-sm text-white/80">
+              Vuoi un promemoria per <span className="font-semibold">{lastCreatedBonus.label}</span>?
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <ReminderBellButton
+                bonusId={lastCreatedBonus.id}
+                label={lastCreatedBonus.label}
+                variant="button"
+                onSaved={() => setLastCreatedBonus(null)}
+              />
+              <button
+                type="button"
+                aria-label="Ignora"
+                onClick={() => setLastCreatedBonus(null)}
+                className="text-lg text-white/60 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {query.trim().length > 0 ? (
           <section className="space-y-3">
             <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">
@@ -699,21 +733,27 @@ export default function HomePage() {
                     borderBottom: `2px solid ${platformBorderColor(row.piattaforma)}`,
                   }}
                 >
-                  <button
-                    type="button"
-                    aria-label="Elimina bonus"
-                    className="absolute left-4 top-4 text-lg opacity-70 transition-opacity hover:opacity-100"
-                    style={{ color: "#DC2626" }}
-                    onClick={() =>
-                      setDeleteConfirm({
-                        id: row.id,
-                        nome: row.personaInvitata || "",
-                        piattaforma: row.piattaforma || "",
-                      })
-                    }
-                  >
-                    🗑️
-                  </button>
+                  <div className="absolute left-4 top-4 flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label="Elimina bonus"
+                      className="text-lg opacity-70 transition-opacity hover:opacity-100"
+                      style={{ color: "#DC2626" }}
+                      onClick={() =>
+                        setDeleteConfirm({
+                          id: row.id,
+                          nome: row.personaInvitata || "",
+                          piattaforma: row.piattaforma || "",
+                        })
+                      }
+                    >
+                      🗑️
+                    </button>
+                    <ReminderBellButton
+                      bonusId={row.id}
+                      label={`${row.piattaforma || "Bonus"} · ${row.personaInvitata || "(senza nome)"}`}
+                    />
+                  </div>
 
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <h3 className="text-[24px] leading-tight font-bold text-white">

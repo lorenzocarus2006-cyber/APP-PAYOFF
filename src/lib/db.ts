@@ -12,8 +12,10 @@ import type {
   BonusRecord,
   Lead,
   NewBonusPayload,
+  NewReminderPayload,
   PlatformStat,
   ReceiverLinkDetail,
+  Reminder,
   SavedLink,
 } from "./types";
 
@@ -844,5 +846,101 @@ export async function updateLead(
 export async function deleteLead(id: number): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase.from("leads").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+type ReminderBonusRow = {
+  piattaforma: string;
+  persona_invitata: string;
+  ricevente: string;
+  stato: string;
+};
+
+type ReminderRow = {
+  id: string;
+  bonus_id: number | null;
+  data_promemoria: string;
+  descrizione: string;
+  completato: boolean;
+  created_at: string;
+  bonuses: ReminderBonusRow | null;
+};
+
+const REMINDER_COLUMNS =
+  "id,bonus_id,data_promemoria,descrizione,completato,created_at,bonuses(piattaforma,persona_invitata,ricevente,stato)";
+
+function mapReminder(row: ReminderRow): Reminder {
+  return {
+    id: row.id,
+    bonusId: row.bonus_id,
+    dataPromemoria: row.data_promemoria,
+    descrizione: row.descrizione ?? "",
+    completato: Boolean(row.completato),
+    createdAt: row.created_at ?? "",
+    bonus: row.bonuses
+      ? {
+          piattaforma: row.bonuses.piattaforma ?? "",
+          personaInvitata: row.bonuses.persona_invitata ?? "",
+          ricevente: row.bonuses.ricevente ?? "",
+          stato: row.bonuses.stato ?? "",
+        }
+      : null,
+  };
+}
+
+export async function readReminders(): Promise<Reminder[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("promemoria")
+    .select(REMINDER_COLUMNS)
+    .order("data_promemoria", { ascending: true })
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as unknown as ReminderRow[] | null)?.map(mapReminder) ?? [];
+}
+
+export async function insertReminder(payload: NewReminderPayload): Promise<Reminder> {
+  const descrizione = payload.descrizione.trim();
+  if (!descrizione) throw new Error("La descrizione è obbligatoria.");
+  if (!payload.dataPromemoria.trim()) throw new Error("La data è obbligatoria.");
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("promemoria")
+    .insert({
+      bonus_id: payload.bonusId,
+      data_promemoria: payload.dataPromemoria,
+      descrizione,
+    })
+    .select(REMINDER_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return mapReminder(data as unknown as ReminderRow);
+}
+
+export async function updateReminder(
+  id: string,
+  patch: Partial<{ dataPromemoria: string; descrizione: string; completato: boolean; bonusId: number | null }>,
+): Promise<Reminder> {
+  const update: Record<string, string | boolean | number | null> = {};
+  if (patch.dataPromemoria !== undefined) update.data_promemoria = patch.dataPromemoria;
+  if (patch.descrizione !== undefined) update.descrizione = patch.descrizione.trim();
+  if (patch.completato !== undefined) update.completato = patch.completato;
+  if (patch.bonusId !== undefined) update.bonus_id = patch.bonusId;
+
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("promemoria")
+    .update(update)
+    .eq("id", id)
+    .select(REMINDER_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  return mapReminder(data as unknown as ReminderRow);
+}
+
+export async function deleteReminder(id: string): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.from("promemoria").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }

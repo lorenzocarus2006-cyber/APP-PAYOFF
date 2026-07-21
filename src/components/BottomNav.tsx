@@ -9,6 +9,7 @@ const tabs = [
   { href: "/affiliati", icon: "👥", label: "Affiliati" },
   { href: "/bilancio", icon: "🏦", label: "Bilancio" },
   { href: "/lead", icon: "🎯", label: "Lead" },
+  { href: "/promemoria", icon: "🔔", label: "Promemoria" },
 ];
 
 export default function BottomNav() {

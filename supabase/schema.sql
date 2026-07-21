@@ -39,7 +39,18 @@ create table if not exists public.affiliates (
 -- alter table public.affiliates add column if not exists percentuale numeric not null default 0.20;
 -- update public.affiliates set percentuale = 0.25 where nome = 'PEPI';
 
+create table if not exists public.promemoria (
+  id               uuid        primary key default gen_random_uuid(),
+  bonus_id         bigint      references public.bonuses (id) on delete set null,
+  data_promemoria  date        not null,
+  descrizione      text        not null default '',
+  completato       boolean     not null default false,
+  created_at       timestamptz not null default now()
+);
+
 create index if not exists bonuses_ricevente_idx   on public.bonuses (ricevente);
 create index if not exists bonuses_piattaforma_idx on public.bonuses (piattaforma);
 create index if not exists bonuses_persona_idx     on public.bonuses (persona_invitata);
 create index if not exists affpay_affiliato_idx    on public.affiliate_payments (affiliato);
+create index if not exists promemoria_data_idx      on public.promemoria (data_promemoria);
+create index if not exists promemoria_bonus_idx     on public.promemoria (bonus_id);

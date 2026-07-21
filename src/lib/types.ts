@@ -128,3 +128,26 @@ export type BilancioReceiverStats = {
   amazonRow: BilancioReceiverPlatformStats;
   platforms: BilancioReceiverPlatformStats[];
 };
+
+export type ReminderBonusInfo = {
+  piattaforma: string;
+  personaInvitata: string;
+  ricevente: string;
+  stato: string;
+};
+
+export type Reminder = {
+  id: string;
+  bonusId: number | null;
+  dataPromemoria: string;
+  descrizione: string;
+  completato: boolean;
+  createdAt: string;
+  bonus: ReminderBonusInfo | null;
+};
+
+export type NewReminderPayload = {
+  bonusId: number | null;
+  dataPromemoria: string;
+  descrizione: string;
+};
