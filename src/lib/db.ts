@@ -856,23 +856,35 @@ type ReminderBonusRow = {
   stato: string;
 };
 
+type ReminderLeadRow = {
+  nome: string;
+  telefono: string;
+};
+
 type ReminderRow = {
   id: string;
   bonus_id: number | null;
+  lead_id: number | null;
   data_promemoria: string;
   descrizione: string;
   completato: boolean;
   created_at: string;
   bonuses: ReminderBonusRow | null;
+  leads: ReminderLeadRow | null;
 };
 
 const REMINDER_COLUMNS =
-  "id,bonus_id,data_promemoria,descrizione,completato,created_at,bonuses(piattaforma,persona_invitata,ricevente,stato)";
+  "id,bonus_id,lead_id,data_promemoria,descrizione,completato,created_at," +
+  "bonuses(piattaforma,persona_invitata,ricevente,stato),leads(nome,telefono)";
+
+/** Giorni di anzianità oltre i quali i promemoria (fatti o scaduti) vengono eliminati automaticamente. */
+const REMINDER_RETENTION_DAYS = 60;
 
 function mapReminder(row: ReminderRow): Reminder {
   return {
     id: row.id,
     bonusId: row.bonus_id,
+    leadId: row.lead_id,
     dataPromemoria: row.data_promemoria,
     descrizione: row.descrizione ?? "",
     completato: Boolean(row.completato),
@@ -885,10 +897,34 @@ function mapReminder(row: ReminderRow): Reminder {
           stato: row.bonuses.stato ?? "",
         }
       : null,
+    lead: row.leads
+      ? {
+          nome: row.leads.nome ?? "",
+          telefono: row.leads.telefono ?? "",
+        }
+      : null,
   };
 }
 
+/**
+ * Elimina i promemoria più vecchi della soglia di retention (60 giorni), sia fatti che scaduti.
+ * Eseguita ad ogni lettura invece che con un job schedulato: l'app non ha bisogno di infrastruttura
+ * aggiuntiva (pg_cron/Edge Function) e la pagina Promemoria è l'unico punto da cui si leggono questi
+ * dati, quindi la pulizia resta comunque puntuale ad ogni apertura della pagina.
+ */
+async function cleanupOldReminders(): Promise<void> {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - REMINDER_RETENTION_DAYS);
+  const cutoffIso = cutoff.toISOString().slice(0, 10);
+
+  const supabase = getSupabase();
+  const { error } = await supabase.from("promemoria").delete().lt("data_promemoria", cutoffIso);
+  if (error) throw new Error(error.message);
+}
+
 export async function readReminders(): Promise<Reminder[]> {
+  await cleanupOldReminders();
+
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("promemoria")
@@ -903,12 +939,16 @@ export async function insertReminder(payload: NewReminderPayload): Promise<Remin
   const descrizione = payload.descrizione.trim();
   if (!descrizione) throw new Error("La descrizione è obbligatoria.");
   if (!payload.dataPromemoria.trim()) throw new Error("La data è obbligatoria.");
+  if (payload.bonusId && payload.leadId) {
+    throw new Error("Un promemoria può essere collegato a un bonus o a un lead, non entrambi.");
+  }
 
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("promemoria")
     .insert({
       bonus_id: payload.bonusId,
+      lead_id: payload.leadId,
       data_promemoria: payload.dataPromemoria,
       descrizione,
     })
@@ -920,13 +960,20 @@ export async function insertReminder(payload: NewReminderPayload): Promise<Remin
 
 export async function updateReminder(
   id: string,
-  patch: Partial<{ dataPromemoria: string; descrizione: string; completato: boolean; bonusId: number | null }>,
+  patch: Partial<{
+    dataPromemoria: string;
+    descrizione: string;
+    completato: boolean;
+    bonusId: number | null;
+    leadId: number | null;
+  }>,
 ): Promise<Reminder> {
   const update: Record<string, string | boolean | number | null> = {};
   if (patch.dataPromemoria !== undefined) update.data_promemoria = patch.dataPromemoria;
   if (patch.descrizione !== undefined) update.descrizione = patch.descrizione.trim();
   if (patch.completato !== undefined) update.completato = patch.completato;
   if (patch.bonusId !== undefined) update.bonus_id = patch.bonusId;
+  if (patch.leadId !== undefined) update.lead_id = patch.leadId;
 
   const supabase = getSupabase();
   const { data, error } = await supabase

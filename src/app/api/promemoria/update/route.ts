@@ -8,6 +8,7 @@ type Body = {
   descrizione?: string;
   completato?: boolean;
   bonusId?: number | null;
+  leadId?: number | null;
 };
 
 export async function PUT(request: Request) {
@@ -25,6 +26,7 @@ export async function PUT(request: Request) {
       descrizione: body.descrizione,
       completato: body.completato,
       bonusId: body.bonusId,
+      leadId: body.leadId,
     });
     return NextResponse.json({ reminder });
   } catch (error) {

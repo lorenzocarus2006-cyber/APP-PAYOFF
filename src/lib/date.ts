@@ -71,3 +71,32 @@ export function formatDayHeader(iso: string): string {
 export function isPastDate(iso: string): boolean {
   return iso.trim() < todayISO();
 }
+
+const IT_WEEKDAYS = [
+  "domenica", "lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato",
+];
+
+/** "YYYY-MM-DD" -> "MARTEDÌ 21 LUGLIO" (header calendario, tutto maiuscolo). */
+export function formatCalendarDayHeader(iso: string): string {
+  const isoMatch = ISO_RE.exec(iso.trim());
+  if (!isoMatch) return iso;
+  const [, y, m, d] = isoMatch;
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  const weekday = IT_WEEKDAYS[date.getDay()] ?? "";
+  const month = IT_MONTHS[Number(m) - 1] ?? "";
+  return `${weekday} ${Number(d)} ${month}`.toUpperCase();
+}
+
+/** Somma (o sottrae, con n negativo) n giorni a una data "YYYY-MM-DD". */
+export function addDaysISO(iso: string, n: number): string {
+  const isoMatch = ISO_RE.exec(iso.trim());
+  if (!isoMatch) return iso;
+  const [, y, m, d] = isoMatch;
+  const date = new Date(Number(y), Number(m) - 1, Number(d) + n);
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/** "YYYY-MM-DD" per il giorno corrente meno n giorni. */
+export function daysAgoISO(n: number): string {
+  return addDaysISO(todayISO(), -n);
+}

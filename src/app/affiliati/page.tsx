@@ -216,7 +216,7 @@ export default function AffiliatiPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
           <div>
             <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
             <p className="mt-2 text-base text-white/70">Registro affiliati e pagamenti (da oggi in poi)</p>
@@ -224,7 +224,7 @@ export default function AffiliatiPage() {
           {role === "og" ? (
             <Link
               href="/affiliati/storico"
-              className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
+              className="shrink-0 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
             >
               📜 Storico
             </Link>
@@ -243,7 +243,7 @@ export default function AffiliatiPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
         >
           ＋ Registra Nuovo Pagamento
         </button>
@@ -252,7 +252,7 @@ export default function AffiliatiPage() {
           <button
             type="button"
             onClick={() => setShowRegistro((prev) => !prev)}
-            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-base font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-colors hover:bg-white/15"
+            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-white/15"
           >
             <span className="flex items-center gap-2">
               📋 Registro Pagamenti
@@ -274,7 +274,7 @@ export default function AffiliatiPage() {
           </button>
 
           {showRegistro ? (
-            <div className="animate-[fadeSlide_0.3s_ease_both] overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            <div className="animate-[fadeSlide_0.3s_ease_both] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
               {payments.length === 0 ? (
                 <p className="p-5 text-sm text-white/60">Nessun pagamento registrato.</p>
               ) : (
@@ -328,7 +328,7 @@ export default function AffiliatiPage() {
             Affiliati
           </h2>
           {loading ? (
-            <div className="rounded-2xl border border-white/25 bg-white/10 p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
               Caricamento dati affiliati...
             </div>
           ) : (
@@ -353,7 +353,7 @@ export default function AffiliatiPage() {
                           setExpanded(isOpen ? null : summary.nome);
                         }
                       }}
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform active:scale-[0.99] hover:bg-white/15"
+                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.99] hover:bg-white/15"
                     >
                       <span
                         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"
@@ -454,7 +454,7 @@ export default function AffiliatiPage() {
 
       {showModal ? (
         <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm">
-          <div className="h-[100dvh] w-full overflow-y-auto bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+          <div className="h-[100dvh] w-full overflow-y-auto bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
             <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">Registra Nuovo Pagamento</h2>
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-1">
@@ -464,7 +464,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliato: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 >
                   {roster.map((affiliate) => (
                     <option key={affiliate} value={affiliate}>
@@ -482,7 +482,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, importo: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -492,7 +492,7 @@ export default function AffiliatiPage() {
                   type="date"
                   value={form.data}
                   onChange={(event) => setForm((prev) => ({ ...prev, data: event.target.value }))}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -503,7 +503,7 @@ export default function AffiliatiPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, modalita: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 >
                   <option value="">-</option>
                 </select>
@@ -515,7 +515,7 @@ export default function AffiliatiPage() {
                   value={form.note}
                   onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
                   rows={3}
-                  className="w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
             </div>
@@ -532,7 +532,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSavePayment()}
-                className="min-h-12 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
+                className="min-h-12 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
@@ -552,7 +552,7 @@ export default function AffiliatiPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">Nuovo Affiliato</h2>
             <p className="mt-1 text-sm text-white/70">
@@ -571,7 +571,7 @@ export default function AffiliatiPage() {
                 }}
                 autoFocus
                 placeholder="Es. MARCO"
-                className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
               />
             </label>
 
@@ -588,7 +588,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={savingAffiliate || !newAffiliateName.trim()}
                 onClick={() => void handleAddAffiliate()}
-                className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >
                 {savingAffiliate ? "Salvataggio..." : "Aggiungi"}
               </button>
@@ -608,7 +608,7 @@ export default function AffiliatiPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">
               Percentuale di {editPercentage.nome}
@@ -634,7 +634,7 @@ export default function AffiliatiPage() {
                 }}
                 autoFocus
                 placeholder="20"
-                className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
               />
             </label>
 
@@ -651,7 +651,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={savingPercentage || percentageInput.trim() === ""}
                 onClick={() => void handleSavePercentage()}
-                className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >
                 {savingPercentage ? "Salvataggio..." : "Salva"}
               </button>

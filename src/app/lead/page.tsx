@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronRight, Plus } from "lucide-react";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
+import ReminderBellButton from "@/components/ReminderBellButton";
 import type { Lead } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,9 @@ export default function LeadPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<LeadForm>(defaultForm);
   const [platforms, setPlatforms] = useState<PlatformConfig[]>(STATIC_PLATFORMS);
+  const [lastCreatedLead, setLastCreatedLead] = useState<{ id: number; label: string } | null>(
+    null,
+  );
   const platformColorMap = useMemo(() => buildPlatformColorMap(platforms), [platforms]);
   function platformColor(name: string) {
     return platformColorMap[name] ?? "#2D7DD2";
@@ -91,6 +96,9 @@ export default function LeadPage() {
       const data = (await res.json()) as { lead?: Lead; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Errore salvataggio lead.");
 
+      if (data.lead) {
+        setLastCreatedLead({ id: data.lead.id, label: data.lead.nome || "(senza nome)" });
+      }
       setShowModal(false);
       setForm(defaultForm);
       await fetchLeads();
@@ -105,7 +113,7 @@ export default function LeadPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-6">
-        <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+        <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Lead</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Persone da contattare</h1>
           <p className="mt-2 text-sm text-white/70">
@@ -123,18 +131,35 @@ export default function LeadPage() {
             setForm(defaultForm);
             setShowModal(true);
           }}
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8]"
         >
-          ＋ Aggiungi nuovo lead
+          <Plus className="h-5 w-5" /> Aggiungi nuovo lead
         </button>
+
+        {lastCreatedLead ? (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            <p className="min-w-0 flex-1 truncate text-sm text-white/70">
+              Vuoi un promemoria per contattare{" "}
+              <span className="font-semibold">{lastCreatedLead.label}</span>?
+            </p>
+            <div className="flex shrink-0 items-center gap-2">
+              <ReminderBellButton
+                link={{ type: "lead", id: lastCreatedLead.id }}
+                label={lastCreatedLead.label}
+                variant="button"
+                onSaved={() => setLastCreatedLead(null)}
+              />
+            </div>
+          </div>
+        ) : null}
 
         <section className="space-y-3">
           {loading ? (
-            <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
               Caricamento lead...
             </div>
           ) : leads.length === 0 ? (
-            <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+            <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
               Nessun lead salvato.
             </div>
           ) : (
@@ -147,30 +172,29 @@ export default function LeadPage() {
                 >
                   <Link
                     href={`/lead/${lead.id}`}
-                    className="group flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+                    className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-colors duration-200 active:scale-[0.98] hover:border-white/20 hover:bg-white/[0.07]"
                   >
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/15 text-base font-bold uppercase text-white">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10 text-base font-bold uppercase text-white">
                       {lead.nome.slice(0, 2)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-lg font-semibold leading-tight">{lead.nome}</p>
                       {lead.bonusInteresse.length > 0 ? (
-                        <p className="mt-0.5 text-xs text-white/55">
+                        <p className="mt-0.5 text-xs text-white/50">
                           {lead.bonusInteresse.length} bonus di interesse
                         </p>
                       ) : null}
                     </div>
-                    <svg
-                      className="h-5 w-5 shrink-0 text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/70"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                    <span
+                      onClick={(event) => event.preventDefault()}
+                      className="shrink-0"
                     >
-                      <path d="m9 18 6-6-6-6" />
-                    </svg>
+                      <ReminderBellButton
+                        link={{ type: "lead", id: lead.id }}
+                        label={lead.nome || "(senza nome)"}
+                      />
+                    </span>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-white/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/60" />
                   </Link>
                 </li>
               ))}
@@ -181,7 +205,7 @@ export default function LeadPage() {
 
       {showModal ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Nuovo lead</h2>
 
             <div className="space-y-4">
@@ -191,7 +215,7 @@ export default function LeadPage() {
                   value={form.nome}
                   onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
                   autoFocus
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -203,7 +227,7 @@ export default function LeadPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, telefono: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -215,7 +239,7 @@ export default function LeadPage() {
                     setForm((prev) => ({ ...prev, descrizione: event.target.value }))
                   }
                   rows={3}
-                  className="w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -241,8 +265,10 @@ export default function LeadPage() {
                               }
                         }
                       >
-                        {active ? "✓ " : ""}
-                        {platform.label}
+                        <span className="flex items-center gap-1">
+                          {active ? <Check className="h-3.5 w-3.5" /> : null}
+                          {platform.label}
+                        </span>
                       </button>
                     );
                   })}
@@ -254,7 +280,7 @@ export default function LeadPage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-[14px] border border-white/30 bg-white/15 px-5 py-3 text-lg font-bold text-white"
+                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
               >
                 Annulla
               </button>
@@ -262,7 +288,7 @@ export default function LeadPage() {
                 type="button"
                 disabled={saving || !form.nome.trim()}
                 onClick={() => void handleSave()}
-                className="min-h-14 w-full rounded-[14px] bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
+                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

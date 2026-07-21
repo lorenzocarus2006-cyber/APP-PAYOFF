@@ -27,7 +27,7 @@ export default async function PanoramicaLinkPage() {
       <main className="mx-auto w-full space-y-6">
         <AddLinkButton platforms={platforms} />
 
-        <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+        <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
             Panoramica
           </p>
@@ -50,7 +50,7 @@ export default async function PanoramicaLinkPage() {
             >
               <Link
                 href={`/panoramica-link/${bonus.key}`}
-                className="group flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+                className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
               >
                 <span
                   className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-sm font-bold text-white shadow-inner"

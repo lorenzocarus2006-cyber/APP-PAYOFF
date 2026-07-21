@@ -5,6 +5,7 @@ import type { NewReminderPayload } from "@/lib/types";
 
 type Body = {
   bonusId?: number | null;
+  leadId?: number | null;
   dataPromemoria?: string;
   descrizione?: string;
 };
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Body;
     const payload: NewReminderPayload = {
       bonusId: typeof body.bonusId === "number" ? body.bonusId : null,
+      leadId: typeof body.leadId === "number" ? body.leadId : null,
       dataPromemoria: body.dataPromemoria?.trim() ?? "",
       descrizione: body.descrizione?.trim() ?? "",
     };

@@ -79,7 +79,7 @@ export default function AddPlatformButton() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">Nuova tipologia di bonus</h2>
             <p className="mt-1 text-sm text-white/70">
@@ -100,7 +100,7 @@ export default function AddPlatformButton() {
                   onChange={(event) => setLabel(event.target.value)}
                   autoFocus
                   placeholder="Es. N26"
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -111,7 +111,7 @@ export default function AddPlatformButton() {
                   value={bonus}
                   placeholder="0"
                   onChange={(event) => setBonus(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -122,7 +122,7 @@ export default function AddPlatformButton() {
                   value={spese}
                   placeholder="0"
                   onChange={(event) => setSpese(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -139,7 +139,7 @@ export default function AddPlatformButton() {
                       void handleSave();
                     }
                   }}
-                  className="min-h-12 w-full rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
                 />
               </label>
             </div>
@@ -157,7 +157,7 @@ export default function AddPlatformButton() {
                 type="button"
                 disabled={saving || !label.trim()}
                 onClick={() => void handleSave()}
-                className="min-h-12 flex-1 rounded-2xl bg-white px-5 py-3 text-base font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

@@ -43,7 +43,7 @@ function LoginForm() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-transparent px-5 py-10 text-white">
-      <div className="w-full max-w-sm rounded-[24px] border border-white/30 bg-white/15 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+      <div className="w-full max-w-sm rounded-[24px] border border-white/10 bg-white/[0.06] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
         <Image
           src="/logo.png"
           alt="PayOff logo"
@@ -62,7 +62,7 @@ function LoginForm() {
               autoFocus
               autoCapitalize="none"
               autoCorrect="off"
-              className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-3 text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+              className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-3 text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/10 focus:ring-2 focus:ring-white/10"
             />
           </label>
 
@@ -72,7 +72,7 @@ function LoginForm() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-3 text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+              className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-3 text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/10 focus:ring-2 focus:ring-white/10"
             />
           </label>
 
@@ -85,7 +85,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading || !username.trim() || !password}
-            className="min-h-12 w-full rounded-[14px] bg-white px-5 py-3 text-lg font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
+            className="min-h-12 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
           >
             {loading ? "Accesso..." : "Accedi"}
           </button>

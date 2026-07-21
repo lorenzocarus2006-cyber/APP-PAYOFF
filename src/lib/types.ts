@@ -136,18 +136,26 @@ export type ReminderBonusInfo = {
   stato: string;
 };
 
+export type ReminderLeadInfo = {
+  nome: string;
+  telefono: string;
+};
+
 export type Reminder = {
   id: string;
   bonusId: number | null;
+  leadId: number | null;
   dataPromemoria: string;
   descrizione: string;
   completato: boolean;
   createdAt: string;
   bonus: ReminderBonusInfo | null;
+  lead: ReminderLeadInfo | null;
 };
 
 export type NewReminderPayload = {
   bonusId: number | null;
+  leadId: number | null;
   dataPromemoria: string;
   descrizione: string;
 };

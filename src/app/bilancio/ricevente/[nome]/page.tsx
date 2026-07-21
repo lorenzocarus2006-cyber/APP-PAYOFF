@@ -66,14 +66,14 @@ export default function ReceiverDetailPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5 pb-6">
-        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/25 bg-white/10 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{nome}</h1>
             <p className="mt-2 text-base text-white/70">Panoramica completa</p>
           </div>
           <Link
             href={backHref}
-            className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
+            className="shrink-0 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
           >
             ← Bilancio
           </Link>
@@ -84,7 +84,7 @@ export default function ReceiverDetailPage() {
         ) : null}
 
         {loading ? (
-          <div className="rounded-2xl border border-white/25 bg-white/10 p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
             Caricamento...
           </div>
         ) : (
@@ -95,7 +95,7 @@ export default function ReceiverDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowFiniti((prev) => !prev)}
-                className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/15"
+                className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/15"
               >
                 <span className="flex items-center gap-2">
                   🏁 Bonus finiti

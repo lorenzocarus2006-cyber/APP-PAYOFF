@@ -8,6 +8,20 @@ import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import ReminderBellButton from "@/components/ReminderBellButton";
+import {
+  Calendar,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Gift,
+  LogOut,
+  Plus,
+  Search,
+  Tag,
+  Trash2,
+  User,
+  X,
+} from "lucide-react";
 
 const STATUS_DOT_COLORS: Record<string, string> = {
   "Bonus arrivato": "#16A34A",
@@ -383,9 +397,9 @@ export default function HomePage() {
               type="button"
               aria-label="Profilo"
               onClick={() => setShowProfileMenu((prev) => !prev)}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/30 bg-white/15 text-xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-colors hover:bg-white/25"
+              className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10"
             >
-              👤
+              <User className="h-5 w-5" />
             </button>
             {showProfileMenu ? (
               <>
@@ -394,16 +408,16 @@ export default function HomePage() {
                   role="presentation"
                   onClick={() => setShowProfileMenu(false)}
                 />
-                <div className="absolute left-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-white/30 bg-[#1a3a8f] shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                <div className="absolute left-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#11141C] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
                       setShowProfileMenu(false);
                       setShowLogoutConfirm(true);
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] font-bold text-white hover:bg-white/15"
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/10"
                   >
-                    🚪 Esci dall&apos;account
+                    <LogOut className="h-4 w-4" /> Esci dall&apos;account
                   </button>
                 </div>
               </>
@@ -418,33 +432,31 @@ export default function HomePage() {
             priority
             className="mx-auto mb-4 w-[200px] [filter:brightness(0)_invert(1)]"
           />
-          <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao! 👋</h1>
-          <p className="text-base text-white/70">Gestisci i tuoi bonus</p>
+          <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao!</h1>
+          <p className="text-base text-white/60">Gestisci i tuoi bonus</p>
         </header>
 
-        <section className="rounded-[24px] border border-white/30 bg-white/15 p-5 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+        <section className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
           <h2 className="text-xl font-bold">Registra Nuovo Bonus</h2>
-          <p className="mt-1 text-sm text-white/80">Aggiungi una nuova riga al foglio.</p>
+          <p className="mt-1 text-sm text-white/60">Aggiungi una nuova riga al foglio.</p>
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="mt-4 min-h-12 w-full rounded-2xl bg-white px-5 py-4 text-xl font-extrabold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.15)]"
+            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-4 text-base font-bold text-white transition-colors hover:bg-[#2549b8]"
           >
-            ＋ Registra Nuovo Bonus
+            <Plus className="h-5 w-5" /> Registra Nuovo Bonus
           </button>
         </section>
 
-        <section className="relative z-40 rounded-[24px] border border-white/30 bg-white/15 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+        <section className="relative z-40 rounded-[24px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
           <h2 className="mb-3 text-xl font-bold">Cerca persona</h2>
           <div className="relative">
-            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
-              🔍
-            </span>
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cerca persona..."
-              className="min-h-14 w-full rounded-xl border border-white/30 bg-white/20 py-4 pl-12 pr-4 text-lg font-medium text-white outline-none placeholder:text-white/60 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+              className="min-h-14 w-full rounded-xl border border-white/10 bg-white/[0.06] py-4 pl-12 pr-4 text-base font-medium text-white outline-none placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/10"
             />
           </div>
 
@@ -456,23 +468,24 @@ export default function HomePage() {
                   setShowStatusMenu(false);
                   setShowPlatformMenu((prev) => !prev);
                 }}
-                className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                   platformFilter
-                    ? "border-white bg-white text-[#2D5BE3]"
-                    : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+                    ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
+                    : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
                 }`}
               >
-                🎁 {platformFilter ?? "Bonus"} ▾
+                <Gift className="h-3.5 w-3.5" /> {platformFilter ?? "Bonus"}{" "}
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
               {showPlatformMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-48 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/30 bg-[#1a3a8f] pt-1 pb-24 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-48 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/10 bg-[#11141C] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
                       setPlatformFilter(null);
                       setShowPlatformMenu(false);
                     }}
-                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
+                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/10 ${
                       platformFilter === null ? "bg-white/10" : ""
                     }`}
                   >
@@ -486,7 +499,7 @@ export default function HomePage() {
                         setPlatformFilter(platform.key);
                         setShowPlatformMenu(false);
                       }}
-                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
+                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/10 ${
                         platformFilter === platform.key ? "bg-white/10" : ""
                       }`}
                     >
@@ -508,23 +521,24 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu((prev) => !prev);
                 }}
-                className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                   statusFilter
-                    ? "border-white bg-white text-[#2D5BE3]"
-                    : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+                    ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
+                    : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
                 }`}
               >
-                📌 {statusFilter ?? "Stato"} ▾
+                <Tag className="h-3.5 w-3.5" /> {statusFilter ?? "Stato"}{" "}
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
               {showStatusMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-60 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/30 bg-[#1a3a8f] pt-1 pb-24 shadow-[0_8px_20px_rgba(0,0,0,0.35)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-60 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/10 bg-[#11141C] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
                       setStatusFilter(null);
                       setShowStatusMenu(false);
                     }}
-                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
+                    className={`block w-full px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/10 ${
                       statusFilter === null ? "bg-white/10" : ""
                     }`}
                   >
@@ -538,7 +552,7 @@ export default function HomePage() {
                         setStatusFilter(status);
                         setShowStatusMenu(false);
                       }}
-                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/15 ${
+                      className={`flex w-full items-center gap-2 px-4 py-2 text-left text-[14px] font-bold text-white hover:bg-white/10 ${
                         statusFilter === status ? "bg-white/10" : ""
                       }`}
                     >
@@ -568,13 +582,13 @@ export default function HomePage() {
                       : "date-asc",
                 );
               }}
-              className={`rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
                 sortMode === "date-asc" || sortMode === "date-desc"
-                  ? "border-white bg-white text-[#2D5BE3]"
-                  : "border-white/30 bg-white/20 text-white hover:bg-white/30"
+                  ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
+                  : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
               }`}
             >
-              {sortMode === "date-desc" ? "📅 Recenti" : "📅 Vecchie"}
+              <Calendar className="h-3.5 w-3.5" /> {sortMode === "date-desc" ? "Recenti" : "Vecchie"}
             </button>
 
             {filtersActive ? (
@@ -587,9 +601,9 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu(false);
                 }}
-                className="rounded-lg border border-white/30 bg-transparent px-3 py-1.5 text-[13px] font-bold text-white/80 hover:bg-white/10"
+                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-transparent px-3 py-1.5 text-[13px] font-bold text-white/60 hover:bg-white/10"
               >
-                ✕ Azzera filtri
+                <X className="h-3.5 w-3.5" /> Azzera filtri
               </button>
             ) : null}
           </div>
@@ -607,13 +621,13 @@ export default function HomePage() {
         ) : null}
 
         {lastCreatedBonus ? (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/25 bg-white/12 p-4 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
-            <p className="min-w-0 flex-1 truncate text-sm text-white/80">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            <p className="min-w-0 flex-1 truncate text-sm text-white/70">
               Vuoi un promemoria per <span className="font-semibold">{lastCreatedBonus.label}</span>?
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <ReminderBellButton
-                bonusId={lastCreatedBonus.id}
+                link={{ type: "bonus", id: lastCreatedBonus.id }}
                 label={lastCreatedBonus.label}
                 variant="button"
                 onSaved={() => setLastCreatedBonus(null)}
@@ -622,9 +636,9 @@ export default function HomePage() {
                 type="button"
                 aria-label="Ignora"
                 onClick={() => setLastCreatedBonus(null)}
-                className="text-lg text-white/60 hover:text-white"
+                className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -637,11 +651,11 @@ export default function HomePage() {
             </h2>
 
             {loadingRead ? (
-              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
                 Caricamento righe in corso...
               </div>
             ) : people.length === 0 ? (
-              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
                 Nessun risultato
               </div>
             ) : (
@@ -654,7 +668,7 @@ export default function HomePage() {
                   >
                     <Link
                       href={`/persona/${encodeURIComponent(person.nome)}`}
-                      className="group flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+                      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
                     >
                       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/15 text-base font-bold uppercase text-white">
                         {person.nome.slice(0, 2)}
@@ -688,17 +702,7 @@ export default function HomePage() {
                         <p className="mt-0.5 text-[11px] text-white/50">netto $</p>
                       </div>
 
-                      <svg
-                        className="h-5 w-5 shrink-0 text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/70"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-white/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white/60" />
                     </Link>
                   </li>
                 ))}
@@ -714,31 +718,27 @@ export default function HomePage() {
             </h2>
 
             {loadingRead ? (
-              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
                 Caricamento righe in corso...
               </div>
             ) : filteredRows.length === 0 ? (
-              <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
                 Nessun risultato
               </div>
             ) : (
               filteredRows.map((row) => (
                 <article
                   key={row.id}
-                  className="relative rounded-[20px] bg-white/12 p-5 pt-12 text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  className="relative rounded-[20px] border border-white/10 bg-white/[0.04] p-5 pt-12 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
                   style={{
-                    borderLeft: `6px solid ${platformBorderColor(row.piattaforma)}`,
-                    borderTop: `2px solid ${platformBorderColor(row.piattaforma)}`,
-                    borderRight: `2px solid ${platformBorderColor(row.piattaforma)}`,
-                    borderBottom: `2px solid ${platformBorderColor(row.piattaforma)}`,
+                    borderLeft: `4px solid ${platformBorderColor(row.piattaforma)}`,
                   }}
                 >
-                  <div className="absolute left-4 top-4 flex items-center gap-3">
+                  <div className="absolute left-4 top-4 flex items-center gap-1">
                     <button
                       type="button"
                       aria-label="Elimina bonus"
-                      className="text-lg opacity-70 transition-opacity hover:opacity-100"
-                      style={{ color: "#DC2626" }}
+                      className="grid h-8 w-8 place-items-center rounded-full text-red-400/80 transition-colors hover:bg-red-500/10 hover:text-red-400"
                       onClick={() =>
                         setDeleteConfirm({
                           id: row.id,
@@ -747,10 +747,10 @@ export default function HomePage() {
                         })
                       }
                     >
-                      🗑️
+                      <Trash2 className="h-[18px] w-[18px]" />
                     </button>
                     <ReminderBellButton
-                      bonusId={row.id}
+                      link={{ type: "bonus", id: row.id }}
                       label={`${row.piattaforma || "Bonus"} · ${row.personaInvitata || "(senza nome)"}`}
                     />
                   </div>
@@ -882,8 +882,8 @@ export default function HomePage() {
                     <div className="flex items-center justify-between">
                       <span className="text-[12px] font-bold text-white/70">INFO</span>
                       {infoSavedRow === row.id ? (
-                          <span className="text-sm font-semibold text-emerald-300">
-                          ✓ Salvato
+                        <span className="flex items-center gap-1 text-sm font-semibold text-emerald-400">
+                          <Check className="h-4 w-4" /> Salvato
                         </span>
                       ) : null}
                     </div>
@@ -970,7 +970,7 @@ export default function HomePage() {
 
       {showModal ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Registra Nuovo Bonus</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -989,7 +989,7 @@ export default function HomePage() {
                       amazon: importi ? String(importi.amazonDefault) : "",
                     }));
                   }}
-                  className="min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[12px] border border-white/10 px-4 py-[14px] text-[16px] font-bold outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                   style={platformSelectStyle(platformBadgeColor(form.piattaforma))}
                 >
                   {platforms.map((option) => (
@@ -1015,7 +1015,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, personaInvitata: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -1026,7 +1026,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, stato: event.target.value }))
                   }
-                  className={`min-h-12 w-full rounded-[12px] border border-white/30 px-4 py-[10px] text-[15px] font-bold outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25 ${statusSelectStyle(form.stato)}`}
+                  className={`min-h-12 w-full rounded-[12px] border border-white/10 px-4 py-[10px] text-[15px] font-bold outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 ${statusSelectStyle(form.stato)}`}
                 >
                   {STATUSES.map((option) => (
                     <option key={option} value={option}>
@@ -1043,7 +1043,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, ricevente: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 >
                   <option value="">-</option>
                   {RECEIVERS.map((option) => (
@@ -1062,7 +1062,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, data: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -1073,7 +1073,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliati: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 >
                   <option value="">-</option>
                   {affiliatiRoster.map((option) => (
@@ -1091,7 +1091,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, info: event.target.value }))
                   }
-                  className="w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                   rows={3}
                 />
               </label>
@@ -1105,7 +1105,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, bonus: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -1118,7 +1118,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, spese: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -1131,7 +1131,7 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, amazon: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -1146,7 +1146,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-[14px] border border-white/30 bg-white/15 px-5 py-3 text-lg font-bold text-white"
+                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
               >
                 Annulla
               </button>
@@ -1154,7 +1154,7 @@ export default function HomePage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSaveBonus()}
-                className="min-h-14 w-full rounded-[14px] bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
+                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

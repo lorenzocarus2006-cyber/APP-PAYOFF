@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Pencil, Phone, Trash2 } from "lucide-react";
 import { PLATFORMS } from "@/config/dropdowns";
 import type { Lead } from "@/lib/types";
 
@@ -160,16 +161,16 @@ export default function LeadDetailPage() {
         ) : null}
 
         {loading ? (
-          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             Caricamento lead...
           </div>
         ) : notFoundError || !lead ? (
-          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             Lead non trovato.
           </div>
         ) : (
           <>
-            <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+            <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
               <div className="flex items-center gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
                   {lead.nome.slice(0, 2)}
@@ -182,9 +183,9 @@ export default function LeadDetailPage() {
                   {lead.telefono ? (
                     <a
                       href={`tel:${lead.telefono}`}
-                      className="mt-0.5 block text-sm text-white/70 hover:text-white"
+                      className="mt-0.5 flex items-center gap-1.5 text-sm text-white/60 hover:text-white"
                     >
-                      📞 {lead.telefono}
+                      <Phone className="h-3.5 w-3.5" /> {lead.telefono}
                     </a>
                   ) : null}
                 </div>
@@ -219,16 +220,16 @@ export default function LeadDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowEdit(true)}
-                  className="min-h-12 flex-1 rounded-2xl border border-white/30 bg-white/15 px-5 py-3 text-base font-bold text-white transition-colors hover:bg-white/25"
+                  className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-white/10"
                 >
-                  ✏️ Modifica
+                  <Pencil className="h-4 w-4" /> Modifica
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="min-h-12 flex-1 rounded-2xl border border-red-300/40 bg-red-500/15 px-5 py-3 text-base font-bold text-red-100 transition-colors hover:bg-red-500/25"
+                  className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl border border-red-500/25 bg-red-500/10 px-5 py-3 text-sm font-bold text-red-300 transition-colors hover:bg-red-500/20"
                 >
-                  🗑️ Elimina
+                  <Trash2 className="h-4 w-4" /> Elimina
                 </button>
               </div>
             </header>
@@ -238,7 +239,7 @@ export default function LeadDetailPage() {
 
       {showEdit ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[linear-gradient(160deg,#4A90E2_0%,#2D5BE3_40%,#1a3a8f_100%)] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Modifica lead</h2>
 
             <div className="space-y-4">
@@ -247,7 +248,7 @@ export default function LeadDetailPage() {
                 <input
                   value={form.nome}
                   onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -259,7 +260,7 @@ export default function LeadDetailPage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, telefono: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -271,7 +272,7 @@ export default function LeadDetailPage() {
                     setForm((prev) => ({ ...prev, descrizione: event.target.value }))
                   }
                   rows={3}
-                  className="w-full rounded-[14px] border border-white/30 bg-white/15 px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/60 focus:ring-2 focus:ring-white/25"
+                  className="w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
                 />
               </label>
 
@@ -310,7 +311,7 @@ export default function LeadDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowEdit(false)}
-                className="min-h-12 rounded-[14px] border border-white/30 bg-white/15 px-5 py-3 text-lg font-bold text-white"
+                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
               >
                 Annulla
               </button>
@@ -318,7 +319,7 @@ export default function LeadDetailPage() {
                 type="button"
                 disabled={saving || !form.nome.trim()}
                 onClick={() => void handleSaveEdit()}
-                className="min-h-14 w-full rounded-[14px] bg-white px-5 py-3 text-[18px] font-bold text-[#2D5BE3] shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60 sm:w-auto"
+                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

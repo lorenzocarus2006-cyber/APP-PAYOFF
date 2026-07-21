@@ -129,8 +129,8 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
     return (
       <li
         key={r.ricevente}
-        className={`overflow-hidden rounded-2xl border backdrop-blur-[20px] transition-opacity ${
-          dimmed ? "border-white/10 bg-white/[0.04] opacity-60" : "border-white/20 bg-white/10"
+        className={`overflow-hidden rounded-2xl border transition-opacity ${
+          dimmed ? "border-white/10 bg-white/[0.04] opacity-60" : "border-white/10 bg-white/[0.04]"
         }`}
       >
         <div className="flex items-center gap-3 p-4">
@@ -160,7 +160,7 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
             className={`inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors ${
               r.maxed
                 ? "justify-end border-emerald-300/50 bg-emerald-400/80"
-                : "justify-start border-white/30 bg-white/15"
+                : "justify-start border-white/10 bg-white/[0.06]"
             }`}
             title={r.maxed ? "Segna come non maxato" : "Segna come maxato"}
           >
@@ -200,13 +200,13 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
                   onBlur={() => void saveLink(r)}
                   placeholder="https://... oppure codice invito"
                   disabled={busy === `${r.ricevente}-link`}
-                  className="min-h-11 w-full min-w-0 flex-1 rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-sm font-medium text-white outline-none placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20"
+                  className="min-h-11 w-full min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm font-medium text-white outline-none placeholder:text-white/40 focus:border-white/50 focus:ring-2 focus:ring-white/20"
                 />
                 <button
                   type="button"
                   onClick={() => void copyLink(r)}
                   disabled={!draftLink(r)}
-                  className="shrink-0 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-40"
+                  className="shrink-0 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 disabled:opacity-40"
                 >
                   {copied === r.ricevente ? "✓ Copiato" : "Copia"}
                 </button>
@@ -231,7 +231,7 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
                   }
                   onBlur={() => void saveRitirati(r)}
                   disabled={busy === `${r.ricevente}-ritirati`}
-                  className="min-h-8 w-full rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-lg font-bold tabular-nums text-white outline-none focus:border-white/50"
+                  className="min-h-8 w-full rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-lg font-bold tabular-nums text-white outline-none focus:border-white/50"
                 />
               </label>
 

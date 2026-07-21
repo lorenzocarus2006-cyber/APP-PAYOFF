@@ -232,16 +232,16 @@ export default function PersonaPage() {
         ) : null}
 
         {loading ? (
-          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             Caricamento bonus in corso...
           </div>
         ) : notFoundError ? (
-          <div className="rounded-[20px] border border-white/25 bg-white/12 p-6 text-base text-white/80 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]">
+          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             Nessun bonus trovato per &quot;{nome}&quot;.
           </div>
         ) : (
           <>
-            <header className="overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.14)] backdrop-blur-[20px]">
+            <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
               <div className="flex items-center gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
                   {nome.slice(0, 2)}
@@ -287,7 +287,7 @@ export default function PersonaPage() {
               {rows.map((row, index) => (
                 <li
                   key={row.id}
-                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 pt-11 shadow-[0_2px_12px_rgba(0,0,0,0.12)] backdrop-blur-[20px]"
+                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-2xl bg-white/10 p-4 pt-11 shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
                   style={{
                     animationDelay: `${index * 50}ms`,
                     borderLeft: `5px solid ${platformColor(row.piattaforma)}`,

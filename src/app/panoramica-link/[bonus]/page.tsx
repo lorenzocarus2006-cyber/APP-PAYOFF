@@ -50,7 +50,7 @@ export default async function BonusDetailPage({
         </Link>
 
         <header
-          className="overflow-hidden rounded-3xl border border-white/25 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.16)] backdrop-blur-[20px]"
+          className="overflow-hidden rounded-3xl border border-white/25 p-6 shadow-[0_2px_16px_rgba(0,0,0,0.16)]"
           style={{
             background: `linear-gradient(135deg, ${bonus.color}40, rgba(255,255,255,0.08))`,
           }}
@@ -116,7 +116,7 @@ export default async function BonusDetailPage({
               {savedLinks.map((link) => (
                 <li
                   key={link.id}
-                  className="flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-[20px]"
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4"
                 >
                   <span
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white"

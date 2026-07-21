@@ -42,11 +42,15 @@ create table if not exists public.affiliates (
 create table if not exists public.promemoria (
   id               uuid        primary key default gen_random_uuid(),
   bonus_id         bigint      references public.bonuses (id) on delete set null,
+  lead_id          bigint      references public.leads (id) on delete set null,
   data_promemoria  date        not null,
   descrizione      text        not null default '',
   completato       boolean     not null default false,
   created_at       timestamptz not null default now()
 );
+
+-- Migrazione per database già esistenti (tabella promemoria creata prima del collegamento ai lead):
+-- alter table public.promemoria add column if not exists lead_id bigint references public.leads (id) on delete set null;
 
 create index if not exists bonuses_ricevente_idx   on public.bonuses (ricevente);
 create index if not exists bonuses_piattaforma_idx on public.bonuses (piattaforma);
@@ -54,3 +58,4 @@ create index if not exists bonuses_persona_idx     on public.bonuses (persona_in
 create index if not exists affpay_affiliato_idx    on public.affiliate_payments (affiliato);
 create index if not exists promemoria_data_idx      on public.promemoria (data_promemoria);
 create index if not exists promemoria_bonus_idx     on public.promemoria (bonus_id);
+create index if not exists promemoria_lead_idx      on public.promemoria (lead_id);

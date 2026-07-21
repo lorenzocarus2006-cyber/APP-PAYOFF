@@ -54,7 +54,7 @@ export default function StoricoClient() {
       headerAction={
         <Link
           href="/bilancio"
-          className="shrink-0 rounded-xl border border-white/30 bg-white/15 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
+          className="shrink-0 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/25"
         >
           ← Bilancio
         </Link>
