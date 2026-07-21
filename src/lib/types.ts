@@ -159,3 +159,38 @@ export type NewReminderPayload = {
   dataPromemoria: string;
   descrizione: string;
 };
+
+export type LiquiditaConfig = {
+  valoreIniziale: number;
+  dataAttivazione: string;
+};
+
+export type LiquiditaMovimentoTipo = "prelievo" | "spesa" | "iniziale" | "rettifica";
+
+export type LiquiditaLedgerRow = {
+  id: string;
+  tipo: LiquiditaMovimentoTipo;
+  importo: number;
+  descrizione: string;
+  riferimento: string | null;
+  data: string;
+};
+
+export type LiquiditaOverview = {
+  config: LiquiditaConfig | null;
+  valoreIniziale: number;
+  speseDedotte: number;
+  prelieviTotali: number;
+  valore: number;
+  amazonTotale: number;
+  ledger: LiquiditaLedgerRow[];
+};
+
+export type BilancioLiquiditaSummary = {
+  configured: boolean;
+  valore: number;
+  valoreIniziale: number;
+  speseDedotte: number;
+  prelieviTotali: number;
+  dataAttivazione: string | null;
+};

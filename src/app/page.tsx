@@ -1119,23 +1119,24 @@ export default function HomePage() {
                   type="button"
                   onClick={() => setAddReminder((prev) => !prev)}
                   aria-pressed={addReminder}
-                  className={`flex w-full items-center justify-between rounded-[14px] border px-4 py-3 text-[15px] font-semibold transition-colors ${
+                  className={`flex w-full items-center justify-between gap-3 rounded-[14px] border px-4 py-3 text-[15px] font-semibold transition-colors ${
                     addReminder
                       ? "border-[#2D5BE3]/50 bg-[#2D5BE3]/10 text-white"
                       : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
                   }`}
                 >
-                  <span className="flex items-center gap-2">🔔 Aggiungi promemoria</span>
+                  <span className="flex items-center gap-2.5">
+                    <span aria-hidden className="text-lg leading-none">🔔</span>
+                    <span>Aggiungi promemoria</span>
+                  </span>
                   <span
-                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                      addReminder ? "bg-[#2D5BE3]" : "bg-white/15"
+                    className={`flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors ${
+                      addReminder
+                        ? "justify-end border-[#2D5BE3]/60 bg-[#2D5BE3]"
+                        : "justify-start border-white/10 bg-white/15"
                     }`}
                   >
-                    <span
-                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                        addReminder ? "translate-x-[22px]" : "translate-x-0.5"
-                      }`}
-                    />
+                    <span className="mx-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform" />
                   </span>
                 </button>
 

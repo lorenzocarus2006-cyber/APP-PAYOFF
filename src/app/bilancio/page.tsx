@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { BilancioDetail, BilancioOverview, BilancioReceiverStats } from "@/lib/types";
+import type {
+  BilancioDetail,
+  BilancioLiquiditaSummary,
+  BilancioOverview,
+  BilancioReceiverStats,
+} from "@/lib/types";
 import BilancioView from "./BilancioView";
 
 type BilancioResponse = {
   overview: BilancioOverview;
   riceventi: BilancioReceiverStats[];
   detail: BilancioDetail;
+  liquidita?: BilancioLiquiditaSummary;
   role?: "og" | "salvo";
   error?: string;
 };
@@ -19,6 +25,7 @@ export default function BilancioPage() {
   const [overview, setOverview] = useState<BilancioOverview | null>(null);
   const [riceventi, setRiceventi] = useState<BilancioReceiverStats[]>([]);
   const [detail, setDetail] = useState<BilancioDetail | null>(null);
+  const [liquidita, setLiquidita] = useState<BilancioLiquiditaSummary | null>(null);
   const [role, setRole] = useState<"og" | "salvo" | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,6 +41,7 @@ export default function BilancioPage() {
         setOverview(data.overview);
         setRiceventi(data.riceventi ?? []);
         setDetail(data.detail ?? null);
+        setLiquidita(data.liquidita ?? null);
         setRole(data.role ?? null);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Errore sconosciuto.";
@@ -51,6 +59,7 @@ export default function BilancioPage() {
       overview={overview}
       riceventi={riceventi}
       detail={detail}
+      liquidita={liquidita}
       loading={loading}
       error={error}
       title="Bilancio 🏦"

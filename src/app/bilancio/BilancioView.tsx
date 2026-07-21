@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import type { BilancioDetail, BilancioOverview, BilancioReceiverStats } from "@/lib/types";
+import type {
+  BilancioDetail,
+  BilancioLiquiditaSummary,
+  BilancioOverview,
+  BilancioReceiverStats,
+} from "@/lib/types";
 import BonusListModal from "./BonusListModal";
 import SummaryListModal from "./SummaryListModal";
 import { money, receiverGradient } from "./shared";
@@ -11,6 +16,7 @@ type BilancioViewProps = {
   overview: BilancioOverview | null;
   riceventi: BilancioReceiverStats[];
   detail: BilancioDetail | null;
+  liquidita?: BilancioLiquiditaSummary | null;
   loading: boolean;
   error: string;
   title: string;
@@ -110,6 +116,7 @@ export default function BilancioView({
   overview,
   riceventi,
   detail,
+  liquidita,
   loading,
   error,
   title,
@@ -147,6 +154,39 @@ export default function BilancioView({
                 {money(overview.nettoTotale)}
               </p>
             </section>
+
+            {/* LIQUIDITÀ */}
+            {liquidita ? (
+              <Link
+                href="/liquidita"
+                className="block rounded-3xl border border-emerald-400/20 bg-[linear-gradient(160deg,#0b1f18_0%,#0f2a20_60%,#0b1220_100%)] p-6 shadow-[0_12px_30px_rgba(0,0,0,0.35)] transition-transform active:scale-[0.98]"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300/70">
+                    💵 Liquidità
+                  </p>
+                  <span className="text-lg text-white/40">›</span>
+                </div>
+                {liquidita.configured ? (
+                  <>
+                    <p className="mt-2 text-4xl font-black tracking-tight text-white">
+                      {money(liquidita.valore)}
+                    </p>
+                    <div className="mt-3 space-y-1 text-xs text-white/50">
+                      <p>Iniziale: {money(liquidita.valoreIniziale)}</p>
+                      <p>
+                        − Spese dal {liquidita.dataAttivazione}: {money(liquidita.speseDedotte)}
+                      </p>
+                      <p>+ Prelievi totali: {money(liquidita.prelieviTotali)}</p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="mt-2 text-sm text-white/60">
+                    Non ancora configurata — tocca per impostare il valore iniziale.
+                  </p>
+                )}
+              </Link>
+            ) : null}
 
             {/* HIGHLIGHTS */}
             <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -248,6 +288,7 @@ export default function BilancioView({
           title="Soldi in arrivo"
           subtitle="Bonus con stato «Bonus in arrivo»"
           rows={detail.bonusInArrivo}
+          amountField="bonus"
           onClose={() => setModal(null)}
         />
       ) : null}

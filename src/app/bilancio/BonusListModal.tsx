@@ -11,9 +11,17 @@ type Props = {
   subtitle: string;
   rows: BonusRecord[];
   onClose: () => void;
+  /** "bonus" mostra il lordo (usato per «Soldi in arrivo», coerente col totale in Bilancio); default "netto". */
+  amountField?: "netto" | "bonus";
 };
 
-export default function BonusListModal({ title, subtitle, rows, onClose }: Props) {
+export default function BonusListModal({
+  title,
+  subtitle,
+  rows,
+  onClose,
+  amountField = "netto",
+}: Props) {
   const [items, setItems] = useState(rows);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -106,7 +114,9 @@ export default function BonusListModal({ title, subtitle, rows, onClose }: Props
                         {row.piattaforma}
                       </span>
                     </div>
-                    <p className="shrink-0 text-lg font-extrabold text-white">{money(row.netto)}</p>
+                    <p className="shrink-0 text-lg font-extrabold text-white">
+                      {money(amountField === "bonus" ? row.bonus : row.netto)}
+                    </p>
                   </div>
 
                   <label className="mt-3 block space-y-1">

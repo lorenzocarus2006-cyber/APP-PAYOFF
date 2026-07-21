@@ -11,6 +11,9 @@ import type {
   BilancioReceiverStats,
   BonusRecord,
   Lead,
+  LiquiditaConfig,
+  LiquiditaLedgerRow,
+  LiquiditaOverview,
   NewBonusPayload,
   NewReminderPayload,
   PlatformStat,
@@ -401,25 +404,19 @@ export async function readPlatformStats(): Promise<PlatformStat[]> {
 type ReceiverMetaRow = {
   piattaforma: string;
   ricevente: string;
-  soldi_ritirati: number | string | null;
   maxed: boolean | null;
 };
 
-async function readReceiverMeta(
-  piattaformaUpper: string,
-): Promise<Map<string, { soldiRitirati: number; maxed: boolean }>> {
+async function readReceiverMeta(piattaformaUpper: string): Promise<Map<string, { maxed: boolean }>> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from("receiver_link_meta")
-    .select("piattaforma,ricevente,soldi_ritirati,maxed")
+    .select("piattaforma,ricevente,maxed")
     .eq("piattaforma", piattaformaUpper);
   if (error) throw new Error(error.message);
-  const map = new Map<string, { soldiRitirati: number; maxed: boolean }>();
+  const map = new Map<string, { maxed: boolean }>();
   for (const row of (data as ReceiverMetaRow[] | null) ?? []) {
-    map.set(row.ricevente.trim().toLowerCase(), {
-      soldiRitirati: num(row.soldi_ritirati),
-      maxed: Boolean(row.maxed),
-    });
+    map.set(row.ricevente.trim().toLowerCase(), { maxed: Boolean(row.maxed) });
   }
   return map;
 }
@@ -493,10 +490,11 @@ export async function upsertReceiverLinkValue(
 
 /** Per un bonus (piattaforma), elenco riceventi ATTIVI (con almeno un link) con dettagli completi. */
 export async function getReceiverLinks(piattaformaUpper: string): Promise<ReceiverLinkDetail[]> {
-  const [bonuses, savedLinks, meta] = await Promise.all([
+  const [bonuses, savedLinks, meta, prelievi] = await Promise.all([
     readBonusRows(),
     readLinks(piattaformaUpper),
     readReceiverMeta(piattaformaUpper),
+    sumPrelieviPerRicevente(),
   ]);
 
   const acc = new Map<string, { ricevente: string; count: number; soldiSulConto: number }>();
@@ -520,15 +518,16 @@ export async function getReceiverLinks(piattaformaUpper: string): Promise<Receiv
   return [...acc.values()]
     .map(({ ricevente, count, soldiSulConto }) => {
       const key = ricevente.toLowerCase();
-      const receiverMeta = meta.get(key) ?? { soldiRitirati: 0, maxed: false };
+      const receiverMeta = meta.get(key) ?? { maxed: false };
+      const soldiRitirati = prelievi.get(prelievoRiferimento(piattaformaUpper, ricevente)) ?? 0;
       return {
         ricevente,
         count,
         maxed: receiverMeta.maxed,
         linkOCodice: linkByReceiver.get(key) ?? "",
         soldiSulConto,
-        soldiRitirati: receiverMeta.soldiRitirati,
-        soldiDaPrelevare: soldiSulConto - receiverMeta.soldiRitirati,
+        soldiRitirati,
+        soldiDaPrelevare: soldiSulConto - soldiRitirati,
       };
     })
     .sort((a, b) => a.ricevente.localeCompare(b.ricevente, "it", { sensitivity: "base" }));
@@ -647,7 +646,8 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
         affiliatiTotals.set(affiliato, (affiliatiTotals.get(affiliato) ?? 0) + quota);
       }
     } else if (stato === "Bonus in arrivo") {
-      inArrivoTotale += netto;
+      // "In arrivo" = importo LORDO del bonus (spese pagate a parte, la piattaforma paga il bonus intero).
+      inArrivoTotale += row.bonus;
       inArrivoCount += 1;
       amazonInArrivo += amazon;
       bonusInArrivo.push(row);
@@ -664,7 +664,9 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
 
     if (receiverMap[ricevente]?.[piattaforma] && statusToKey[stato]) {
       const statusKey = statusToKey[stato];
-      receiverMap[ricevente][piattaforma][statusKey] += netto;
+      // "arrivo" (Bonus in arrivo) usa il lordo, coerente con inArrivoTotale sopra; le altre colonne restano a netto.
+      const amount = stato === "Bonus in arrivo" ? row.bonus : netto;
+      receiverMap[ricevente][piattaforma][statusKey] += amount;
       receiverMap[ricevente][piattaforma].amazon += amazon;
       receiverAmazonByStatus[ricevente][statusKey] += amazon;
       receiverAmazonByStatus[ricevente].amazon += amazon;
@@ -999,4 +1001,158 @@ export async function deleteReminder(id: string): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase.from("promemoria").delete().eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/* ------------------------------------------------------------------------ */
+/* Liquidità: cassa reale disponibile, separata dai soldi ancora sui conti. */
+/* ------------------------------------------------------------------------ */
+
+type LiquiditaConfigRow = {
+  valore_iniziale: number | string;
+  data_attivazione: string;
+};
+
+export async function readLiquiditaConfig(): Promise<LiquiditaConfig | null> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("liquidita_config")
+    .select("valore_iniziale,data_attivazione")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const row = data as LiquiditaConfigRow;
+  return { valoreIniziale: num(row.valore_iniziale), dataAttivazione: (row.data_attivazione ?? "").trim() };
+}
+
+export async function upsertLiquiditaConfig(payload: LiquiditaConfig): Promise<void> {
+  if (!payload.dataAttivazione.trim()) throw new Error("Data di attivazione obbligatoria.");
+  if (!Number.isFinite(payload.valoreIniziale)) throw new Error("Valore iniziale non valido.");
+  const supabase = getSupabase();
+  const { error } = await supabase.from("liquidita_config").upsert({
+    id: 1,
+    valore_iniziale: payload.valoreIniziale,
+    data_attivazione: payload.dataAttivazione,
+  });
+  if (error) throw new Error(error.message);
+}
+
+type LiquiditaMovimentoRow = {
+  id: string;
+  tipo: string;
+  importo: number | string;
+  descrizione: string | null;
+  riferimento: string | null;
+  created_at: string;
+};
+
+function mapMovimento(row: LiquiditaMovimentoRow): LiquiditaLedgerRow {
+  return {
+    id: row.id,
+    tipo: (row.tipo as LiquiditaLedgerRow["tipo"]) ?? "prelievo",
+    importo: num(row.importo),
+    descrizione: row.descrizione ?? "",
+    riferimento: row.riferimento,
+    data: (row.created_at ?? "").slice(0, 10),
+  };
+}
+
+export async function readLiquiditaMovimenti(): Promise<LiquiditaLedgerRow[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("liquidita_movimenti")
+    .select("id,tipo,importo,descrizione,riferimento,created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data as LiquiditaMovimentoRow[] | null)?.map(mapMovimento) ?? [];
+}
+
+export async function insertLiquiditaMovimento(payload: {
+  tipo: "prelievo" | "spesa" | "iniziale" | "rettifica";
+  importo: number;
+  descrizione: string;
+  riferimento?: string | null;
+}): Promise<void> {
+  if (!Number.isFinite(payload.importo) || payload.importo === 0) {
+    throw new Error("Importo non valido.");
+  }
+  const supabase = getSupabase();
+  const { error } = await supabase.from("liquidita_movimenti").insert({
+    tipo: payload.tipo,
+    importo: payload.importo,
+    descrizione: payload.descrizione.trim(),
+    riferimento: payload.riferimento ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** Chiave "riferimento" usata dai movimenti di prelievo legati a una card ricevente del Link. */
+export function prelievoRiferimento(piattaforma: string, ricevente: string): string {
+  return `${piattaforma.trim().toUpperCase()}::${ricevente.trim()}`;
+}
+
+/** Somma dei prelievi per ogni coppia piattaforma/ricevente (chiave = prelievoRiferimento). */
+export async function sumPrelieviPerRicevente(): Promise<Map<string, number>> {
+  const movimenti = await readLiquiditaMovimenti();
+  const map = new Map<string, number>();
+  for (const m of movimenti) {
+    if (m.tipo !== "prelievo" || !m.riferimento) continue;
+    map.set(m.riferimento, (map.get(m.riferimento) ?? 0) + m.importo);
+  }
+  return map;
+}
+
+/**
+ * Liquidità = valore_iniziale − spese (bonus con data ≥ data_attivazione, TUTTI gli stati incluso FAIL)
+ * + prelievi (movimenti 'prelievo'; 'rettifica' è trattata come 'prelievo' nella formula: correzione
+ * manuale del saldo, usata anche dalla migrazione per non perdere i vecchi valori di "soldi ritirati").
+ * I buoni Amazon non entrano mai nel calcolo: non sono cassa.
+ */
+export async function getLiquiditaOverview(options?: { includeLedger?: boolean }): Promise<LiquiditaOverview> {
+  const includeLedger = options?.includeLedger ?? true;
+  const [config, bonuses, movimenti] = await Promise.all([
+    readLiquiditaConfig(),
+    readBonusRows("all"),
+    readLiquiditaMovimenti(),
+  ]);
+
+  const amazonTotale = bonuses.reduce((sum, b) => sum + b.amazon, 0);
+
+  if (!config) {
+    return {
+      config: null,
+      valoreIniziale: 0,
+      speseDedotte: 0,
+      prelieviTotali: 0,
+      valore: 0,
+      amazonTotale,
+      ledger: includeLedger ? movimenti : [],
+    };
+  }
+
+  const bonusRilevanti = bonuses.filter((b) => b.data >= config.dataAttivazione);
+  const speseDedotte = bonusRilevanti.reduce((sum, b) => sum + b.spese, 0);
+
+  const prelieviTotali = movimenti
+    .filter((m) => m.tipo === "prelievo" || m.tipo === "rettifica")
+    .reduce((sum, m) => sum + m.importo, 0);
+
+  const valore = config.valoreIniziale - speseDedotte + prelieviTotali;
+
+  let ledger: LiquiditaLedgerRow[] = [];
+  if (includeLedger) {
+    const speseLedger: LiquiditaLedgerRow[] = bonusRilevanti
+      .filter((b) => b.spese > 0)
+      .map((b) => ({
+        id: `spesa-bonus-${b.id}`,
+        tipo: "spesa",
+        importo: -b.spese,
+        descrizione: `Spesa ${b.piattaforma} · ${b.personaInvitata || b.ricevente || "—"}`,
+        riferimento: `bonus:${b.id}`,
+        data: b.data,
+      }));
+    ledger = [...movimenti, ...speseLedger].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : 0));
+  }
+
+  return { config, valoreIniziale: config.valoreIniziale, speseDedotte, prelieviTotali, valore, amazonTotale, ledger };
 }

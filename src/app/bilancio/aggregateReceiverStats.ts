@@ -4,6 +4,7 @@ export type ReceiverBonusRow = {
   id: number;
   piattaforma: string;
   stato: string;
+  bonus: number;
   netto: number;
   amazon: number;
   data: string;
@@ -36,7 +37,9 @@ export function aggregateReceiverStats(
     }
     const key = STATUS_TO_KEY[row.stato];
     if (!key) continue;
-    platformMap[app][key] += row.netto;
+    // "arrivo" (Bonus in arrivo) usa il lordo: le spese si pagano a parte, la piattaforma paga il bonus intero.
+    const amount = row.stato === "Bonus in arrivo" ? row.bonus : row.netto;
+    platformMap[app][key] += amount;
     platformMap[app].amazon += row.amazon;
     amazonRow[key] += row.amazon;
     amazonRow.amazon += row.amazon;

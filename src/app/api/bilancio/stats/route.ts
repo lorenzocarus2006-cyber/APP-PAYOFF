@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readBilancioStats } from "@/lib/db";
+import { getLiquiditaOverview, readBilancioStats } from "@/lib/db";
 import { getRole } from "@/lib/role";
 
 export async function GET(request: Request) {
@@ -17,8 +17,19 @@ export async function GET(request: Request) {
       );
     }
 
-    const data = await readBilancioStats(wantsStorico ? "storico" : "current");
-    return NextResponse.json({ ...data, role });
+    const [data, liquiditaOverview] = await Promise.all([
+      readBilancioStats(wantsStorico ? "storico" : "current"),
+      getLiquiditaOverview({ includeLedger: false }),
+    ]);
+    const liquidita = {
+      configured: liquiditaOverview.config !== null,
+      valore: liquiditaOverview.valore,
+      valoreIniziale: liquiditaOverview.valoreIniziale,
+      speseDedotte: liquiditaOverview.speseDedotte,
+      prelieviTotali: liquiditaOverview.prelieviTotali,
+      dataAttivazione: liquiditaOverview.config?.dataAttivazione ?? null,
+    };
+    return NextResponse.json({ ...data, role, liquidita });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Errore durante il calcolo del bilancio.";

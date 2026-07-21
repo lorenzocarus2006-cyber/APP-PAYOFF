@@ -21,19 +21,19 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
   const [items, setItems] = useState<ReceiverLinkDetail[]>(initial);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [linkDrafts, setLinkDrafts] = useState<Record<string, string>>({});
-  const [ritiratiDrafts, setRitiratiDrafts] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+  const [prelievoOpen, setPrelievoOpen] = useState<string | null>(null);
+  const [prelievoImporto, setPrelievoImporto] = useState<Record<string, string>>({});
+  const [prelievoNota, setPrelievoNota] = useState<Record<string, string>>({});
 
   const active = useMemo(() => sortByName(items.filter((r) => !r.maxed)), [items]);
   const maxed = useMemo(() => sortByName(items.filter((r) => r.maxed)), [items]);
 
   function draftLink(r: ReceiverLinkDetail) {
     return linkDrafts[r.ricevente] ?? r.linkOCodice;
-  }
-  function draftRitirati(r: ReceiverLinkDetail) {
-    return ritiratiDrafts[r.ricevente] ?? String(r.soldiRitirati);
   }
 
   async function toggleMaxed(ricevente: string, next: boolean) {
@@ -78,28 +78,42 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
     }
   }
 
-  async function saveRitirati(r: ReceiverLinkDetail) {
-    const raw = ritiratiDrafts[r.ricevente];
-    if (raw === undefined) return;
-    const value = Number(raw.replace(",", ".")) || 0;
-    if (value === r.soldiRitirati) return;
-    setBusy(`${r.ricevente}-ritirati`);
+  async function submitPrelievo(r: ReceiverLinkDetail) {
+    const raw = prelievoImporto[r.ricevente] ?? "";
+    const importo = Number(raw.replace(",", "."));
+    if (!Number.isFinite(importo) || importo <= 0) {
+      setError("Inserisci un importo valido per il prelievo.");
+      return;
+    }
+    setBusy(`${r.ricevente}-prelievo`);
     setError("");
     try {
-      const res = await fetch("/api/link/meta", {
+      const res = await fetch("/api/liquidita/prelievo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ricevente: r.ricevente, piattaforma, soldiRitirati: value }),
+        body: JSON.stringify({
+          piattaforma,
+          ricevente: r.ricevente,
+          importo,
+          nota: prelievoNota[r.ricevente] ?? "",
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Errore salvataggio.");
+      if (!res.ok) throw new Error(data.error ?? "Errore registrazione prelievo.");
       setItems((prev) =>
         prev.map((item) =>
           item.ricevente === r.ricevente
-            ? { ...item, soldiRitirati: value, soldiDaPrelevare: item.soldiSulConto - value }
+            ? {
+                ...item,
+                soldiRitirati: item.soldiRitirati + importo,
+                soldiDaPrelevare: item.soldiSulConto - (item.soldiRitirati + importo),
+              }
             : item,
         ),
       );
+      setPrelievoImporto((prev) => ({ ...prev, [r.ricevente]: "" }));
+      setPrelievoNota((prev) => ({ ...prev, [r.ricevente]: "" }));
+      setPrelievoOpen(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore sconosciuto.");
     } finally {
@@ -121,10 +135,7 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
 
   function renderCard(r: ReceiverLinkDetail, dimmed: boolean) {
     const isOpen = expanded === r.ricevente;
-    const daPrelevare =
-      (Number(draftRitirati(r).replace(",", ".")) || 0) === r.soldiRitirati
-        ? r.soldiDaPrelevare
-        : r.soldiSulConto - (Number(draftRitirati(r).replace(",", ".")) || 0);
+    const isPrelievoOpen = prelievoOpen === r.ricevente;
 
     return (
       <li
@@ -221,31 +232,81 @@ export default function ReceiverList({ piattaforma, color, initial }: Props) {
                 </p>
               </div>
 
-              <label className="block space-y-1 rounded-xl border border-white/15 bg-white/8 p-3">
-                <span className="text-[11px] text-white/60">Soldi ritirati</span>
-                <input
-                  type="number"
-                  value={draftRitirati(r)}
-                  onChange={(event) =>
-                    setRitiratiDrafts((prev) => ({ ...prev, [r.ricevente]: event.target.value }))
-                  }
-                  onBlur={() => void saveRitirati(r)}
-                  disabled={busy === `${r.ricevente}-ritirati`}
-                  className="min-h-8 w-full rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-lg font-bold tabular-nums text-white outline-none focus:border-white/50"
-                />
-              </label>
+              <div className="rounded-xl border border-white/15 bg-white/8 p-3">
+                <p className="text-[11px] text-white/60">Soldi ritirati</p>
+                <p className="mt-0.5 text-lg font-bold tabular-nums text-white">
+                  {money(r.soldiRitirati)}
+                </p>
+              </div>
 
               <div className="rounded-xl border border-white/15 bg-white/8 p-3">
                 <p className="text-[11px] text-white/60">Soldi da prelevare</p>
                 <p
                   className={`mt-0.5 text-lg font-bold tabular-nums ${
-                    daPrelevare > 0 ? "text-emerald-300" : "text-white"
+                    r.soldiDaPrelevare > 0 ? "text-emerald-300" : "text-white"
                   }`}
                 >
-                  {money(daPrelevare)}
+                  {money(r.soldiDaPrelevare)}
                 </p>
               </div>
             </div>
+
+            {isPrelievoOpen ? (
+              <div className="animate-[fadeSlide_0.2s_ease_both] space-y-2 rounded-xl border border-emerald-400/25 bg-emerald-400/[0.06] p-3">
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-white/60">Importo prelevato ($)</span>
+                  <input
+                    type="number"
+                    autoFocus
+                    value={prelievoImporto[r.ricevente] ?? ""}
+                    onChange={(event) =>
+                      setPrelievoImporto((prev) => ({ ...prev, [r.ricevente]: event.target.value }))
+                    }
+                    placeholder="0.00"
+                    disabled={busy === `${r.ricevente}-prelievo`}
+                    className="min-h-10 w-full rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-base font-bold tabular-nums text-white outline-none focus:border-emerald-300/60"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-semibold text-white/60">Nota (opzionale)</span>
+                  <input
+                    value={prelievoNota[r.ricevente] ?? ""}
+                    onChange={(event) =>
+                      setPrelievoNota((prev) => ({ ...prev, [r.ricevente]: event.target.value }))
+                    }
+                    placeholder="Es. Bonifico su conto personale"
+                    disabled={busy === `${r.ricevente}-prelievo`}
+                    className="min-h-10 w-full rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-emerald-300/60"
+                  />
+                </label>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    disabled={busy === `${r.ricevente}-prelievo`}
+                    onClick={() => setPrelievoOpen(null)}
+                    className="min-h-9 flex-1 rounded-lg border border-white/10 bg-transparent text-sm font-semibold text-white/80 disabled:opacity-60"
+                  >
+                    Annulla
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy === `${r.ricevente}-prelievo`}
+                    onClick={() => void submitPrelievo(r)}
+                    className="min-h-9 flex-1 rounded-lg bg-emerald-500 text-sm font-bold text-white transition-colors hover:bg-emerald-600 disabled:opacity-60"
+                  >
+                    {busy === `${r.ricevente}-prelievo` ? "Salvataggio..." : "Conferma prelievo"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setPrelievoOpen(r.ricevente)}
+                className="btn-secondary w-full !min-h-10 text-sm"
+              >
+                💵 Registra prelievo
+              </button>
+            )}
           </div>
         ) : null}
       </li>
