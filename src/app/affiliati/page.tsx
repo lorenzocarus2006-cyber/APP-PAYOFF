@@ -216,9 +216,9 @@ export default function AffiliatiPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+        <header className="flex items-start justify-between gap-3 surface-card p-5">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Affiliati</h1>
+            <h1 className="page-title">Affiliati</h1>
             <p className="mt-2 text-base text-white/70">Registro affiliati e pagamenti (da oggi in poi)</p>
           </div>
           {role === "og" ? (
@@ -232,10 +232,10 @@ export default function AffiliatiPage() {
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
         {success ? (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-700">
+          <div className="rounded-xl border border-[#2D5BE3]/25 bg-[#2D5BE3]/10 p-4 text-[#9db6ff]">
             {success}
           </div>
         ) : null}
@@ -243,7 +243,7 @@ export default function AffiliatiPage() {
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+          className="btn-primary w-full !min-h-14 text-lg"
         >
           ＋ Registra Nuovo Pagamento
         </button>
@@ -252,7 +252,7 @@ export default function AffiliatiPage() {
           <button
             type="button"
             onClick={() => setShowRegistro((prev) => !prev)}
-            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-white/15"
+            className="flex min-h-12 w-full items-center justify-between gap-3 surface-card px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/15"
           >
             <span className="flex items-center gap-2">
               📋 Registro Pagamenti
@@ -274,7 +274,7 @@ export default function AffiliatiPage() {
           </button>
 
           {showRegistro ? (
-            <div className="animate-[fadeSlide_0.3s_ease_both] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+            <div className="animate-[fadeSlide_0.3s_ease_both] overflow-hidden surface-card">
               {payments.length === 0 ? (
                 <p className="p-5 text-sm text-white/60">Nessun pagamento registrato.</p>
               ) : (
@@ -328,7 +328,7 @@ export default function AffiliatiPage() {
             Affiliati
           </h2>
           {loading ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+            <div className="surface-card p-6 text-white/70">
               Caricamento dati affiliati...
             </div>
           ) : (
@@ -353,7 +353,7 @@ export default function AffiliatiPage() {
                           setExpanded(isOpen ? null : summary.nome);
                         }
                       }}
-                      className="flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-transform active:scale-[0.99] hover:bg-white/15"
+                      className="flex w-full cursor-pointer items-center gap-3 surface-card p-4 text-left transition-transform active:scale-[0.99] hover:bg-white/15"
                     >
                       <span
                         className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"
@@ -453,21 +453,21 @@ export default function AffiliatiPage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm">
-          <div className="h-[100dvh] w-full overflow-y-auto bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm">
+          <div className="h-[100dvh] w-full overflow-y-auto bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:mt-4 sm:h-auto sm:max-h-[95vh] sm:max-w-[460px] sm:rounded-[22px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
             <h2 className="mb-4 text-2xl font-bold text-white sm:text-3xl">Registra Nuovo Pagamento</h2>
             <div className="grid grid-cols-1 gap-4">
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Affiliato</span>
+                <span className="field-label">Affiliato</span>
                 <select
                   value={form.affiliato}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliato: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-select"
                 >
                   {roster.map((affiliate) => (
-                    <option key={affiliate} value={affiliate}>
+                    <option key={affiliate} value={affiliate} className="bg-[#0F1420] text-white">
                       {affiliate}
                     </option>
                   ))}
@@ -475,47 +475,47 @@ export default function AffiliatiPage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Importo</span>
+                <span className="field-label">Importo</span>
                 <input
                   type="number"
                   value={form.importo}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, importo: Number(event.target.value || 0) }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Data</span>
+                <span className="field-label">Data</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) => setForm((prev) => ({ ...prev, data: event.target.value }))}
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Modalita</span>
+                <span className="field-label">Modalita</span>
                 <select
                   value={form.modalita}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, modalita: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-select"
                 >
                   <option value="">-</option>
                 </select>
               </label>
 
               <label className="space-y-1">
-                <span className="text-base text-white/80 sm:text-lg">Note</span>
+                <span className="field-label">Note</span>
                 <textarea
                   value={form.note}
                   onChange={(event) => setForm((prev) => ({ ...prev, note: event.target.value }))}
                   rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base text-white outline-none placeholder:text-white/60 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-textarea"
                 />
               </label>
             </div>
@@ -532,7 +532,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSavePayment()}
-                className="min-h-12 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-60"
+                className="btn-primary text-lg"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
@@ -552,7 +552,7 @@ export default function AffiliatiPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#0F1420] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">Nuovo Affiliato</h2>
             <p className="mt-1 text-sm text-white/70">
@@ -588,7 +588,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={savingAffiliate || !newAffiliateName.trim()}
                 onClick={() => void handleAddAffiliate()}
-                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 {savingAffiliate ? "Salvataggio..." : "Aggiungi"}
               </button>
@@ -608,7 +608,7 @@ export default function AffiliatiPage() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#0F1420] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">
               Percentuale di {editPercentage.nome}
@@ -651,7 +651,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={savingPercentage || percentageInput.trim() === ""}
                 onClick={() => void handleSavePercentage()}
-                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 {savingPercentage ? "Salvataggio..." : "Salva"}
               </button>
@@ -668,13 +668,13 @@ export default function AffiliatiPage() {
             if (e.target === e.currentTarget && !deletingAffiliate) setDeleteAffiliate(null);
           }}
         >
-          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-bold text-neutral-900">Rimuovi affiliato?</h2>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+            <h2 className="text-xl font-bold text-white">Rimuovi affiliato?</h2>
+            <p className="mt-3 text-sm leading-relaxed text-white/65">
               Vuoi rimuovere{" "}
               <span className="font-semibold">{deleteAffiliate.nome}</span> dal registro?
               {deleteAffiliate.pagamentiCount > 0 || deleteAffiliate.generato > 0 ? (
-                <span className="mt-2 block rounded-lg bg-amber-50 px-3 py-2 text-amber-800">
+                <span className="mt-2 block rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-amber-300">
                   ⚠️ Ha attività ({deleteAffiliate.pagamentiCount} pagamenti, generato{" "}
                   {money(deleteAffiliate.generato)} €). I dati storici dei bonus/pagamenti col suo
                   nome restano, sparisce solo dalla lista.
@@ -694,7 +694,7 @@ export default function AffiliatiPage() {
                 type="button"
                 disabled={deletingAffiliate}
                 onClick={() => setDeleteAffiliate(null)}
-                className="min-h-12 flex-1 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary flex-1 "
               >
                 Annulla
               </button>

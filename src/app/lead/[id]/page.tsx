@@ -157,29 +157,29 @@ export default function LeadDetailPage() {
         </Link>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="surface-card p-6 text-base text-white/70">
             Caricamento lead...
           </div>
         ) : notFoundError || !lead ? (
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="surface-card p-6 text-base text-white/70">
             Lead non trovato.
           </div>
         ) : (
           <>
-            <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
+            <header className="overflow-hidden surface-card p-6">
               <div className="flex items-center gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
                   {lead.nome.slice(0, 2)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <p className="page-eyebrow">
                     Lead
                   </p>
-                  <h1 className="truncate text-2xl font-bold tracking-tight">{lead.nome}</h1>
+                  <h1 className="page-title truncate">{lead.nome}</h1>
                   {lead.telefono ? (
                     <a
                       href={`tel:${lead.telefono}`}
@@ -238,34 +238,34 @@ export default function LeadDetailPage() {
       </main>
 
       {showEdit ? (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 backdrop-blur-sm">
+          <div className="min-h-[100dvh] w-full bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[22px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Modifica lead</h2>
 
             <div className="space-y-4">
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Nome e Cognome *</span>
+                <span className="field-label">Nome e Cognome *</span>
                 <input
                   value={form.nome}
                   onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Telefono</span>
+                <span className="field-label">Telefono</span>
                 <input
                   type="tel"
                   value={form.telefono}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, telefono: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Descrizione dello status</span>
+                <span className="field-label">Descrizione dello status</span>
                 <textarea
                   value={form.descrizione}
                   onChange={(event) =>
@@ -277,7 +277,7 @@ export default function LeadDetailPage() {
               </label>
 
               <div className="space-y-2">
-                <span className="text-[13px] font-bold text-white">Bonus da fare</span>
+                <span className="field-label">Bonus da fare</span>
                 <div className="flex flex-wrap gap-2">
                   {PLATFORMS.map((platform) => {
                     const active = form.bonusInteresse.includes(platform);
@@ -315,7 +315,7 @@ export default function LeadDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowEdit(false)}
-                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
+                className="btn-secondary"
               >
                 Annulla
               </button>
@@ -323,7 +323,7 @@ export default function LeadDetailPage() {
                 type="button"
                 disabled={saving || !form.nome.trim()}
                 onClick={() => void handleSaveEdit()}
-                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
@@ -340,9 +340,9 @@ export default function LeadDetailPage() {
             if (e.target === e.currentTarget && !deleting) setShowDeleteConfirm(false);
           }}
         >
-          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-[20px] font-bold text-neutral-900">Elimina lead?</h2>
-            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+            <h2 className="text-[20px] font-bold text-white">Elimina lead?</h2>
+            <p className="mt-3 text-base leading-relaxed text-white/65">
               Sei sicuro di voler eliminare{" "}
               <span className="font-semibold">{lead?.nome}</span>? Questa azione non può essere
               annullata.
@@ -366,7 +366,7 @@ export default function LeadDetailPage() {
                   e.stopPropagation();
                   setShowDeleteConfirm(false);
                 }}
-                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary "
               >
                 Annulla
               </button>

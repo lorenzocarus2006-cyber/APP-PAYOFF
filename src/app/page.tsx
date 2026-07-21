@@ -7,9 +7,9 @@ import { useEffect, useMemo, useState } from "react";
 import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { todayISO } from "@/lib/date";
 import ReminderBellButton from "@/components/ReminderBellButton";
 import {
-  Bell,
   Calendar,
   Check,
   ChevronDown,
@@ -78,10 +78,9 @@ export default function HomePage() {
   const [deleteToast, setDeleteToast] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [lastCreatedBonus, setLastCreatedBonus] = useState<{ id: number; label: string } | null>(
-    null,
-  );
-  const [bellForceOpen, setBellForceOpen] = useState(false);
+  const [addReminder, setAddReminder] = useState(false);
+  const [reminderData, setReminderData] = useState(todayISO());
+  const [reminderDescrizione, setReminderDescrizione] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
@@ -231,7 +230,11 @@ export default function HomePage() {
     );
   }, [filteredRows]);
 
-  async function handleSaveBonus(options?: { openReminder?: boolean }) {
+  async function handleSaveBonus() {
+    if (addReminder && !reminderDescrizione.trim()) {
+      setError("Inserisci una descrizione per il promemoria, o disattiva il toggle.");
+      return;
+    }
     setSaving(true);
     setError("");
     setSuccess("");
@@ -249,15 +252,30 @@ export default function HomePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Impossibile salvare il bonus.");
 
-      setSuccess("Bonus salvato con successo.");
-      if (data.row) {
-        setLastCreatedBonus({
-          id: data.row.id,
-          label: `${data.row.piattaforma || "Bonus"} · ${data.row.personaInvitata || "(senza nome)"}`,
+      if (addReminder && data.row) {
+        const reminderRes = await fetch("/api/promemoria/write", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bonusId: data.row.id,
+            leadId: null,
+            dataPromemoria: reminderData,
+            descrizione: reminderDescrizione.trim(),
+          }),
         });
-        if (options?.openReminder) setBellForceOpen(true);
+        if (!reminderRes.ok) {
+          const reminderPayload = await reminderRes.json();
+          throw new Error(
+            `Bonus salvato, ma il promemoria non è stato creato: ${reminderPayload.error ?? "errore sconosciuto"}.`,
+          );
+        }
       }
+
+      setSuccess("Bonus salvato con successo.");
       setForm(defaultForm);
+      setAddReminder(false);
+      setReminderData(todayISO());
+      setReminderDescrizione("");
       setShowModal(false);
       await fetchRows();
     } catch (err) {
@@ -381,15 +399,27 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-transparent px-5 py-5 text-white">
+    <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="relative -mx-5 -mt-5 bg-transparent px-5 pb-8 pt-10 text-center">
-          <div className="absolute left-5 top-10">
+        <header className="relative flex items-start justify-between gap-3 pt-1">
+          <div>
+            <Image
+              src="/logo.png"
+              alt="PayOff logo"
+              width={104}
+              height={42}
+              priority
+              className="mb-5 w-[100px] [filter:brightness(0)_invert(1)]"
+            />
+            <p className="page-eyebrow">Ciao 👋</p>
+            <h1 className="page-title mt-1">I tuoi bonus</h1>
+          </div>
+          <div className="shrink-0 pt-1">
             <button
               type="button"
               aria-label="Profilo"
               onClick={() => setShowProfileMenu((prev) => !prev)}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10"
+              className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.05] text-white/80 transition-colors hover:bg-white/10"
             >
               <User className="h-5 w-5" />
             </button>
@@ -400,7 +430,7 @@ export default function HomePage() {
                   role="presentation"
                   onClick={() => setShowProfileMenu(false)}
                 />
-                <div className="absolute left-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-white/10 bg-[#11141C] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-white/10 bg-[#0F1420] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
@@ -415,40 +445,43 @@ export default function HomePage() {
               </>
             ) : null}
           </div>
-
-          <Image
-            src="/logo.png"
-            alt="PayOff logo"
-            width={200}
-            height={80}
-            priority
-            className="mx-auto mb-4 w-[200px] [filter:brightness(0)_invert(1)]"
-          />
-          <h1 className="text-[28px] font-extrabold leading-tight text-white">Ciao!</h1>
-          <p className="text-base text-white/60">Gestisci i tuoi bonus</p>
         </header>
 
-        <section className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
-          <h2 className="text-xl font-bold">Registra Nuovo Bonus</h2>
-          <p className="mt-1 text-sm text-white/60">Aggiungi una nuova riga al foglio.</p>
+        <section className="surface-card relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute -right-10 -top-16 h-40 w-40 rounded-full bg-[#2D5BE3]/25 blur-3xl" />
+          <div className="relative flex items-center gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#2D5BE3]/15 text-[#7ea0ff]">
+              <Plus className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-[17px] font-bold text-white">Registra Nuovo Bonus</h2>
+              <p className="mt-0.5 text-[13px] text-white/50">Aggiungi una nuova riga al foglio</p>
+            </div>
+          </div>
           <button
             type="button"
-            onClick={() => setShowModal(true)}
-            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-4 text-base font-bold text-white transition-colors hover:bg-[#2549b8]"
+            onClick={() => {
+              setForm(defaultForm);
+              setAddReminder(false);
+              setReminderData(todayISO());
+              setReminderDescrizione("");
+              setShowModal(true);
+            }}
+            className="btn-primary relative mt-4 w-full"
           >
-            <Plus className="h-5 w-5" /> Registra Nuovo Bonus
+            <Plus className="h-5 w-5" /> Nuovo bonus
           </button>
         </section>
 
-        <section className="relative z-40 rounded-[24px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
-          <h2 className="mb-3 text-xl font-bold">Cerca persona</h2>
+        <section className="surface-card relative z-40 p-5">
+          <h2 className="mb-3 text-[17px] font-bold text-white">Cerca persona</h2>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/40" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cerca persona..."
-              className="min-h-14 w-full rounded-xl border border-white/10 bg-white/[0.06] py-4 pl-12 pr-4 text-base font-medium text-white outline-none placeholder:text-white/40 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+              className="field-input min-h-14 pl-12 text-base"
             />
           </div>
 
@@ -460,7 +493,7 @@ export default function HomePage() {
                   setShowStatusMenu(false);
                   setShowPlatformMenu((prev) => !prev);
                 }}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+                className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-bold transition-colors ${
                   platformFilter
                     ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
                     : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
@@ -470,7 +503,7 @@ export default function HomePage() {
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
               {showPlatformMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-48 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/10 bg-[#11141C] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-48 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-2xl border border-white/10 bg-[#0F1420] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
@@ -513,7 +546,7 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu((prev) => !prev);
                 }}
-                className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+                className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-bold transition-colors ${
                   statusFilter
                     ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
                     : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
@@ -523,7 +556,7 @@ export default function HomePage() {
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
               {showStatusMenu ? (
-                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-60 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-xl border border-white/10 bg-[#11141C] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                <div className="absolute left-0 top-full z-30 mt-2 max-h-60 w-60 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] rounded-2xl border border-white/10 bg-[#0F1420] pt-1 pb-24 shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                   <button
                     type="button"
                     onClick={() => {
@@ -574,7 +607,7 @@ export default function HomePage() {
                       : "date-asc",
                 );
               }}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-bold transition-colors ${
+              className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-bold transition-colors ${
                 sortMode === "date-asc" || sortMode === "date-desc"
                   ? "border-[#2D5BE3] bg-[#2D5BE3] text-white"
                   : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
@@ -593,7 +626,7 @@ export default function HomePage() {
                   setShowPlatformMenu(false);
                   setShowStatusMenu(false);
                 }}
-                className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-transparent px-3 py-1.5 text-[13px] font-bold text-white/60 hover:bg-white/10"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-transparent px-3.5 py-2 text-[13px] font-bold text-white/60 hover:bg-white/10"
               >
                 <X className="h-3.5 w-3.5" /> Azzera filtri
               </button>
@@ -602,42 +635,13 @@ export default function HomePage() {
         </section>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">
             {error}
           </div>
         ) : null}
         {success ? (
-          <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-700">
+          <div className="rounded-xl border border-[#2D5BE3]/25 bg-[#2D5BE3]/10 p-4 text-[#9db6ff]">
             {success}
-          </div>
-        ) : null}
-
-        {lastCreatedBonus ? (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
-            <p className="min-w-0 flex-1 truncate text-sm text-white/70">
-              Vuoi un promemoria per <span className="font-semibold">{lastCreatedBonus.label}</span>?
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <ReminderBellButton
-                link={{ type: "bonus", id: lastCreatedBonus.id }}
-                label={lastCreatedBonus.label}
-                variant="button"
-                open={bellForceOpen}
-                onOpenChange={setBellForceOpen}
-                onSaved={() => {
-                  setLastCreatedBonus(null);
-                  setBellForceOpen(false);
-                }}
-              />
-              <button
-                type="button"
-                aria-label="Ignora"
-                onClick={() => setLastCreatedBonus(null)}
-                className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
           </div>
         ) : null}
 
@@ -648,11 +652,11 @@ export default function HomePage() {
             </h2>
 
             {loadingRead ? (
-              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+              <div className="surface-card p-6 text-base text-white/70">
                 Caricamento righe in corso...
               </div>
             ) : people.length === 0 ? (
-              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+              <div className="surface-card p-6 text-base text-white/70">
                 Nessun risultato
               </div>
             ) : (
@@ -665,7 +669,7 @@ export default function HomePage() {
                   >
                     <Link
                       href={`/persona/${encodeURIComponent(person.nome)}`}
-                      className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
+                      className="group flex items-center gap-4 surface-card p-4 transition-transform duration-200 active:scale-[0.98] hover:border-white/40 hover:bg-white/15"
                     >
                       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/15 text-base font-bold uppercase text-white">
                         {person.nome.slice(0, 2)}
@@ -715,18 +719,18 @@ export default function HomePage() {
             </h2>
 
             {loadingRead ? (
-              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+              <div className="surface-card p-6 text-base text-white/70">
                 Caricamento righe in corso...
               </div>
             ) : filteredRows.length === 0 ? (
-              <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+              <div className="surface-card p-6 text-base text-white/70">
                 Nessun risultato
               </div>
             ) : (
               filteredRows.map((row) => (
                 <article
                   key={row.id}
-                  className="relative rounded-[20px] border border-white/10 bg-white/[0.04] p-5 pt-12 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+                  className="relative surface-card p-5 pt-12 text-white"
                   style={{
                     borderLeft: `4px solid ${platformBorderColor(row.piattaforma)}`,
                   }}
@@ -749,6 +753,7 @@ export default function HomePage() {
                     <ReminderBellButton
                       link={{ type: "bonus", id: row.id }}
                       label={`${row.piattaforma || "Bonus"} · ${row.personaInvitata || "(senza nome)"}`}
+                      iconStyle="emoji"
                     />
                   </div>
 
@@ -785,7 +790,7 @@ export default function HomePage() {
 
                   <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO</span>
+                    <span className="field-label">STATO</span>
                     <div className="relative">
                       <span
                         className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
@@ -800,7 +805,7 @@ export default function HomePage() {
                         className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-2.5 pl-9 pr-9 text-[15px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
                         {STATUSES.map((status) => (
-                          <option key={status} value={status} className="bg-[#11141C] text-white">
+                          <option key={status} value={status} className="bg-[#0F1420] text-white">
                             {status}
                           </option>
                         ))}
@@ -810,7 +815,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
+                    <span className="field-label">Ricevente</span>
                     <select
                       value={row.ricevente}
                       onChange={(event) =>
@@ -819,9 +824,9 @@ export default function HomePage() {
                       disabled={updatingKey === `${row.id}-ricevente`}
                       className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     >
-                      <option value="" className="bg-[#11141C] text-white">-</option>
+                      <option value="" className="bg-[#0F1420] text-white">-</option>
                       {RECEIVERS.map((option) => (
-                        <option key={option} value={option} className="bg-[#11141C] text-white">
+                        <option key={option} value={option} className="bg-[#0F1420] text-white">
                           {option}
                         </option>
                       ))}
@@ -829,7 +834,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
+                    <span className="field-label">AFFILIATI</span>
                     <select
                       value={row.affiliati}
                       onChange={(event) =>
@@ -838,9 +843,9 @@ export default function HomePage() {
                       disabled={updatingKey === `${row.id}-affiliati`}
                       className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     >
-                      <option value="" className="bg-[#11141C] text-white">-</option>
+                      <option value="" className="bg-[#0F1420] text-white">-</option>
                       {affiliatiRoster.map((option) => (
-                        <option key={option} value={option} className="bg-[#11141C] text-white">
+                        <option key={option} value={option} className="bg-[#0F1420] text-white">
                           {option}
                         </option>
                       ))}
@@ -849,7 +854,7 @@ export default function HomePage() {
 
                   <label className="space-y-1 md:col-span-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
+                      <span className="field-label">INFO</span>
                       {infoSavedRow === row.id ? (
                         <span className="flex items-center gap-1 text-sm font-semibold text-emerald-400">
                           <Check className="h-4 w-4" /> Salvato
@@ -880,7 +885,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
+                    <span className="field-label">Bonus $</span>
                     <input
                       type="number"
                       value={row.bonus}
@@ -897,7 +902,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
+                    <span className="field-label">Spese</span>
                     <input
                       type="number"
                       value={row.spese}
@@ -914,7 +919,7 @@ export default function HomePage() {
                   </label>
 
                   <label className="space-y-1">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
+                    <span className="field-label">Amazon</span>
                     <input
                       type="number"
                       value={row.amazon}
@@ -938,13 +943,13 @@ export default function HomePage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 backdrop-blur-sm">
+          <div className="min-h-[100dvh] w-full bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[22px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Registra Nuovo Bonus</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Piattaforma *</span>
+                <span className="field-label">Piattaforma *</span>
                 <div className="relative">
                   <span
                     className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
@@ -966,7 +971,7 @@ export default function HomePage() {
                     className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-[14px] pl-9 pr-10 text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                   >
                     {platforms.map((option) => (
-                      <option key={option.key} value={option.key} className="bg-[#11141C] text-white">
+                      <option key={option.key} value={option.key} className="bg-[#0F1420] text-white">
                         {option.label}
                       </option>
                     ))}
@@ -976,18 +981,18 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Persona invitata</span>
+                <span className="field-label">Persona invitata</span>
                 <input
                   value={form.personaInvitata}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, personaInvitata: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO *</span>
+                <span className="field-label">STATO *</span>
                 <div className="relative">
                   <span
                     className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
@@ -1001,7 +1006,7 @@ export default function HomePage() {
                     className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-[14px] pl-9 pr-10 text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
                   >
                     {STATUSES.map((option) => (
-                      <option key={option} value={option} className="bg-[#11141C] text-white">
+                      <option key={option} value={option} className="bg-[#0F1420] text-white">
                         {option}
                       </option>
                     ))}
@@ -1011,13 +1016,13 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
+                <span className="field-label">Ricevente</span>
                 <select
                   value={form.ricevente}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, ricevente: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 >
                   <option value="">-</option>
                   {RECEIVERS.map((option) => (
@@ -1029,25 +1034,25 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Data</span>
+                <span className="field-label">Data</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, data: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
+                <span className="field-label">AFFILIATI</span>
                 <select
                   value={form.affiliati}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, affiliati: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 >
                   <option value="">-</option>
                   {affiliatiRoster.map((option) => (
@@ -1059,7 +1064,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1 md:col-span-2">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
+                <span className="field-label">INFO</span>
                 <textarea
                   value={form.info}
                   onChange={(event) =>
@@ -1071,7 +1076,7 @@ export default function HomePage() {
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
+                <span className="field-label">Bonus $</span>
                 <input
                   type="number"
                   value={form.bonus}
@@ -1079,12 +1084,12 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, bonus: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
+                <span className="field-label">Spese</span>
                 <input
                   type="number"
                   value={form.spese}
@@ -1092,12 +1097,12 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, spese: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="space-y-1">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
+                <span className="field-label">Amazon</span>
                 <input
                   type="number"
                   value={form.amazon}
@@ -1105,9 +1110,63 @@ export default function HomePage() {
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, amazon: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
+
+              <div className="md:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => setAddReminder((prev) => !prev)}
+                  aria-pressed={addReminder}
+                  className={`flex w-full items-center justify-between rounded-[14px] border px-4 py-3 text-[15px] font-semibold transition-colors ${
+                    addReminder
+                      ? "border-[#2D5BE3]/50 bg-[#2D5BE3]/10 text-white"
+                      : "border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">🔔 Aggiungi promemoria</span>
+                  <span
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                      addReminder ? "bg-[#2D5BE3]" : "bg-white/15"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                        addReminder ? "translate-x-[22px]" : "translate-x-0.5"
+                      }`}
+                    />
+                  </span>
+                </button>
+
+                {addReminder ? (
+                  <div className="mt-3 animate-[fadeSlide_0.25s_ease_both] space-y-3 rounded-[14px] border border-white/10 bg-white/[0.03] p-4">
+                    <label className="block space-y-1">
+                      <span className="field-label">
+                        Data promemoria
+                      </span>
+                      <input
+                        type="date"
+                        value={reminderData}
+                        onChange={(event) => setReminderData(event.target.value)}
+                        className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                      />
+                    </label>
+                    <label className="block space-y-1">
+                      <span className="field-label">
+                        Cosa fare
+                      </span>
+                      <textarea
+                        value={reminderDescrizione}
+                        onChange={(event) => setReminderDescrizione(event.target.value)}
+                        rows={2}
+                        placeholder="Es. Controllare se il bonus è arrivato"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
 
               <div className="md:col-span-2">
                 <p className="text-2xl font-extrabold text-emerald-300">
@@ -1120,24 +1179,15 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
+                className="btn-secondary"
               >
                 Annulla
               </button>
               <button
                 type="button"
-                aria-label="Salva e aggiungi promemoria"
-                disabled={saving}
-                onClick={() => void handleSaveBonus({ openReminder: true })}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10 disabled:opacity-60"
-              >
-                <Bell className="h-4 w-4" /> Salva + promemoria
-              </button>
-              <button
-                type="button"
                 disabled={saving}
                 onClick={() => void handleSaveBonus()}
-                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
@@ -1158,15 +1208,15 @@ export default function HomePage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-bonus-title"
-            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           >
             <h2
               id="delete-bonus-title"
-              className="text-[20px] font-bold text-neutral-900"
+              className="text-[20px] font-bold text-white"
             >
               Elimina bonus?
             </h2>
-            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+            <p className="mt-3 text-base leading-relaxed text-white/65">
               Sei sicuro di voler eliminare il bonus di{" "}
               <span className="font-semibold">
                 {deleteConfirm.nome.trim() || "(senza nome)"}
@@ -1196,7 +1246,7 @@ export default function HomePage() {
                   e.stopPropagation();
                   setDeleteConfirm(null);
                 }}
-                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary "
               >
                 Annulla
               </button>
@@ -1223,9 +1273,9 @@ export default function HomePage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="logout-confirm-title"
-            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           >
-            <h2 id="logout-confirm-title" className="text-[20px] font-bold text-neutral-900">
+            <h2 id="logout-confirm-title" className="text-[20px] font-bold text-white">
               Sei sicuro di voler uscire?
             </h2>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:justify-end">
@@ -1247,7 +1297,7 @@ export default function HomePage() {
                   e.stopPropagation();
                   setShowLogoutConfirm(false);
                 }}
-                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary "
               >
                 Annulla
               </button>

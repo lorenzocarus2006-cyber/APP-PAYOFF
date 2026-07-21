@@ -66,10 +66,10 @@ export default async function BonusDetailPage({
               {bonus.short}
             </span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+              <p className="page-eyebrow">
                 Riceventi
               </p>
-              <h1 className="text-2xl font-bold tracking-tight">{bonus.label}</h1>
+              <h1 className="page-title">{bonus.label}</h1>
             </div>
           </div>
 
@@ -116,7 +116,7 @@ export default async function BonusDetailPage({
               {savedLinks.map((link) => (
                 <li
                   key={link.id}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                  className="flex items-center gap-3 surface-card p-4"
                 >
                   <span
                     className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold text-white"

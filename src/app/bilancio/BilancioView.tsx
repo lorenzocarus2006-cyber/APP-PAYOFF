@@ -46,7 +46,7 @@ function HighlightCard({
     <Tag
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-transform ${
+      className={`flex items-center gap-3 surface-card p-4 text-left transition-transform ${
         onClick ? "active:scale-[0.97]" : ""
       }`}
     >
@@ -122,20 +122,20 @@ export default function BilancioView({
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+        <header className="flex items-start justify-between gap-3 surface-card p-5">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+            <h1 className="page-title">{title}</h1>
             <p className="mt-2 text-base text-white/70">{subtitle}</p>
           </div>
           {headerAction}
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         {loading || !overview ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+          <div className="surface-card p-6 text-white/70">
             Caricamento metriche...
           </div>
         ) : (

@@ -115,16 +115,16 @@ export default function LeadPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-6">
-        <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Lead</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Persone da contattare</h1>
+        <header className="overflow-hidden surface-card p-6">
+          <p className="page-eyebrow">Lead</p>
+          <h1 className="page-title mt-1">Persone da contattare</h1>
           <p className="mt-2 text-sm text-white/70">
             Persone potenziali non ancora salvate, da ricontattare per i bonus.
           </p>
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         <button
@@ -139,7 +139,7 @@ export default function LeadPage() {
         </button>
 
         {lastCreatedLead ? (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="flex items-center justify-between gap-3 surface-card p-4 text-white">
             <p className="min-w-0 flex-1 truncate text-sm text-white/70">
               Vuoi un promemoria per contattare{" "}
               <span className="font-semibold">{lastCreatedLead.label}</span>?
@@ -162,11 +162,11 @@ export default function LeadPage() {
 
         <section className="space-y-3">
           {loading ? (
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            <div className="surface-card p-6 text-base text-white/70">
               Caricamento lead...
             </div>
           ) : leads.length === 0 ? (
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            <div className="surface-card p-6 text-base text-white/70">
               Nessun lead salvato.
             </div>
           ) : (
@@ -179,7 +179,7 @@ export default function LeadPage() {
                 >
                   <Link
                     href={`/lead/${lead.id}`}
-                    className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-colors duration-200 active:scale-[0.98] hover:border-white/20 hover:bg-white/[0.07]"
+                    className="group flex items-center gap-4 surface-card p-4 transition-colors duration-200 active:scale-[0.98] hover:border-white/20 hover:bg-white/[0.07]"
                   >
                     <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10 text-base font-bold uppercase text-white">
                       {lead.nome.slice(0, 2)}
@@ -211,35 +211,35 @@ export default function LeadPage() {
       </main>
 
       {showModal ? (
-        <div className="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/40 backdrop-blur-sm">
-          <div className="min-h-[100dvh] w-full bg-[#11141C] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-2xl sm:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60 backdrop-blur-sm">
+          <div className="min-h-[100dvh] w-full bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[22px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
             <h2 className="mb-4 text-[24px] font-bold text-white">Nuovo lead</h2>
 
             <div className="space-y-4">
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Nome e Cognome *</span>
+                <span className="field-label">Nome e Cognome *</span>
                 <input
                   value={form.nome}
                   onChange={(event) => setForm((prev) => ({ ...prev, nome: event.target.value }))}
                   autoFocus
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Telefono</span>
+                <span className="field-label">Telefono</span>
                 <input
                   type="tel"
                   value={form.telefono}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, telefono: event.target.value }))
                   }
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none placeholder:text-white/50 focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Descrizione dello status</span>
+                <span className="field-label">Descrizione dello status</span>
                 <textarea
                   value={form.descrizione}
                   onChange={(event) =>
@@ -251,7 +251,7 @@ export default function LeadPage() {
               </label>
 
               <div className="space-y-2">
-                <span className="text-[13px] font-bold text-white">Bonus da fare</span>
+                <span className="field-label">Bonus da fare</span>
                 <div className="flex flex-wrap gap-2">
                   {platforms.map((platform) => {
                     const active = form.bonusInteresse.includes(platform.key);
@@ -291,7 +291,7 @@ export default function LeadPage() {
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
+                className="btn-secondary"
               >
                 Annulla
               </button>
@@ -308,7 +308,7 @@ export default function LeadPage() {
                 type="button"
                 disabled={saving || !form.nome.trim()}
                 onClick={() => void handleSave()}
-                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

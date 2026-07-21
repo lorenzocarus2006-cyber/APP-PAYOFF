@@ -64,9 +64,9 @@ export default function StoricoClient() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
       <main className="mx-auto w-full space-y-5">
-        <header className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+        <header className="flex items-start justify-between gap-3 surface-card p-5">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Storico 📜</h1>
+            <h1 className="page-title">Storico 📜</h1>
             <p className="mt-2 text-base text-white/70">Affiliati precedenti al 14/07/2026 (solo og)</p>
           </div>
           <Link
@@ -78,14 +78,14 @@ export default function StoricoClient() {
         </header>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         <section className="space-y-3">
           <button
             type="button"
             onClick={() => setShowRegistro((prev) => !prev)}
-            className="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] transition-colors hover:bg-white/15"
+            className="flex min-h-12 w-full items-center justify-between gap-3 surface-card px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-white/15"
           >
             <span className="flex items-center gap-2">
               📋 Registro Pagamenti
@@ -107,7 +107,7 @@ export default function StoricoClient() {
           </button>
 
           {showRegistro ? (
-            <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+            <div className="overflow-hidden surface-card">
               {payments.length === 0 ? (
                 <p className="p-5 text-sm text-white/60">Nessun pagamento nello storico.</p>
               ) : (
@@ -148,7 +148,7 @@ export default function StoricoClient() {
         <section className="space-y-3 pb-4">
           <h2 className="text-base font-semibold uppercase tracking-wide text-white/60">Affiliati</h2>
           {loading ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-white/70 shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+            <div className="surface-card p-6 text-white/70">
               Caricamento dati storici...
             </div>
           ) : (
@@ -159,7 +159,7 @@ export default function StoricoClient() {
                 return (
                   <li
                     key={summary.nome}
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+                    className="flex items-center gap-3 surface-card p-4"
                   >
                     <span
                       className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-sm font-bold"

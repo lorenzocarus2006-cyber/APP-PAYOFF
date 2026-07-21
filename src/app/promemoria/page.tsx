@@ -112,7 +112,7 @@ function ReminderCard({
     <button
       type="button"
       onClick={() => onOpen(reminder)}
-      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3.5 text-left shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-colors hover:bg-white/[0.07]"
+      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3.5 text-left transition-colors hover:bg-white/[0.07]"
       style={{ borderLeft: `3px solid ${borderColor}` }}
     >
       <div className="min-w-0 flex-1">
@@ -207,7 +207,7 @@ type LinkPickerProps = {
 function LinkPicker({ form, onFormChange, bonusMatches, leadMatches, platformColor }: LinkPickerProps) {
   return (
     <div className="space-y-2">
-      <span className="text-[13px] font-bold text-white">Collega a (opzionale)</span>
+      <span className="field-label">Collega a (opzionale)</span>
       <div className="flex gap-2">
         {(["none", "bonus", "lead"] as LinkMode[]).map((mode) => (
           <button
@@ -257,7 +257,7 @@ function LinkPicker({ form, onFormChange, bonusMatches, leadMatches, platformCol
               className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
             />
             {bonusMatches.length > 0 ? (
-              <div className="mt-1 max-h-48 overflow-y-auto rounded-[14px] border border-white/10 bg-[#11141C] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+              <div className="mt-1 max-h-48 overflow-y-auto rounded-[14px] border border-white/10 bg-[#0F1420] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                 {bonusMatches.map((b) => (
                   <button
                     key={b.id}
@@ -309,7 +309,7 @@ function LinkPicker({ form, onFormChange, bonusMatches, leadMatches, platformCol
               className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] py-3 pl-11 pr-4 text-[15px] font-semibold text-white outline-none placeholder:text-white/30 focus:border-white/30 focus:ring-2 focus:ring-white/10"
             />
             {leadMatches.length > 0 ? (
-              <div className="mt-1 max-h-48 overflow-y-auto rounded-[14px] border border-white/10 bg-[#11141C] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+              <div className="mt-1 max-h-48 overflow-y-auto rounded-[14px] border border-white/10 bg-[#0F1420] shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                 {leadMatches.map((l) => (
                   <button
                     key={l.id}
@@ -618,8 +618,8 @@ export default function PromemoriaPage() {
       <main className="mx-auto w-full space-y-6">
         <header className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Promemoria</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight">Calendario</h1>
+            <p className="page-eyebrow">Promemoria</p>
+            <h1 className="page-title mt-1">Calendario</h1>
           </div>
           <button
             type="button"
@@ -699,11 +699,11 @@ export default function PromemoriaPage() {
         ) : null}
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="surface-card p-6 text-base text-white/70">
             Caricamento promemoria...
           </div>
         ) : (
@@ -718,7 +718,7 @@ export default function PromemoriaPage() {
 
       {showCreate ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60">
-          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="min-h-[100dvh] w-full bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-xl font-bold text-white">
                 <Bell className="h-5 w-5" /> Nuovo promemoria
@@ -741,17 +741,17 @@ export default function PromemoriaPage() {
 
             <div className="space-y-4">
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Data *</span>
+                <span className="field-label">Data *</span>
                 <input
                   type="date"
                   value={form.data}
                   onChange={(event) => setForm((prev) => ({ ...prev, data: event.target.value }))}
-                  className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-[13px] font-bold text-white">Descrizione *</span>
+                <span className="field-label">Descrizione *</span>
                 <textarea
                   value={form.descrizione}
                   onChange={(event) => setForm((prev) => ({ ...prev, descrizione: event.target.value }))}
@@ -774,7 +774,7 @@ export default function PromemoriaPage() {
               <button
                 type="button"
                 onClick={closeCreate}
-                className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white"
+                className="btn-secondary"
               >
                 Annulla
               </button>
@@ -782,7 +782,7 @@ export default function PromemoriaPage() {
                 type="button"
                 disabled={saving || !form.data || !form.descrizione.trim()}
                 onClick={() => void handleCreate()}
-                className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
+                className="btn-primary w-full sm:w-auto"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
@@ -793,7 +793,7 @@ export default function PromemoriaPage() {
 
       {detail ? (
         <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/60">
-          <div className="min-h-[100dvh] w-full bg-[#0D1017] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          <div className="min-h-[100dvh] w-full bg-[#0F1420] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:mx-auto sm:my-4 sm:min-h-0 sm:max-w-[460px] sm:rounded-[20px] sm:border sm:border-white/10 sm:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white">
                 {editMode ? "Modifica promemoria" : "Promemoria"}
@@ -817,16 +817,16 @@ export default function PromemoriaPage() {
             {editMode ? (
               <div className="space-y-4">
                 <label className="block space-y-1">
-                  <span className="text-[13px] font-bold text-white">Data *</span>
+                  <span className="field-label">Data *</span>
                   <input
                     type="date"
                     value={editData}
                     onChange={(event) => setEditData(event.target.value)}
-                    className="min-h-12 w-full rounded-[14px] border border-white/10 bg-white/[0.06] px-4 py-[14px] text-[16px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10"
+                    className="field-input"
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-[13px] font-bold text-white">Descrizione *</span>
+                  <span className="field-label">Descrizione *</span>
                   <textarea
                     value={editDescrizione}
                     onChange={(event) => setEditDescrizione(event.target.value)}
@@ -840,7 +840,7 @@ export default function PromemoriaPage() {
                     type="button"
                     disabled={savingDetail}
                     onClick={() => setEditMode(false)}
-                    className="min-h-12 rounded-[14px] border border-white/10 bg-white/[0.04] px-5 py-3 text-base font-semibold text-white disabled:opacity-60"
+                    className="btn-secondary disabled:opacity-60"
                   >
                     Annulla
                   </button>
@@ -848,7 +848,7 @@ export default function PromemoriaPage() {
                     type="button"
                     disabled={savingDetail}
                     onClick={() => void handleSaveEdit()}
-                    className="min-h-14 w-full rounded-[14px] bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#2549b8] disabled:opacity-60 sm:w-auto"
+                    className="btn-primary w-full sm:w-auto"
                   >
                     {savingDetail ? "Salvataggio..." : "Salva modifiche"}
                   </button>
@@ -869,7 +869,7 @@ export default function PromemoriaPage() {
                 </div>
 
                 {detail.bonus ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <div className="surface-card p-4">
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-white/45">
                       Bonus collegato
                     </p>
@@ -899,7 +899,7 @@ export default function PromemoriaPage() {
                     </div>
                   </div>
                 ) : detail.lead ? (
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <div className="surface-card p-4">
                     <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-white/45">
                       Lead collegato
                     </p>
@@ -969,12 +969,12 @@ export default function PromemoriaPage() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-reminder-title"
-            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           >
-            <h2 id="delete-reminder-title" className="text-[20px] font-bold text-neutral-900">
+            <h2 id="delete-reminder-title" className="text-[20px] font-bold text-white">
               Eliminare il promemoria?
             </h2>
-            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+            <p className="mt-3 text-base leading-relaxed text-white/65">
               Questa azione non può essere annullata.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse sm:justify-end">
@@ -996,7 +996,7 @@ export default function PromemoriaPage() {
                   e.stopPropagation();
                   setDeleteId(null);
                 }}
-                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary "
               >
                 Annulla
               </button>

@@ -223,29 +223,29 @@ export default function PersonaPage() {
         </Link>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">{error}</div>
+          <div className="rounded-xl border border-red-500/25 bg-red-500/10 p-4 text-red-300">{error}</div>
         ) : null}
 
         {loading ? (
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="surface-card p-6 text-base text-white/70">
             Caricamento bonus in corso...
           </div>
         ) : notFoundError ? (
-          <div className="rounded-[20px] border border-white/10 bg-white/[0.04] p-6 text-base text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          <div className="surface-card p-6 text-base text-white/70">
             Nessun bonus trovato per &quot;{nome}&quot;.
           </div>
         ) : (
           <>
-            <header className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
+            <header className="overflow-hidden surface-card p-6">
               <div className="flex items-center gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-xl font-bold uppercase">
                   {nome.slice(0, 2)}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+                  <p className="page-eyebrow">
                     Profilo
                   </p>
-                  <h1 className="truncate text-2xl font-bold tracking-tight">{nome}</h1>
+                  <h1 className="page-title truncate">{nome}</h1>
                 </div>
               </div>
 
@@ -282,7 +282,7 @@ export default function PersonaPage() {
               {rows.map((row, index) => (
                 <li
                   key={row.id}
-                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] p-5 pt-12 text-white shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+                  className="relative animate-[fadeSlide_0.4s_ease_both] overflow-hidden surface-card p-5 pt-12 text-white"
                   style={{
                     animationDelay: `${index * 50}ms`,
                     borderLeft: `4px solid ${platformColor(row.piattaforma)}`,
@@ -302,6 +302,7 @@ export default function PersonaPage() {
                     <ReminderBellButton
                       link={{ type: "bonus", id: row.id }}
                       label={`${row.piattaforma || "Bonus"} · ${nome || "(senza nome)"}`}
+                      iconStyle="emoji"
                     />
                   </div>
 
@@ -317,12 +318,12 @@ export default function PersonaPage() {
                     </span>
                   </div>
 
-                  <p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-white/50">Data</p>
+                  <p className="mt-3 field-label">Data</p>
                   <p className="text-[15px] font-black text-white">{row.data || "—"}</p>
 
                   <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">STATO</span>
+                      <span className="field-label">STATO</span>
                       <div className="relative">
                         <span
                           className="pointer-events-none absolute left-4 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full"
@@ -337,7 +338,7 @@ export default function PersonaPage() {
                           className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] py-2.5 pl-9 pr-9 text-[15px] font-bold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                         >
                           {STATUSES.map((status) => (
-                            <option key={status} value={status} className="bg-[#11141C] text-white">
+                            <option key={status} value={status} className="bg-[#0F1420] text-white">
                               {status}
                             </option>
                           ))}
@@ -347,7 +348,7 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Ricevente</span>
+                      <span className="field-label">Ricevente</span>
                       <select
                         value={row.ricevente}
                         onChange={(event) =>
@@ -356,9 +357,9 @@ export default function PersonaPage() {
                         disabled={updatingKey === `${row.id}-ricevente`}
                         className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
-                        <option value="" className="bg-[#11141C] text-white">-</option>
+                        <option value="" className="bg-[#0F1420] text-white">-</option>
                         {RECEIVERS.map((option) => (
-                          <option key={option} value={option} className="bg-[#11141C] text-white">
+                          <option key={option} value={option} className="bg-[#0F1420] text-white">
                             {option}
                           </option>
                         ))}
@@ -366,7 +367,7 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">AFFILIATI</span>
+                      <span className="field-label">AFFILIATI</span>
                       <select
                         value={row.affiliati}
                         onChange={(event) =>
@@ -375,9 +376,9 @@ export default function PersonaPage() {
                         disabled={updatingKey === `${row.id}-affiliati`}
                         className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
-                        <option value="" className="bg-[#11141C] text-white">-</option>
+                        <option value="" className="bg-[#0F1420] text-white">-</option>
                         {affiliatiRoster.map((option) => (
-                          <option key={option} value={option} className="bg-[#11141C] text-white">
+                          <option key={option} value={option} className="bg-[#0F1420] text-white">
                             {option}
                           </option>
                         ))}
@@ -386,7 +387,7 @@ export default function PersonaPage() {
 
                     <label className="space-y-1 md:col-span-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">INFO</span>
+                        <span className="field-label">INFO</span>
                         {infoSavedRow === row.id ? (
                           <span className="text-sm font-semibold text-emerald-300">
                             ✓ Salvato
@@ -414,7 +415,7 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Bonus $</span>
+                      <span className="field-label">Bonus $</span>
                       <input
                         type="number"
                         value={row.bonus}
@@ -427,7 +428,7 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Spese</span>
+                      <span className="field-label">Spese</span>
                       <input
                         type="number"
                         value={row.spese}
@@ -440,7 +441,7 @@ export default function PersonaPage() {
                     </label>
 
                     <label className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wide text-white/50">Amazon</span>
+                      <span className="field-label">Amazon</span>
                       <input
                         type="number"
                         value={row.amazon}
@@ -467,9 +468,9 @@ export default function PersonaPage() {
             if (e.target === e.currentTarget && !deleting) setDeleteConfirm(null);
           }}
         >
-          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-[20px] font-bold text-neutral-900">Elimina bonus?</h2>
-            <p className="mt-3 text-base leading-relaxed text-neutral-700">
+          <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-[22px] border border-white/10 bg-[#0F1420] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+            <h2 className="text-[20px] font-bold text-white">Elimina bonus?</h2>
+            <p className="mt-3 text-base leading-relaxed text-white/65">
               Sei sicuro di voler eliminare il bonus su{" "}
               <span className="font-semibold">{deleteConfirm.piattaforma.trim() || "—"}</span>?
               Questa azione non può essere annullata.
@@ -493,7 +494,7 @@ export default function PersonaPage() {
                   e.stopPropagation();
                   setDeleteConfirm(null);
                 }}
-                className="min-h-12 rounded-xl bg-neutral-200 px-5 py-3 text-base font-bold text-neutral-800 disabled:opacity-60"
+                className="btn-secondary "
               >
                 Annulla
               </button>

@@ -79,7 +79,7 @@ export default function AddPlatformButton() {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#0F1420] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">Nuova tipologia di bonus</h2>
             <p className="mt-1 text-sm text-white/70">
@@ -94,40 +94,40 @@ export default function AddPlatformButton() {
 
             <div className="mt-5 space-y-4">
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Nome piattaforma</span>
+                <span className="field-label">Nome piattaforma</span>
                 <input
                   value={label}
                   onChange={(event) => setLabel(event.target.value)}
                   autoFocus
                   placeholder="Es. N26"
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Bonus totale</span>
+                <span className="field-label">Bonus totale</span>
                 <input
                   type="number"
                   value={bonus}
                   placeholder="0"
                   onChange={(event) => setBonus(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Spese</span>
+                <span className="field-label">Spese</span>
                 <input
                   type="number"
                   value={spese}
                   placeholder="0"
                   onChange={(event) => setSpese(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Buoni Amazon (opzionale)</span>
+                <span className="field-label">Buoni Amazon (opzionale)</span>
                 <input
                   type="number"
                   value={amazon}
@@ -139,7 +139,7 @@ export default function AddPlatformButton() {
                       void handleSave();
                     }
                   }}
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
             </div>
@@ -157,7 +157,7 @@ export default function AddPlatformButton() {
                 type="button"
                 disabled={saving || !label.trim()}
                 onClick={() => void handleSave()}
-                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>

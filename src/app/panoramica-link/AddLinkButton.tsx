@@ -60,7 +60,7 @@ export default function AddLinkButton({ platforms }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-lg font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-transform active:scale-[0.98]"
+        className="btn-primary w-full !min-h-14 text-lg"
       >
         ＋ Aggiungi link
       </button>
@@ -76,7 +76,7 @@ export default function AddLinkButton({ platforms }: Props) {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#11141C] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+            className="w-full max-w-sm rounded-2xl border border-white/20 bg-[#0F1420] p-6 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-xl font-bold text-white">Nuovo link</h2>
             <p className="mt-1 text-sm text-white/70">
@@ -91,14 +91,14 @@ export default function AddLinkButton({ platforms }: Props) {
 
             <div className="mt-5 space-y-4">
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Bonus / Piattaforma</span>
+                <span className="field-label">Bonus / Piattaforma</span>
                 <select
                   value={piattaforma}
                   onChange={(event) => setPiattaforma(event.target.value)}
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-select"
                 >
                   {platforms.map((option) => (
-                    <option key={option.key} value={option.key}>
+                    <option key={option.key} value={option.key} className="bg-[#0F1420] text-white">
                       {option.label}
                     </option>
                   ))}
@@ -106,13 +106,13 @@ export default function AddLinkButton({ platforms }: Props) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Intestatario</span>
+                <span className="field-label">Intestatario</span>
                 <input
                   value={intestatario}
                   onChange={(event) => setIntestatario(event.target.value)}
                   list="intestatario-suggerimenti"
                   placeholder="Nome intestatario"
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
                 <datalist id="intestatario-suggerimenti">
                   {RECEIVERS.map((option) => (
@@ -122,7 +122,7 @@ export default function AddLinkButton({ platforms }: Props) {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm text-white/80">Link o codice</span>
+                <span className="field-label">Link o codice</span>
                 <input
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
@@ -134,7 +134,7 @@ export default function AddLinkButton({ platforms }: Props) {
                   }}
                   autoFocus
                   placeholder="https://... oppure codice invito"
-                  className="min-h-12 w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2 text-base font-semibold text-white outline-none placeholder:text-white/40 focus:border-white/10 focus:ring-2 focus:ring-white/10"
+                  className="field-input"
                 />
               </label>
             </div>
@@ -152,7 +152,7 @@ export default function AddLinkButton({ platforms }: Props) {
                 type="button"
                 disabled={saving || !url.trim() || !intestatario.trim()}
                 onClick={() => void handleSave()}
-                className="min-h-12 flex-1 rounded-2xl bg-[#2D5BE3] px-5 py-3 text-base font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,0.2)] disabled:opacity-50"
+                className="btn-primary flex-1"
               >
                 {saving ? "Salvataggio..." : "Salva"}
               </button>
