@@ -38,6 +38,7 @@ export type ReceiverLinkDetail = {
   count: number;
   maxed: boolean;
   linkOCodice: string;
+  links: Array<{ id: number; url: string }>;
   soldiSulConto: number;
   soldiRitirati: number;
   soldiDaPrelevare: number;

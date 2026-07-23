@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { AFFILIATES, RECEIVERS, STATUSES } from "@/config/dropdowns";
 import { STATIC_PLATFORMS, buildPlatformColorMap, type PlatformConfig } from "@/config/platforms";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -60,12 +60,22 @@ const defaultForm: BonusFormState = {
 };
 
 export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageInner />
+    </Suspense>
+  );
+}
+
+function HomePageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [rows, setRows] = useState<BonusRecord[]>([]);
   const [query, setQuery] = useState("");
+  const [riceventeFilter, setRiceventeFilter] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<BonusFormState>(defaultForm);
   const [loadingRead, setLoadingRead] = useState(true);
@@ -177,13 +187,21 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const q = searchParams.get("q");
+    const ricevente = searchParams.get("ricevente");
+    if (q) setQuery(q);
+    if (ricevente) setRiceventeFilter(ricevente);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (!deleteToast) return;
     const id = window.setTimeout(() => setDeleteToast(false), 2000);
     return () => window.clearTimeout(id);
   }, [deleteToast]);
 
   const filtersActive =
-    platformFilter !== null || statusFilter !== null || sortMode !== null;
+    platformFilter !== null || statusFilter !== null || sortMode !== null || riceventeFilter !== "";
 
   const filteredRows = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -194,6 +212,10 @@ export default function HomePage() {
       result = result.filter((row) =>
         row.personaInvitata.toLowerCase().includes(term),
       );
+    }
+    if (riceventeFilter) {
+      const target = riceventeFilter.trim().toLowerCase();
+      result = result.filter((row) => row.ricevente.trim().toLowerCase() === target);
     }
     if (platformFilter) {
       result = result.filter((row) => row.piattaforma === platformFilter);
@@ -219,7 +241,7 @@ export default function HomePage() {
     }
 
     return result;
-  }, [rows, query, filtersActive, platformFilter, statusFilter, sortMode]);
+  }, [rows, query, filtersActive, riceventeFilter, platformFilter, statusFilter, sortMode]);
 
   const people = useMemo(() => {
     const map = new Map<

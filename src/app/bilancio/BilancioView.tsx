@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type {
   BilancioDetail,
   BilancioLiquiditaSummary,
@@ -10,7 +10,8 @@ import type {
 } from "@/lib/types";
 import BonusListModal from "./BonusListModal";
 import SummaryListModal from "./SummaryListModal";
-import { money, receiverGradient } from "./shared";
+import ReceiverCard from "./ReceiverCard";
+import { money } from "./shared";
 
 type BilancioViewProps = {
   overview: BilancioOverview | null;
@@ -127,6 +128,27 @@ export default function BilancioView({
   scope = "current",
 }: BilancioViewProps) {
   const [modal, setModal] = useState<ModalKind>(null);
+  const expandedStorageKey = `bilancio-expanded-cards-${scope}`;
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(expandedStorageKey);
+      if (raw) setExpandedCards(new Set(JSON.parse(raw) as string[]));
+    } catch {
+      // ignora storage non valido
+    }
+  }, [expandedStorageKey]);
+
+  function toggleCard(nome: string) {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(nome)) next.delete(nome);
+      else next.add(nome);
+      sessionStorage.setItem(expandedStorageKey, JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-transparent px-5 py-5 text-white">
@@ -267,22 +289,13 @@ export default function BilancioView({
           <SectionLabel>Schede per ricevente</SectionLabel>
           <div className="space-y-3">
             {riceventi.map((receiver) => (
-              <Link
+              <ReceiverCard
                 key={receiver.ricevente}
-                href={`/bilancio/ricevente/${encodeURIComponent(receiver.ricevente)}${
-                  scope === "storico" ? "?scope=storico" : ""
-                }`}
-                className="flex items-center justify-between rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98]"
-                style={{ background: receiverGradient(receiver.ricevente) }}
-              >
-                <div>
-                  <h3 className="text-xl font-extrabold text-white">{receiver.ricevente}</h3>
-                  <p className="mt-1 text-sm text-white/80">
-                    ✅ {money(receiver.total.arrivato)} · ⏳ {money(receiver.total.arrivo)}
-                  </p>
-                </div>
-                <span className="text-2xl text-white/80">›</span>
-              </Link>
+                receiver={receiver}
+                scope={scope}
+                expanded={expandedCards.has(receiver.ricevente)}
+                onToggle={() => toggleCard(receiver.ricevente)}
+              />
             ))}
           </div>
         </section>

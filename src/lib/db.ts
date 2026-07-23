@@ -493,7 +493,7 @@ export async function readRecipients(): Promise<Array<{ id: number; name: string
   const supabase = getSupabase();
   const [{ data: recipientRows, error: recipientError }, { data: linkRows, error: linkError }] =
     await Promise.all([
-      supabase.from("recipients").select("id,name").order("id", { ascending: true }),
+      supabase.from("recipients").select("id,name").eq("is_active", true).order("id", { ascending: true }),
       supabase.from("links").select("recipient_id"),
     ]);
   if (recipientError) throw new Error(recipientError.message);
@@ -516,6 +516,7 @@ async function readRecipientNamesByCreationOrder(): Promise<string[]> {
   const { data, error } = await supabase
     .from("recipients")
     .select("name")
+    .eq("is_active", true)
     .order("id", { ascending: true });
   if (error) throw new Error(error.message);
   return ((data as Array<{ name: string }> | null) ?? []).map((r) => r.name);
@@ -552,7 +553,12 @@ export async function upsertReceiverLinkValue(
   return insertLink({ piattaforma, intestatario, url, recipientId });
 }
 
-/** Per un bonus (piattaforma), elenco riceventi ATTIVI (con almeno un link) con dettagli completi. */
+/**
+ * Per un bonus (piattaforma), elenco riceventi con dettagli completi. Include sia i riceventi con
+ * almeno un bonus registrato, sia quelli che hanno SOLO un link salvato senza ancora un bonus —
+ * altrimenti quel link non comparirebbe in nessuna vista dopo la rimozione della sezione "Link
+ * salvati" (che mostrava tutti i link piatti, indipendentemente dai bonus).
+ */
 export async function getReceiverLinks(piattaformaUpper: string): Promise<ReceiverLinkDetail[]> {
   const [bonuses, savedLinks, meta, prelievi] = await Promise.all([
     readBonusRows(),
@@ -578,10 +584,15 @@ export async function getReceiverLinks(piattaformaUpper: string): Promise<Receiv
     acc.set(key, entry);
   }
 
-  const linkByReceiver = new Map<string, string>();
+  const linksByReceiver = new Map<string, Array<{ id: number; url: string }>>();
   for (const link of savedLinks) {
-    const key = link.intestatario.trim().toLowerCase();
-    if (!linkByReceiver.has(key)) linkByReceiver.set(key, link.url);
+    const nome = link.intestatario.trim();
+    if (!nome) continue;
+    const key = nome.toLowerCase();
+    if (!acc.has(key)) acc.set(key, { ricevente: nome, count: 0, soldiSulConto: 0 });
+    const list = linksByReceiver.get(key) ?? [];
+    list.push({ id: link.id, url: link.url });
+    linksByReceiver.set(key, list);
   }
 
   return [...acc.values()]
@@ -589,11 +600,13 @@ export async function getReceiverLinks(piattaformaUpper: string): Promise<Receiv
       const key = ricevente.toLowerCase();
       const receiverMeta = meta.get(key) ?? { maxed: false };
       const soldiRitirati = prelievi.get(prelievoRiferimento(piattaformaUpper, ricevente)) ?? 0;
+      const links = linksByReceiver.get(key) ?? [];
       return {
         ricevente,
         count,
         maxed: receiverMeta.maxed,
-        linkOCodice: linkByReceiver.get(key) ?? "",
+        linkOCodice: links[0]?.url ?? "",
+        links,
         soldiSulConto,
         soldiRitirati,
         soldiDaPrelevare: soldiSulConto - soldiRitirati,
@@ -816,6 +829,19 @@ export async function insertLink(payload: {
       url: payload.url || null,
       recipient_id: recipientId,
     })
+    .select("id,piattaforma,intestatario,url,created_at")
+    .single();
+  if (error) throw new Error(error.message);
+  return mapLink(data as LinkRow);
+}
+
+/** Elimina un singolo link per id. Non tocca mai il ricevente collegato, anche se era il suo unico link. */
+export async function deleteLink(id: number): Promise<SavedLink> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("links")
+    .delete()
+    .eq("id", id)
     .select("id,piattaforma,intestatario,url,created_at")
     .single();
   if (error) throw new Error(error.message);

@@ -3,6 +3,7 @@ import type { BilancioReceiverStats } from "@/lib/types";
 export type ReceiverBonusRow = {
   id: number;
   piattaforma: string;
+  personaInvitata: string;
   stato: string;
   bonus: number;
   netto: number;
