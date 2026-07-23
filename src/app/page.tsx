@@ -88,6 +88,7 @@ export default function HomePage() {
   const [sortMode, setSortMode] = useState<SortMode>(null);
   const [affiliatiRoster, setAffiliatiRoster] = useState<string[]>([...AFFILIATES]);
   const [platforms, setPlatforms] = useState<PlatformConfig[]>(STATIC_PLATFORMS);
+  const [receivers, setReceivers] = useState<string[]>([...RECEIVERS]);
 
   const bonusValue = Number(form.bonus || 0);
   const speseValue = Number(form.spese || 0);
@@ -157,6 +158,20 @@ export default function HomePage() {
         }
       } catch {
         // mantiene il fallback STATIC_PLATFORMS
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/recipients/read", { cache: "no-store" });
+        const data = (await res.json()) as { recipients?: Array<{ name: string }> };
+        if (res.ok && data.recipients?.length) {
+          setReceivers(data.recipients.map((r) => r.name));
+        }
+      } catch {
+        // mantiene il fallback RECEIVERS
       }
     })();
   }, []);
@@ -825,7 +840,7 @@ export default function HomePage() {
                       className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                     >
                       <option value="" className="bg-[#0F1420] text-white">-</option>
-                      {RECEIVERS.map((option) => (
+                      {receivers.map((option) => (
                         <option key={option} value={option} className="bg-[#0F1420] text-white">
                           {option}
                         </option>
@@ -1025,7 +1040,7 @@ export default function HomePage() {
                   className="field-input"
                 >
                   <option value="">-</option>
-                  {RECEIVERS.map((option) => (
+                  {receivers.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>

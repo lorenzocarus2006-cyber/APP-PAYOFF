@@ -18,9 +18,9 @@ export async function POST(request: Request) {
     const intestatario = body.intestatario?.trim() ?? "";
     const url = body.url?.trim() ?? "";
 
-    if (!piattaforma || !intestatario || !url) {
+    if (!piattaforma || !intestatario) {
       return NextResponse.json(
-        { error: "Piattaforma, intestatario e link sono obbligatori." },
+        { error: "Piattaforma e intestatario sono obbligatori." },
         { status: 400 },
       );
     }

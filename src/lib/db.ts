@@ -458,6 +458,69 @@ export async function upsertReceiverMeta(payload: {
   }
 }
 
+type RecipientRow = { id: number; name: string };
+
+/**
+ * Trova (case/whitespace-insensitive) il ricevente esistente o lo crea. Punto unico di scrittura:
+ * l'insert-poi-conflitto (unique index su lower(btrim(name))) garantisce che un nome già
+ * esistente non possa MAI generare un secondo ricevente, indipendentemente dal chiamante.
+ */
+export async function findOrCreateRecipient(name: string): Promise<number> {
+  const clean = name.trim();
+  if (!clean) throw new Error("Nome ricevente obbligatorio.");
+  const supabase = getSupabase();
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("recipients")
+    .insert({ name: clean })
+    .select("id")
+    .single();
+  if (!insertError) return (inserted as RecipientRow).id;
+  if (insertError.code !== "23505") throw new Error(insertError.message);
+
+  const { data: existing, error: findError } = await supabase
+    .from("recipients")
+    .select("id")
+    .ilike("name", clean)
+    .maybeSingle();
+  if (findError) throw new Error(findError.message);
+  if (!existing) throw new Error("Ricevente non trovato dopo conflitto di unicità.");
+  return (existing as RecipientRow).id;
+}
+
+/** Elenco riceventi (tabella condivisa `recipients`) con conteggio link, ordinati alfabeticamente. */
+export async function readRecipients(): Promise<Array<{ id: number; name: string; linkCount: number }>> {
+  const supabase = getSupabase();
+  const [{ data: recipientRows, error: recipientError }, { data: linkRows, error: linkError }] =
+    await Promise.all([
+      supabase.from("recipients").select("id,name").order("id", { ascending: true }),
+      supabase.from("links").select("recipient_id"),
+    ]);
+  if (recipientError) throw new Error(recipientError.message);
+  if (linkError) throw new Error(linkError.message);
+
+  const counts = new Map<number, number>();
+  for (const row of (linkRows as Array<{ recipient_id: number | null }> | null) ?? []) {
+    if (row.recipient_id == null) continue;
+    counts.set(row.recipient_id, (counts.get(row.recipient_id) ?? 0) + 1);
+  }
+
+  return ((recipientRows as RecipientRow[] | null) ?? [])
+    .map((r) => ({ id: r.id, name: r.name, linkCount: counts.get(r.id) ?? 0 }))
+    .sort((a, b) => a.name.localeCompare(b.name, "it", { sensitivity: "base" }));
+}
+
+/** Riceventi in ordine di creazione (preserva l'ordine storico delle card di Bilancio). */
+async function readRecipientNamesByCreationOrder(): Promise<string[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("recipients")
+    .select("name")
+    .order("id", { ascending: true });
+  if (error) throw new Error(error.message);
+  return ((data as Array<{ name: string }> | null) ?? []).map((r) => r.name);
+}
+
 /** Trova (se esiste) il link/codice salvato per intestatario+piattaforma e lo aggiorna, altrimenti lo crea. */
 export async function upsertReceiverLinkValue(
   piattaforma: string,
@@ -465,6 +528,7 @@ export async function upsertReceiverLinkValue(
   url: string,
 ): Promise<SavedLink> {
   const supabase = getSupabase();
+  const recipientId = await findOrCreateRecipient(intestatario);
   const { data: existing, error: findError } = await supabase
     .from("links")
     .select("id,piattaforma,intestatario,url,created_at")
@@ -478,14 +542,14 @@ export async function upsertReceiverLinkValue(
   if (existing) {
     const { data, error } = await supabase
       .from("links")
-      .update({ url })
+      .update({ url, recipient_id: recipientId })
       .eq("id", (existing as LinkRow).id)
       .select("id,piattaforma,intestatario,url,created_at")
       .single();
     if (error) throw new Error(error.message);
     return mapLink(data as LinkRow);
   }
-  return insertLink({ piattaforma, intestatario, url });
+  return insertLink({ piattaforma, intestatario, url, recipientId });
 }
 
 /** Per un bonus (piattaforma), elenco riceventi ATTIVI (con almeno un link) con dettagli completi. */
@@ -543,34 +607,12 @@ export async function readBilancioStats(scope: DataScope = "current"): Promise<{
   riceventi: BilancioReceiverStats[];
   detail: BilancioDetail;
 }> {
-  const [bonuses, affiliateRates, links, customPlatforms] = await Promise.all([
+  const [bonuses, affiliateRates, customPlatforms, receiverList] = await Promise.all([
     readBonusRows(scope),
     readAffiliateRates(),
-    readLinks(),
     readCustomPlatforms(),
+    readRecipientNamesByCreationOrder(),
   ]);
-
-  const baseReceivers = [
-    "Lori",
-    "Diego",
-    "Cusi",
-    "Ludovica",
-    "Rubi",
-    "MATTIA RUSSO",
-    "Luca pietra",
-    "Alessia longo",
-  ];
-  const knownReceiversLower = new Set(baseReceivers.map((name) => name.toLowerCase()));
-  const extraReceivers: string[] = [];
-  for (const link of links) {
-    const nome = link.intestatario.trim();
-    if (!nome) continue;
-    const lower = nome.toLowerCase();
-    if (knownReceiversLower.has(lower)) continue;
-    knownReceiversLower.add(lower);
-    extraReceivers.push(nome);
-  }
-  const receiverList = [...baseReceivers, ...extraReceivers];
   const fullPlatformList = [
     "COINBASE",
     "BUDDYBANK",
@@ -762,14 +804,17 @@ export async function insertLink(payload: {
   piattaforma: string;
   intestatario: string;
   url: string;
+  recipientId?: number;
 }): Promise<SavedLink> {
   const supabase = getSupabase();
+  const recipientId = payload.recipientId ?? (await findOrCreateRecipient(payload.intestatario));
   const { data, error } = await supabase
     .from("links")
     .insert({
       piattaforma: payload.piattaforma,
       intestatario: payload.intestatario,
-      url: payload.url,
+      url: payload.url || null,
+      recipient_id: recipientId,
     })
     .select("id,piattaforma,intestatario,url,created_at")
     .single();

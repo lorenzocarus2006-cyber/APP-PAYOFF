@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { readCustomPlatforms, readPlatformStats } from "@/lib/db";
+import { readCustomPlatforms, readPlatformStats, readRecipients } from "@/lib/db";
 import { mergePlatforms } from "@/config/platforms";
 import AddLinkButton from "./AddLinkButton";
 import AddPlatformButton from "./AddPlatformButton";
@@ -7,9 +7,10 @@ import AddPlatformButton from "./AddPlatformButton";
 export const dynamic = "force-dynamic";
 
 export default async function PanoramicaLinkPage() {
-  const [customPlatforms, platformStats] = await Promise.all([
+  const [customPlatforms, platformStats, recipients] = await Promise.all([
     readCustomPlatforms(),
     readPlatformStats(),
+    readRecipients(),
   ]);
   const platforms = mergePlatforms(customPlatforms);
   const statsByKey = new Map(platformStats.map((s) => [s.key, s]));
@@ -25,7 +26,7 @@ export default async function PanoramicaLinkPage() {
   return (
     <div className="min-h-screen bg-transparent px-5 py-6 text-white">
       <main className="mx-auto w-full space-y-6">
-        <AddLinkButton platforms={platforms} />
+        <AddLinkButton platforms={platforms} recipients={recipients} />
 
         <header className="overflow-hidden surface-card p-6">
           <p className="page-eyebrow">

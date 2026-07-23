@@ -50,6 +50,7 @@ export default function PersonaPage() {
   const [infoDrafts, setInfoDrafts] = useState<Record<number, string>>({});
   const [infoSavedRow, setInfoSavedRow] = useState<number | null>(null);
   const [affiliatiRoster, setAffiliatiRoster] = useState<string[]>([...AFFILIATES]);
+  const [receivers, setReceivers] = useState<string[]>([...RECEIVERS]);
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirm | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -100,6 +101,20 @@ export default function PersonaPage() {
         if (res.ok && data.roster?.length) setAffiliatiRoster(data.roster);
       } catch {
         // mantiene il fallback AFFILIATES
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/recipients/read", { cache: "no-store" });
+        const data = (await res.json()) as { recipients?: Array<{ name: string }> };
+        if (res.ok && data.recipients?.length) {
+          setReceivers(data.recipients.map((r) => r.name));
+        }
+      } catch {
+        // mantiene il fallback RECEIVERS
       }
     })();
   }, []);
@@ -358,7 +373,7 @@ export default function PersonaPage() {
                         className="min-h-12 w-full appearance-none rounded-[14px] border border-white/10 bg-white/[0.06] px-3 py-2 text-[15px] font-semibold text-white outline-none focus:border-white/30 focus:ring-2 focus:ring-white/10 disabled:opacity-60"
                       >
                         <option value="" className="bg-[#0F1420] text-white">-</option>
-                        {RECEIVERS.map((option) => (
+                        {receivers.map((option) => (
                           <option key={option} value={option} className="bg-[#0F1420] text-white">
                             {option}
                           </option>

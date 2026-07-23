@@ -128,14 +128,18 @@ export default async function BonusDetailPage({
                     <p className="truncate text-sm font-semibold text-white">
                       {link.intestatario}
                     </p>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-0.5 block truncate text-xs text-white/60 underline decoration-white/30 hover:text-white"
-                    >
-                      {link.url}
-                    </a>
+                    {link.url ? (
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-0.5 block truncate text-xs text-white/60 underline decoration-white/30 hover:text-white"
+                      >
+                        {link.url}
+                      </a>
+                    ) : (
+                      <p className="mt-0.5 text-xs italic text-white/40">Nessun link</p>
+                    )}
                   </div>
                 </li>
               ))}
